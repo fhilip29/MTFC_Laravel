@@ -1,113 +1,56 @@
-<header class="p-5 flex justify-between w-full relative z-10">
-    {{-- Left side: Logo and Nav Links --}}
-    <div class="flex">
-        <a href="/">
-            <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="object-cover" height="60" width="100">
+<header class="bg-black text-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+        <!-- Logo -->
+        <a href="/" class="flex items-center space-x-2">
+            <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="w-24 h-12 object-cover">
+            <span class="font-bold text-xl tracking-wide hidden sm:inline">ActiveGym</span>
         </a>
 
-        <nav class="ml-10">
-            <ul class="flex space-x-6 text-zinc-50 font-semibold">
-                <li><a href="{{ route('home') }}" class="relative group hover:scale-105 transition-transform">Home
-                    <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-200 mt-5"></span>
-                </a></li>
-                <li><a href="{{ route('about') }}" class="relative group hover:scale-105 transition-transform">About
-                    <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-200 mt-5"></span>
-                </a></li>
-                <li><a href="{{ route('classes') }}" class="relative group hover:scale-105 transition-transform">Classes
-                    <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-200 mt-5"></span>
-                </a></li>
-                <li><a href="{{ route('trainer') }}" class="relative group hover:scale-105 transition-transform">Trainer
-                    <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-200 mt-5"></span>
-                </a></li>
-                <li><a href="{{ route('pricing') }}" class="relative group hover:scale-105 transition-transform">Pricing
-                    <span class="absolute left-0 bottom-0 w-0 h-[2px] bg-red-500 group-hover:w-full transition-all duration-200 mt-5"></span>
-                </a></li>
-            </ul>
+        <!-- Navigation -->
+        <nav class="hidden md:flex space-x-6 font-medium">
+            <a href="{{ route('home') }}" class="hover:text-red-500 transition">Home</a>
+            <a href="{{ route('about') }}" class="hover:text-red-500 transition">About</a>
+            <a href="{{ route('classes') }}" class="hover:text-red-500 transition">Classes</a>
+            <a href="{{ route('trainer') }}" class="hover:text-red-500 transition">Trainer</a>
+            <a href="{{ route('pricing') }}" class="hover:text-red-500 transition">Pricing</a>
         </nav>
-    </div>
 
-    {{-- Right side: Auth Buttons & User Dropdown --}}
-    <nav>
-        <ul class="flex items-center space-x-4 text-zinc-50">
+        <!-- Right section -->
+        <div class="flex items-center space-x-4">
             @guest
-                <li>
-                    <a href="{{ route('login') }}" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 flex items-center space-x-2">
-                        <i class="fa-solid fa-lock"></i>
-                        <span>Login</span>
-                    </a>
-                </li>
+                <a href="{{ route('login') }}" class="bg-red-500 hover:bg-red-600 transition px-4 py-2 rounded text-white text-sm font-semibold">
+                    <i class="fa-solid fa-lock mr-1"></i> Login
+                </a>
             @else
-                {{-- Cart & Notification --}}
-                <li>
-                    <button @click="$dispatch('toggle-cart')" class="text-white hover:text-gray-300">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                    </button>
-                </li>
-                <li>
-                    <a href="{{ route('notifications') }}" class="text-white hover:text-gray-300">
-                        <i class="fa-solid fa-bell"></i>
-                    </a>
-                </li>
+                <a href="#" class="hover:text-red-400"><i class="fa-solid fa-cart-shopping text-lg"></i></a>
+                <a href="{{ route('notifications') }}" class="hover:text-red-400"><i class="fa-solid fa-bell text-lg"></i></a>
 
-                {{-- Profile Dropdown --}}
-                <li x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="text-white hover:text-gray-300">
-                        <i class="fa-solid fa-user"></i>
+                <!-- Profile Dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center focus:outline-none">
+                        <img src="{{ Auth::user()->profile_url ?? asset('assets/default-profile.png') }}" class="w-8 h-8 rounded-full border-2 border-red-500">
                     </button>
-
-                    {{-- Dropdown Menu --}}
-                    <div x-show="open" @click.outside="open = false"
-                         class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg text-black text-xs z-50 p-2">
-                        <div class="flex flex-col items-center pb-2 border-b">
-                            <img src="{{ Auth::user()->profile_url ?? asset('assets/default-profile.png') }}"
-                                 alt="Profile"
-                                 class="rounded-full w-12 h-12 object-cover mb-2">
-                            <span>Hello, <b>{{ Auth::user()->full_name ?? 'User' }}</b></span>
+                    <div x-show="open" @click.outside="open = false" class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg z-50 p-3">
+                        <p class="text-sm font-semibold mb-2">Hello, {{ Auth::user()->full_name ?? 'User' }}</p>
+                        <hr>
+                        <div class="mt-2 space-y-1 text-sm">
+                            @if (Auth::user()->user_type === 'admin')
+                                <a href="{{ route('admin.dashboard') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Admin Panel</a>
+                            @endif
+                            <a href="{{ route('profile.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
+                            @if (Auth::user()->user_type !== 'admin')
+                                <a href="{{ Auth::user()->user_type === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
+                                <a href="{{ route('community') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Community</a>
+                                <a href="{{ route('orders') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Orders</a>
+                            @endif
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button class="w-full text-left hover:bg-gray-100 px-2 py-1 rounded">Logout</button>
+                            </form>
                         </div>
-
-                        @if (Auth::user()->user_type === 'admin')
-                            <a href="{{ route('admin.dashboard') }}"
-                               class="flex items-center p-2 hover:bg-gray-100 mt-2 space-x-2">
-                                <i class="fa-solid fa-cog text-gray-500"></i>
-                                <span>Admin Panel</span>
-                            </a>
-                        @endif
-
-                        <a href="{{ route('profile.settings') }}"
-                           class="flex items-center p-2 hover:bg-gray-100 space-x-2">
-                            <i class="fa-solid fa-user-cog text-gray-500"></i>
-                            <span>Account Settings</span>
-                        </a>
-
-                        @if (Auth::user()->user_type !== 'admin')
-                            <a href="{{ Auth::user()->user_type === 'trainer' ? route('trainer.profile') : route('profile') }}"
-                               class="flex items-center p-2 hover:bg-gray-100 space-x-2">
-                                <i class="fa-solid fa-user-shield text-gray-500"></i>
-                                <span>My Profile</span>
-                            </a>
-                            <a href="{{ route('community') }}"
-                               class="flex items-center p-2 hover:bg-gray-100 space-x-2">
-                                <i class="fa-solid fa-dashcube text-gray-500"></i>
-                                <span>Community Dashboard</span>
-                            </a>
-                            <a href="{{ route('orders') }}"
-                               class="flex items-center p-2 hover:bg-gray-100 space-x-2">
-                                <i class="fa-solid fa-cart-shopping text-gray-500"></i>
-                                <span>My Orders</span>
-                            </a>
-                        @endif
-
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit"
-                                    class="w-full text-left flex items-center p-2 hover:bg-gray-100 space-x-2 mt-2">
-                                <i class="fa-solid fa-sign-out-alt text-gray-500"></i>
-                                <span>Log out</span>
-                            </button>
-                        </form>
                     </div>
-                </li>
+                </div>
             @endguest
-        </ul>
-    </nav>
+        </div>
+    </div>
 </header>

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,10 +15,10 @@
 </head>
 <body>
 
-@include('partials.header')
+@include('components.header')
 
 <!-- Hero Section -->
-<section class="hero" style="background-image: url('{{ asset('images/home/hero.jpg') }}');">
+<section class="hero" style="background-image: url('{{ asset('assets/hero.jpg') }}');">
     <div class="hero-overlay"></div>
     <div class="hero-content">
         <h1>Manila Total Fitness Center:</h1>
@@ -27,40 +29,14 @@
     </div>
 </section>
 
-<!-- Products Section (Moved Up Below Hero) -->
-<section class="products" data-animate>
-    <h2>Preview of Available Products ⚡</h2>
-    <div class="products-container">
-        <div class="product-item">
-            <img src="{{ asset('admin/images/products_img/shoes.png') }}" alt="Shoes">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('admin/images/products_img/product_shirt.jpg') }}" alt="Shirt">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('admin/images/products_img/product_cap.jpg') }}" alt="Cap">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('admin/images/products_img/product_gloves.jpg') }}" alt="Gloves">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('admin/images/products_img/OIP.jpg') }}" alt="Other Product">
-            <p></p>
-        </div>
-    </div>
-    <button class="products-button">Browse Products</button>
-</section>
+
 
 <!-- Community Dashboard Section -->
 <section class="community-dashboard" data-animate>
     <h2>Community Dashboard</h2>
     <div class="dashboard-container">
         <div class="dashboard-image">
-            <img src="{{ asset('images/home/dashboard.png') }}" alt="Community">
+            <img src="{{ asset('assets/dashboard.png') }}" alt="Community">
         </div>
         <div class="dashboard-content">
             <div class="message">
@@ -89,11 +65,39 @@
     <div class="about-container"> 
         <p>Manila Total Fitness Center is dedicated to helping you achieve a healthier, stronger lifestyle. With top-notch equipment, expert guidance, and a supportive community, we empower you to reach your fitness goals and embrace wellness as a way of life.</p>
         <div class="about-images">
-            <img src="{{ asset('images/home/about_1.jpg') }}" alt="Fitness Image 1">
-            <img src="{{ asset('images/home/about_2.jpg') }}" alt="Fitness Image 2">
+            <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1">
+            <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2">
         </div>
         <button class="about-button">Learn more</button>
     </div>
+</section>
+
+<!-- Products Section (Moved Up Below Hero) -->
+<section class="products" data-animate>
+    <h2>Available Products</h2>
+    <div class="products-container">
+        <div class="product-item">
+            <img src="{{ asset('assets/Product2_MTFC.jpg') }}" alt="Shoes">
+            <p></p>
+        </div>
+        <div class="product-item">
+            <img src="{{ asset('assets/Product3_MTFC.jpg') }}" alt="Shirt">
+            <p></p>
+        </div>
+        <div class="product-item">
+            <img src="{{ asset('assets/Product4_MTFC.jpg') }}" alt="Cap">
+            <p></p>
+        </div>
+        <div class="product-item">
+            <img src="{{ asset('assets/Product5_MTFC.jpg') }}" alt="Gloves">
+            <p></p>
+        </div>
+        <div class="product-item">
+            <img src="{{ asset('assets/Product5_MTFC.jpg') }}" alt="Other Product">
+            <p></p>
+        </div>
+    </div>
+    <button class="products-button">Browse Products</button>
 </section>
 
 <!-- Scripts -->
@@ -144,7 +148,8 @@
     });
 </script>
 
-@include('partials.footer')
+@include('components.footer')
 
 </body>
 </html>
+

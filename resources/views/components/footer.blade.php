@@ -1,77 +1,42 @@
-@php
-    $user = Auth::user();
-    $hideFooter = request()->is('profile*') || ($user && $user->user_type === 'admin');
-@endphp
-
-@if (!$hideFooter)
-<footer>
-    <div class="w-full h-[313px] border-t text-black flex flex-row px-10 items-center mt-auto">
-        <div class="flex flex-col items-start w-full">
-            <img
-                src="{{ asset('assets/logo.png') }}"
-                alt="Logo"
-                class="object-cover"
-                style="height: 60px; width: 100px;"
-            />
-
-            <div class="text-[15px] mt-16" style="font-family: Inter, sans-serif;">
-                <p>&copy; 2024.</p>
-                <p>All rights reserved. ActiveGym.</p>
-                <div class="flex flex-row mt-5 space-x-8">
-                    <a href="{{ url('/terms') }}" class="no-underline text-black font-normal">Terms of Use</a>
-                    <a href="{{ url('/privacypolicy') }}" class="no-underline text-black font-normal">Privacy Policy</a>
-                </div>
+<footer class="bg-black text-white py-12 border-t border-gray-700">
+    <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
+        <!-- Logo & Info -->
+        <div>
+            <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="w-24 h-12 mb-4">
+            <p class="text-sm text-gray-400">&copy; 2024 ActiveGym. All rights reserved.</p>
+            <div class="mt-2 text-sm space-x-4">
+                <a href="/terms" class="hover:underline">Terms</a>
+                <a href="/privacypolicy" class="hover:underline">Privacy</a>
             </div>
         </div>
 
-        <div class="flex flex-row space-x-10 justify-evenly w-full">
-            <div class="flex flex-col justify-start">
-                <h2 class="font-bold text-[15px]">LOCATION</h2>
-                <div class="mt-3">
-                    <p class="font-normal">
-                        Adamson University <br />
-                        900 San Marcelino St., Ermita, <br />
-                        Manila 1000
-                    </p>
-                </div>
-                <div class="mt-3">
-                    <p>+639 27 xxx xxxx</p>
-                </div>
-                <div class="mt-3">
-                    <p>fhilipkr.lorenzo@adamson.edu.ph</p>
-                </div>
-            </div>
-
-            <div class="flex flex-col justify-start">
-                <h2 class="font-bold text-[15px]">QUICK LINKS</h2>
-                <div class="flex flex-col items-center justify-center space-y-3 mt-3">
-                    <a href="{{ url('/') }}" class="no-underline text-black font-normal">Home</a>
-                    <a href="{{ url('/about') }}" class="no-underline text-black font-normal">About</a>
-                    <a href="{{ url('/classes') }}" class="no-underline text-black font-normal">Classes</a>
-                    <a href="{{ url('/trainer') }}" class="no-underline text-black font-normal">Trainer</a>
-                    <a href="{{ url('/pricing') }}" class="no-underline text-black font-normal">Pricing</a>
-                </div>
-            </div>
+        <!-- Location -->
+        <div>
+            <h3 class="text-lg font-semibold mb-2">Location</h3>
+            <p class="text-sm">Adamson University</p>
+            <p class="text-sm">900 San Marcelino St., Ermita, Manila 1000</p>
+            <p class="text-sm">+639 27 xxx xxxx</p>
+            <p class="text-sm">fhilipkr.lorenzo@adamson.edu.ph</p>
         </div>
 
-        <div class="flex flex-row w-full justify-center mb-16 self-end space-x-2">
-            <a href="https://www.facebook.com/profile.php?id=100064094075912" target="_blank" rel="noopener noreferrer">
-                <img
-                    src="{{ asset('assets/fb.png') }}"
-                    alt="Facebook Logo"
-                    class="object-cover"
-                    style="height: 33px; width: 34px;"
-                />
-            </a>
-            <a href="https://www.instagram.com/manilatotalfc?igsh=ZWhoeWphanZtdDFw" target="_blank" rel="noopener noreferrer">
-                <img
-                    src="{{ asset('assets/ig.png') }}"
-                    alt="Instagram Logo"
-                    class="object-cover"
-                    style="height: 33px; width: 34px;"
-                />
-            </a>
+        <!-- Links + Social -->
+        <div>
+            <h3 class="text-lg font-semibold mb-2">Quick Links</h3>
+            <ul class="space-y-1 text-sm">
+                <li><a href="/" class="hover:underline">Home</a></li>
+                <li><a href="/about" class="hover:underline">About</a></li>
+                <li><a href="/classes" class="hover:underline">Classes</a></li>
+                <li><a href="/trainer" class="hover:underline">Trainer</a></li>
+                <li><a href="/pricing" class="hover:underline">Pricing</a></li>
+            </ul>
+            <div class="flex space-x-3 mt-4">
+                <a href="https://www.facebook.com/profile.php?id=100064094075912" target="_blank">
+                    <img src="{{ asset('assets/fb.png') }}" alt="FB" class="w-8 h-8 hover:opacity-80">
+                </a>
+                <a href="https://www.instagram.com/manilatotalfc?igsh=ZWhoeWphanZtdDFw" target="_blank">
+                    <img src="{{ asset('assets/ig.png') }}" alt="IG" class="w-8 h-8 hover:opacity-80">
+                </a>
+            </div>
         </div>
     </div>
 </footer>
-@endif

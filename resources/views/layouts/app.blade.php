@@ -2,31 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>MTFC</title>
-    <meta name="description" content="sample description">
+    <title>ActiveGym</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Include fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Geist&family=Geist+Mono&display=swap" rel="stylesheet">
-    
-    <!-- Your global CSS (like globals.css) -->
+    <!-- Fonts & CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Geist&display=swap" rel="stylesheet">
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/uploadthing.css') }}" rel="stylesheet">
 
-    @vite(['resources/js/app.js']) <!-- If using Vite with Laravel -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="antialiased overflow-x-hidden font-sans">
+<body class="antialiased font-sans overflow-x-hidden bg-white text-black flex flex-col min-h-screen">
 
-    @include('components.client-header')
+    @include('components.header')
+
+    <!-- Optional: Add modals like cart/profile -->
     @include('components.cart-drawer')
     @include('components.my-profile-modal')
     @include('components.view-product-modal')
 
-    <main>
+    <main class="flex-grow">
         @yield('content')
     </main>
 
-    @include('components.delayed-footer')
+    @include('components.footer')
 
 </body>
 </html>

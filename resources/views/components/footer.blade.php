@@ -1,8 +1,8 @@
-<footer class="bg-black text-white py-12 border-t border-gray-700">
+<footer class="bg-[#ABA9A9] text-white py-12 border-t border-gray-700">
     <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-10">
         <!-- Logo & Info -->
         <div>
-            <img src="{{ asset('assets/logo.png') }}" alt="Logo" class="w-24 h-12 mb-4">
+        <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="Logo" class="w-50 h-12 object-cover">
             <p class="text-sm text-gray-400">&copy; 2024 ActiveGym. All rights reserved.</p>
             <div class="mt-2 text-sm space-x-4">
                 <a href="/terms" class="hover:underline">Terms</a>

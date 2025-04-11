@@ -1,9 +1,15 @@
+{{-- resources/views/about.blade.php --}}
+@extends('layouts.app')
+
+@section('title', 'About Us')
+
+@section('content')
 <section class="bg-gray-100">
     <div class="w-full mx-auto">
         <!-- Banner -->
         <div class="relative text-white text-center">
             <img src="{{ asset('assets/about1.jpg') }}" alt="Fitness Training" class="w-full h-[300px] object-cover">
-            <div class="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 p-4 px-36">
+            <div class="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 p-4 md:px-36">
                 <p class="uppercase tracking-wide text-sm">Manila Total Fitness Center</p>
                 <h2 class="text-3xl font-bold">OUR MISSION IS TO</h2>
                 <h2 class="text-3xl font-bold">HELP YOU SUCCEED.</h2>
@@ -11,7 +17,7 @@
         </div>
 
         <!-- About Us & Community -->
-        <div class="flex px-8 md:px-36 py-12 gap-12">
+        <div class="flex flex-col md:flex-row px-6 md:px-36 py-12 gap-12">
             <div class="w-full md:w-2/3 space-y-10 text-justify">
                 <!-- About Us -->
                 <div>
@@ -37,14 +43,14 @@
             </div>
 
             <!-- Image Aside -->
-            <div class="flex-1 mt-12 md:mt-28">
+            <div class="w-full md:w-1/3 mt-8 md:mt-24">
                 <img src="{{ asset('assets/about2.jpg') }}" alt="Gym" class="w-full h-auto rounded-xl shadow-lg">
             </div>
         </div>
 
         <!-- Map Section -->
-        <div class="flex px-8 md:px-36 py-12 mt-14 bg-gray-200 gap-12">
-            <div class="flex-1">
+        <div class="flex flex-col md:flex-row px-6 md:px-36 py-12 mt-14 bg-gray-200 gap-12">
+            <div class="w-full md:w-1/2">
                 <!-- Google Map Embed -->
                 <div class="w-full h-[450px] rounded-xl shadow-lg overflow-hidden">
                     <iframe
@@ -59,12 +65,15 @@
                 </div>
             </div>
 
-            <div class="flex-1">
-                <h2 class="text-2xl font-bold">Come Visit Us</h2>
-                <p class="text-lg font-semibold mt-10">3rd Floor YMCA Bldg. 350</p>
-                <p class="text-lg font-semibold">Villegas St. Ermita</p>
-                <p class="text-lg font-semibold">Manila, Philippines</p>
+            <div class="w-full md:w-1/2">
+                <h2 class="text-2xl font-bold text-gray-800">Come Visit Us</h2>
+                <div class="mt-6 space-y-2 text-lg font-semibold text-gray-700">
+                    <p>3rd Floor YMCA Bldg. 350</p>
+                    <p>Villegas St. Ermita</p>
+                    <p>Manila, Philippines</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
+@endsection

@@ -1,26 +1,22 @@
+<!-- resources/views/layouts/app.blade.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ActiveGym</title>
+    <title>@yield('title', 'ActiveGym')</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ✅ Tailwind CSS CDN (Quick Fix) -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Fonts & CSS -->
-    <link href="https://fonts.googleapis.com/css2?family=Geist&display=swap" rel="stylesheet">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- ✅ Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="antialiased font-sans overflow-x-hidden bg-white text-black flex flex-col min-h-screen">
+<body class="bg-gray-100 text-gray-900">
 
     @include('components.header')
 
-    <!-- Optional: Add modals like cart/profile -->
-    @include('components.cart-drawer')
-    @include('components.my-profile-modal')
-    @include('components.view-product-modal')
-
-    <main class="flex-grow">
+    <main>
         @yield('content')
     </main>
 

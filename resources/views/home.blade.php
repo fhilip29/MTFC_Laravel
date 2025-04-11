@@ -1,5 +1,7 @@
 
+@extends('layouts.app')
 
+@section('title', 'Home')
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +17,7 @@
 </head>
 <body>
 
-@include('components.header')
+@section('content')
 
 <!-- Hero Section -->
 <section class="hero" style="background-image: url('{{ asset('assets/hero.jpg') }}');">
@@ -148,7 +150,7 @@
     });
 </script>
 
-@include('components.footer')
+@endsection
 
 </body>
 </html>

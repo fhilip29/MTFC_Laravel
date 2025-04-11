@@ -24,6 +24,10 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
+Route::get('/tailwind-test', function () {
+    return view('tailwind-test');
+});
+
 // 👇 Add these dummy routes so your header/footer doesn't crash
 Route::view('/about', 'about')->name('about');
 Route::view('/classes', 'classes')->name('classes');

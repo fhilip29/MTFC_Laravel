@@ -11,8 +11,8 @@
         <nav class="hidden md:flex justify-center flex-1 space-x-6 font-medium">
             <a href="{{ route('home') }}" class="text-black font-bold hover:text-red-500 transition">Home</a>
             <a href="{{ route('about') }}" class="text-black font-bold hover:text-red-500 transition">About</a>
-            <a href="{{ route('trainer') }}" class="text-black font-bold hover:text-red-500 transition">Trainers</a>
-            <a href="{{ route('pricing') }}" class="text-black font-bold hover:text-red-500 transition">Pricing</a>
+            <a href="{{ route('trainers') }}" class="text-black font-bold hover:text-red-500 transition">Trainers</a>
+            <a href="{{ route('pricing.gym') }}" class="text-black font-bold hover:text-red-500 transition">Pricing</a>
             <a href="{{ route('shop') }}" class="text-black font-bold hover:text-red-500 transition">Shop</a>
             <a href="{{ route('contact') }}" class="text-black font-bold hover:text-red-500 transition">Contact Us</a>
         </nav>
@@ -36,10 +36,10 @@
 
         <!-- Right: User/Profile Area -->
         <div class="absolute right-5 flex justify-end items-center space-x-4 w-1/3 min-w-[200px]">
-            <button class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
+            <a href="{{ route('notifications') }}" class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            </a>
 
             <button id="cartButton" class="right- text-gray-600 hover:text-black focus:outline-none">
                 <i class="fas fa-shopping-cart text-xl"></i>
@@ -91,7 +91,7 @@
      class="md:hidden bg-white px-5 pt-4 pb-6 space-y-2 font-medium">
     <a href="{{ route('home') }}" class="block text-black hover:text-red-500 transition">Home</a>
     <a href="{{ route('about') }}" class="block text-black hover:text-red-500 transition">About</a>
-    <a href="{{ route('trainer') }}" class="block text-black hover:text-red-500 transition">Trainers</a>
+    <a href="{{ route('trainers') }}" class="block text-black hover:text-red-500 transition">Trainers</a>
     <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 transition">Pricing</a>
     <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 transition">Shop</a>
     <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 transition">Contact Us</a>

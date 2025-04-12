@@ -4,73 +4,74 @@
 @section('title', 'About Us')
 
 @section('content')
-<section class="bg-gray-100">
-    <div class="w-full mx-auto">
-        <!-- Banner -->
-        <div class="relative text-white text-center">
-            <img src="{{ asset('assets/about1.jpg') }}" alt="Fitness Training" class="w-full h-[300px] object-cover">
-            <div class="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 p-4 md:px-36">
-                <p class="uppercase tracking-wide text-sm">Manila Total Fitness Center</p>
-                <h2 class="text-3xl font-bold">OUR MISSION IS TO</h2>
-                <h2 class="text-3xl font-bold">HELP YOU SUCCEED.</h2>
+<section class="bg-white">
+    <!-- Banner Section -->
+    <div class="relative text-white">
+        <img src="{{ asset('assets/BG_GYM.jpg') }}" alt="Fitness Training" class="w-full h-[320px] object-cover brightness-75">
+        <div class="absolute inset-0 flex flex-col justify-center items-center px-4 md:px-36 text-center">
+            <p class="uppercase tracking-widest text-sm md:text-base text-gray-300 animate-fade-in">Manila Total Fitness Center</p>
+            <h1 class="text-4xl md:text-5xl font-extrabold mt-2 animate-slide-in">OUR MISSION IS TO</h1>
+            <h1 class="text-4xl md:text-5xl font-extrabold animate-slide-in">HELP YOU SUCCEED.</h1>
+        </div>
+    </div>
+
+    <!-- About and Community Section -->
+    <div class="px-6 md:px-36 py-16 flex flex-col md:flex-row gap-12">
+        <!-- Text Content -->
+        <div class="md:w-2/3 space-y-12 text-justify animate-fade-in">
+            <!-- About Us -->
+            <div>
+                <h2 class="text-2xl md:text-3xl font-bold text-black border-b-4 border-blue-600 pb-2 inline-block">About Us</h2>
+                <p class="text-gray-800 mt-4 leading-relaxed">
+                    Manila Total Fitness Center is the perfect place for all your fitness needs. We offer a wide range of programs suitable for everyone, regardless of fitness level or interest. Our modern gym is fully equipped with the latest strength and cardio equipment.
+                </p>
+                <p class="text-gray-800 mt-4 leading-relaxed">
+                    Passionate about martial arts? We have expert instructors in boxing, taekwondo, BJJ, and more. With personalized support from our trainers, you'll enhance your skills, build confidence, and achieve your fitness goals—whether it's muscle gain, weight loss, or self-defense.
+                </p>
+            </div>
+
+            <!-- Community -->
+            <div>
+                <h2 class="text-2xl md:text-3xl font-bold text-black border-b-4 border-blue-600 pb-2 inline-block">Community</h2>
+                <p class="text-gray-800 mt-4 leading-relaxed">
+                    Manila Total Fitness isn't just a gym—it's a strong community dedicated to holistic health and personal growth. We unite individuals pursuing physical, mental, and emotional wellness.
+                </p>
+                <p class="text-gray-800 mt-4 leading-relaxed">
+                    Our foundation is built on support, empowerment, and a shared journey toward better living. Whether you're just starting out or a seasoned athlete, you'll find a place to belong and thrive here.
+                </p>
             </div>
         </div>
 
-        <!-- About Us & Community -->
-        <div class="flex flex-col md:flex-row px-6 md:px-36 py-12 gap-12">
-            <div class="w-full md:w-2/3 space-y-10 text-justify">
-                <!-- About Us -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800">About Us:</h3>
-                    <p class="text-gray-700 mt-4">
-                        Manila Total Fitness Center is the perfect place for all your fitness needs. We provide a wide variety of programs suitable for everyone, no matter their fitness level or interests. Our modern gym is filled with the latest equipment for strength and cardio workouts.
-                    </p>
-                    <p class="text-gray-700 mt-2">
-                        If you’re interested in martial arts, we have skilled instructors teaching boxing, taekwondo, BJJ, and much more. Our knowledgeable trainers offer personalized support to help you enhance your skills, get fit, and gain confidence. Whether you want to build muscle, lose weight, or learn self-defense, Manila Total Fitness Center has what you need to reach your goals.
-                    </p>
-                </div>
-
-                <!-- Community -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800">Community:</h3>
-                    <p class="text-gray-700 mt-4">
-                        Manila Total Fitness is more than just a gym—it’s a thriving community in Metro Manila committed to holistic health and well-being. We bring together people looking to improve their fitness, wellness, and mindset.
-                    </p>
-                    <p class="text-gray-700 mt-2">
-                        Our community is built on connection, empowerment, and personal growth, ensuring an environment where every individual can thrive. Whether you’re an experienced athlete or new to fitness, our community creates a welcoming space for all.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Image Aside -->
-            <div class="w-full md:w-1/3 mt-8 md:mt-24">
-                <img src="{{ asset('assets/about2.jpg') }}" alt="Gym" class="w-full h-auto rounded-xl shadow-lg">
-            </div>
+        <!-- Image -->
+        <div class="md:w-1/3 flex justify-center items-center mt-6 md:mt-24 animate-slide-in">
+            <img src="{{ asset('assets/about_3.jpg') }}" alt="Gym" class="w-full h-auto rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300">
         </div>
+    </div>
 
-        <!-- Map Section -->
-        <div class="flex flex-col md:flex-row px-6 md:px-36 py-12 mt-14 bg-gray-200 gap-12">
-            <div class="w-full md:w-1/2">
-                <!-- Google Map Embed -->
-                <div class="w-full h-[450px] rounded-xl shadow-lg overflow-hidden">
-                    <iframe
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.1790663571073!2d120.97751048432549!3d14.588870141015025!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ca21f18a1789%3A0x5e2b67a947ccb95e!2sYMCA%20of%20Manila!5e0!3m2!1sen!2sph!4v1743879656062!5m2!1sen!2sph"
-                        width="100%"
-                        height="100%"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy"
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
+    <!-- Visit Us Section -->
+    <div class="bg-gradient-to-br from-blue-50 to-white py-16 px-6 md:px-36 animate-fade-in">
+        <div class="flex flex-col md:flex-row gap-12">
+            <!-- Google Map -->
+            <div class="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-lg">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.1790663571073!2d120.97751048432549!3d14.588870141015025!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ca21f18a1789%3A0x5e2b67a947ccb95e!2sYMCA%20of%20Manila!5e0!3m2!1sen!2sph!4v1743879656062!5m2!1sen!2sph"
+                    width="100%"
+                    height="450"
+                    style="border:0;"
+                    allowfullscreen=""
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    class="w-full h-full">
+                </iframe>
             </div>
 
-            <div class="w-full md:w-1/2">
-                <h2 class="text-2xl font-bold text-gray-800">Come Visit Us</h2>
-                <div class="mt-6 space-y-2 text-lg font-semibold text-gray-700">
-                    <p>3rd Floor YMCA Bldg. 350</p>
-                    <p>Villegas St. Ermita</p>
-                    <p>Manila, Philippines</p>
+            <!-- Address Info -->
+            <div class="w-full md:w-1/2 flex flex-col justify-center">
+                <h2 class="text-3xl font-bold text-black mb-6">Come Visit Us</h2>
+                <div class="space-y-2 text-lg text-gray-800 font-medium">
+                    <p><i class="fas fa-map-marker-alt mr-2 text-red-600"></i>3rd Floor YMCA Bldg. 350</p>
+                    <p><i class="fas fa-map-pin mr-2 text-red-600"></i>Villegas St. Ermita</p>
+                    <p><i class="fas fa-location-arrow mr-2 text-red-600"></i>Manila, Philippines</p>
                 </div>
             </div>
         </div>

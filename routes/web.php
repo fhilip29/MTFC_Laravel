@@ -24,16 +24,32 @@ Route::get('/about', function () {
     return view('about');
 })->name('about');
 
-Route::get('/tailwind-test', function () {
-    return view('tailwind-test');
+
+Route::get('/contact', function () {
+    return view('contact');
 });
+
+Route::get('/shop', function () {
+    return view('shop');
+})->name('shop');
+
+Route::get('/notifications', function () {
+    return view('notifications');
+})->name('notifications');
+
+//pricing routes
+Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
+Route::view('/pricing/boxing', 'pricing.boxing')->name('pricing.boxing');
+Route::view('/pricing/muay', 'pricing.muay')->name('pricing.muay');
+Route::view('/pricing/jiu', 'pricing.jiu')->name('pricing.jiu');
 
 // 👇 Add these dummy routes so your header/footer doesn't crash
 Route::view('/about', 'about')->name('about');
+Route::view('/trainers', 'trainers')->name('trainers');
 Route::view('/shop', 'shop')->name('shop');
 Route::view('/contact', 'contact')->name('contact');
 Route::view('/cart', 'cart')->name('cart');
-Route::view('/trainer', 'trainer')->name('trainer');
+
 Route::view('/pricing', 'pricing')->name('pricing');
 Route::view('/notifications', 'notifications')->name('notifications');
 Route::view('/terms', 'terms')->name('terms');

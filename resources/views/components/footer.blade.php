@@ -21,7 +21,7 @@
 
         <!-- Links + Social -->
         <div>
-            <h3 class="right-5 text-black text-lg font-semibold mb-2">Links</h3>
+            <h3 class="right-5 text-black text-lg font-semibold mb-2">Quick Links</h3>
             <ul class="space-y-1 text-sm">
                 <li><a href="/" class="hover:underline text-black ">Home</a></li>
                 <li><a href="/about" class="hover:underline text-black ">About</a></li>

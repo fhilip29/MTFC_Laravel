@@ -1,9 +1,9 @@
-<header class="bg-[#ABA9A9] text-white shadow-md">
+<header x-data="{ mobileMenuOpen: false }" class="bg-white text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <!-- Left: Logo -->
-        <div class="flex items-center w-1/3 min-w-[180px]">
+        <div class="absolute left-5 flex w-1/3 min-w-[200px]">
             <a href="/" class="flex items-center space-x-2">
-                <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="Logo" class=" h-12 object-contain">
+                <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="Logo" class="h-12 object-contain">
             </a>
         </div>
 
@@ -11,22 +11,45 @@
         <nav class="hidden md:flex justify-center flex-1 space-x-6 font-medium">
             <a href="{{ route('home') }}" class="text-black font-bold hover:text-red-500 transition">Home</a>
             <a href="{{ route('about') }}" class="text-black font-bold hover:text-red-500 transition">About</a>
-            <a href="{{ route('classes') }}" class="text-black font-bold hover:text-red-500 transition">Classes</a>
-            <a href="{{ route('trainer') }}" class="text-black font-bold hover:text-red-500 transition">Trainer</a>
+            <a href="{{ route('trainer') }}" class="text-black font-bold hover:text-red-500 transition">Trainers</a>
             <a href="{{ route('pricing') }}" class="text-black font-bold hover:text-red-500 transition">Pricing</a>
+            <a href="{{ route('shop') }}" class="text-black font-bold hover:text-red-500 transition">Shop</a>
+            <a href="{{ route('contact') }}" class="text-black font-bold hover:text-red-500 transition">Contact Us</a>
         </nav>
 
+        <!-- Mobile Burger (only shown on small screens) -->
+        <div class="md:hidden absolute right-20 top-5 z-50">
+    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-black focus:outline-none p-2 rounded-md hover:bg-gray-100">
+        <svg x-show="!mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+        <svg x-show="mobileMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+             viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+</div>
+
+
         <!-- Right: User/Profile Area -->
-        <div class="flex justify-end items-center space-x-4 w-1/3 min-w-[180px]">
+        <div class="absolute right-5 flex justify-end items-center space-x-4 w-1/3 min-w-[200px]">
+            <button class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
+                <i class="fas fa-bell text-xl"></i>
+                <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button id="cartButton" class="right- text-gray-600 hover:text-black focus:outline-none">
+                <i class="fas fa-shopping-cart text-xl"></i>
+            </button>
+
             @guest
                 <a href="{{ route('login') }}" class="bg-red-500 hover:bg-red-600 transition px-4 py-2 rounded text-white text-sm font-semibold">
                     <i class="fa-solid fa-lock mr-1"></i> Login
                 </a>
             @else
-                <a href="#" class="hover:text-red-400"><i class="fa-solid fa-cart-shopping text-lg"></i></a>
-                <a href="{{ route('notifications') }}" class="hover:text-red-400"><i class="fa-solid fa-bell text-lg"></i></a>
-
-                <!-- Profile Dropdown -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center focus:outline-none">
                         <img src="{{ Auth::user()->profile_url ?? asset('assets/default-profile.png') }}"
@@ -56,4 +79,22 @@
             @endguest
         </div>
     </div>
+
+    <!-- Mobile Dropdown Navigation -->
+<div x-show="mobileMenuOpen" x-cloak
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0 -translate-y-2"
+     x-transition:enter-end="opacity-100 translate-y-0"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100 translate-y-0"
+     x-transition:leave-end="opacity-0 -translate-y-2"
+     class="md:hidden bg-white px-5 pt-4 pb-6 space-y-2 font-medium">
+    <a href="{{ route('home') }}" class="block text-black hover:text-red-500 transition">Home</a>
+    <a href="{{ route('about') }}" class="block text-black hover:text-red-500 transition">About</a>
+    <a href="{{ route('trainer') }}" class="block text-black hover:text-red-500 transition">Trainers</a>
+    <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 transition">Pricing</a>
+    <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 transition">Shop</a>
+    <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 transition">Contact Us</a>
+</div>
+
 </header>

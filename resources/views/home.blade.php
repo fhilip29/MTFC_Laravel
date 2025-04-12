@@ -14,6 +14,8 @@
 
     <!-- Custom Home CSS -->
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
+     <!-- SwiperJS CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 </head>
 <body>
 
@@ -74,32 +76,94 @@
     </div>
 </section>
 
-<!-- Products Section (Moved Up Below Hero) -->
-<section class="products" data-animate>
-    <h2>Available Products</h2>
-    <div class="products-container">
-        <div class="product-item">
-            <img src="{{ asset('assets/Product2_MTFC.jpg') }}" alt="Shoes">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('assets/Product3_MTFC.jpg') }}" alt="Shirt">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('assets/Product4_MTFC.jpg') }}" alt="Cap">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('assets/Product5_MTFC.jpg') }}" alt="Gloves">
-            <p></p>
-        </div>
-        <div class="product-item">
-            <img src="{{ asset('assets/Product5_MTFC.jpg') }}" alt="Other Product">
-            <p></p>
+
+<!-- Products Section (Carousel) -->
+@php
+        $products = [
+            [
+                'name' => 'Resistance Bands',
+                'price' => 499,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Resistance+Bands',
+            ],
+            [
+                'name' => 'Yoga Mat',
+                'price' => 699,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Yoga+Mat',
+            ],
+            [
+                'name' => 'Dumbbells Set',
+                'price' => 1999,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Dumbbells+Set',
+            ],
+            [
+                'name' => 'Pull-up Bar',
+                'price' => 999,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Pull-up+Bar',
+            ],
+            [
+                'name' => 'Kettlebell',
+                'price' => 849,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Kettlebell',
+            ],
+            [
+                'name' => 'Protein Shaker',
+                'price' => 349,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Protein+Shaker',
+            ],
+            [
+                'name' => 'Treadmill',
+                'price' => 25999,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Treadmill',
+            ],
+            [
+                'name' => 'Stationary Bike',
+                'price' => 18999,
+                'imgUrl' => 'https://via.placeholder.com/150?text=Stationary+Bike',
+            ],
+        ];
+
+        $chunks = collect($products)->chunk(4);
+    @endphp
+    <section class="bg-[#121212] products-section py-16 " data-animate>
+    <div class=" container my-10">
+        <h2 class="text-2xl font-bold mb-4 text-center">Top Rated Products</h2>
+
+        <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @foreach ($chunks as $chunkIndex => $chunk)
+                    <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
+                        <div class=" d-flex justify-content-center gap-4 px-4">
+                            @foreach ($chunk as $product)
+                                <div class=" card text-center " style="width: 16rem;">
+                                    <img src="{{ $product['imgUrl'] }}" class="card-img-top" alt="{{ $product['name'] }}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ $product['name'] }}</h5>
+                                        <p class="card-text font-semibold">₱{{ number_format($product['price'], 2) }}</p>
+                                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <button class="carousel-control-prev" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon"></span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon"></span>
+            </button>
         </div>
     </div>
-    <button class="products-button">Browse Products</button>
+
+    </section>
+
+        <!-- Swiper Pagination & Navigation -->
+        <div class="swiper-pagination mt-4"></div>
+        <div class="swiper-button-prev"></div>
+        <div class="swiper-button-next"></div>
+    </div>
 </section>
 
 <!-- Scripts -->
@@ -147,6 +211,31 @@
 
     document.querySelector('.products-button').addEventListener('click', () => {
         window.location.href = '{{ url("products") }}';
+    });
+
+    const swiper = new Swiper('.swiper-container', {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        loop: true,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        breakpoints: {
+            640: {
+                slidesPerView: 1.5,
+            },
+            768: {
+                slidesPerView: 2,
+            },
+            1024: {
+                slidesPerView: 3,
+            }
+        }
     });
 </script>
 

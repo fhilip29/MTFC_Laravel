@@ -30,7 +30,9 @@ Route::get('/tailwind-test', function () {
 
 // 👇 Add these dummy routes so your header/footer doesn't crash
 Route::view('/about', 'about')->name('about');
-Route::view('/classes', 'classes')->name('classes');
+Route::view('/shop', 'shop')->name('shop');
+Route::view('/contact', 'contact')->name('contact');
+Route::view('/cart', 'cart')->name('cart');
 Route::view('/trainer', 'trainer')->name('trainer');
 Route::view('/pricing', 'pricing')->name('pricing');
 Route::view('/notifications', 'notifications')->name('notifications');

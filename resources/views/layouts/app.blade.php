@@ -90,7 +90,7 @@
             <span>Total Price:</span>
             <span>₱1000</span>
         </div>
-        <button class="w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition">Proceed to Checkout</button>
+        <a href="{{ route('checkout') }}" class="block w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition text-center">Proceed to Checkout</a>
     </div>
 </div>
 

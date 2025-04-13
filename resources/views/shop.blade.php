@@ -4,6 +4,44 @@
 <!-- Add Font Awesome CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<!-- Product Detail Modal -->
+<div x-data="{ showModal: false, product: null }" x-cloak>
+    <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-50"></div>
+            <div class="relative bg-white rounded-lg max-w-2xl w-full mx-auto shadow-lg">
+                <!-- Modal header -->
+                <div class="flex items-center justify-between p-4 border-b">
+                    <h3 class="text-xl font-semibold" x-text="product?.name"></h3>
+                    <button @click="showModal = false" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <!-- Modal body -->
+                <div class="p-6">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="md:w-1/2">
+                            <img :src="product?.image" :alt="product?.name" class="w-full h-64 object-cover rounded-lg">
+                        </div>
+                        <div class="md:w-1/2 space-y-4">
+                            <p class="text-2xl font-bold text-red-600" x-text="'₱' + product?.price"></p>
+                            <p class="text-gray-600" x-text="product?.description"></p>
+                            <div class="space-y-2">
+                                <h4 class="font-semibold">Specifications:</h4>
+                                <ul class="list-disc list-inside text-gray-600" x-html="product?.specifications"></ul>
+                            </div>
+                            <button class="w-full bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Add to Cart</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Hero Section -->
 <section class="relative w-full h-[400px] overflow-hidden">
     <!-- Background image with overlay -->
@@ -37,7 +75,14 @@
                                     <h3 class="text-md font-semibold mb-1">Dumbbells Set</h3>
                                     <p class="text-gray-600 text-sm mb-2">5-50 lbs</p>
                                     <div class="flex justify-between items-center">
-                                        <button class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                        <button @click="showModal = true; product = {
+                                            name: 'Dumbbells Set',
+                                            price: '1000',
+                                            image: '{{ asset('assets/Product2_MTFC.jpg') }}',
+                                            description: 'Professional grade dumbbells perfect for home or gym use. Featuring ergonomic handles and durable construction.',
+                                            specifications: '<li>Weight Range: 5-50 lbs</li><li>Material: Cast Iron with Rubber Coating</li><li>Knurled Chrome Handles</li><li>Hexagonal Design</li>'
+                                        }" 
+                                        class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -78,7 +123,14 @@
                                     <h3 class="text-md font-semibold mb-1">MTFC T-Shirt</h3>
                                     <p class="text-gray-600 text-sm mb-2">Various Sizes</p>
                                     <div class="flex justify-between items-center">
-                                        <button class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                        <button @click="showModal = true; product = {
+                                            name: 'MTFC T-Shirt',
+                                            price: '500',
+                                            image: '{{ asset('assets/Product3_MTFC.jpg') }}',
+                                            description: 'High-quality gym t-shirt made from moisture-wicking material. Perfect for workouts and casual wear.',
+                                            specifications: '<li>Material: 100% Polyester</li><li>Moisture-wicking Technology</li><li>Available Sizes: S, M, L, XL</li><li>Machine Washable</li>'
+                                        }" 
+                                        class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -119,7 +171,14 @@
                                     <h3 class="text-md font-semibold mb-1">Pre-Workout</h3>
                                     <p class="text-gray-600 text-sm mb-2">30 Servings</p>
                                     <div class="flex justify-between items-center">
-                                        <button class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                        <button @click="showModal = true; product = {
+                                            name: 'Pre-Workout',
+                                            price: '1500',
+                                            image: '{{ asset('assets/Product4_MTFC.jpg') }}',
+                                            description: 'Advanced pre-workout formula designed to enhance energy, focus, and performance during your training sessions.',
+                                            specifications: '<li>30 Servings per Container</li><li>Caffeine Content: 200mg per serving</li><li>Sugar-free Formula</li><li>Key Ingredients: Beta-Alanine, Creatine, L-Citrulline</li>'
+                                        }" 
+                                        class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-4 py-2 rounded-full border border-red-600 hover:bg-red-50 transition-all">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -147,8 +206,6 @@
         </div>
     </div>
 </section>
-            
-            </section>
 
 <!-- Carousel JavaScript -->
 <script>

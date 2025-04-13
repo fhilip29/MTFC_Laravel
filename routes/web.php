@@ -57,7 +57,7 @@ Route::view('/trainers', 'trainers')->name('trainers');
 Route::view('/shop', 'shop')->name('shop');
 Route::view('/contact', 'contact')->name('contact');
 Route::view('/cart', 'cart')->name('cart');
-
+Route::view('/checkout', 'checkout')->name('checkout');
 Route::view('/pricing', 'pricing')->name('pricing');
 Route::view('/notifications', 'notifications')->name('notifications');
 Route::view('/terms', 'terms')->name('terms');

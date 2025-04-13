@@ -8,13 +8,13 @@
         </div>
 
         <!-- Middle: Navigation -->
-        <nav class="hidden md:flex justify-center flex-1 space-x-6 font-medium">
-            <a href="{{ route('home') }}" class="text-black font-bold hover:text-red-500 transition">Home</a>
-            <a href="{{ route('about') }}" class="text-black font-bold hover:text-red-500 transition">About</a>
-            <a href="{{ route('trainers') }}" class="text-black font-bold hover:text-red-500 transition">Trainers</a>
-            <a href="{{ route('pricing.gym') }}" class="text-black font-bold hover:text-red-500 transition">Pricing</a>
-            <a href="{{ route('shop') }}" class="text-black font-bold hover:text-red-500 transition">Shop</a>
-            <a href="{{ route('contact') }}" class="text-black font-bold hover:text-red-500 transition">Contact Us</a>
+        <nav class="hidden md:flex justify-center flex-1 space-x-6 font-medium z-10 relative">
+            <a href="{{ route('home') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Home</a>
+            <a href="{{ route('about') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">About</a>
+            <a href="{{ route('trainers') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Trainers</a>
+            <a href="{{ route('pricing.gym') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Pricing</a>
+            <a href="{{ route('shop') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Shop</a>
+            <a href="{{ route('contact') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Contact Us</a>
         </nav>
 
         <!-- Mobile Burger (only shown on small screens) -->
@@ -89,12 +89,12 @@
      x-transition:leave-start="opacity-100 translate-y-0"
      x-transition:leave-end="opacity-0 -translate-y-2"
      class="md:hidden bg-white px-5 pt-4 pb-6 space-y-2 font-medium">
-    <a href="{{ route('home') }}" class="block text-black hover:text-red-500 transition">Home</a>
-    <a href="{{ route('about') }}" class="block text-black hover:text-red-500 transition">About</a>
-    <a href="{{ route('trainers') }}" class="block text-black hover:text-red-500 transition">Trainers</a>
-    <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 transition">Pricing</a>
-    <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 transition">Shop</a>
-    <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 transition">Contact Us</a>
+    <a href="{{ route('home') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Home</a>
+    <a href="{{ route('about') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">About</a>
+    <a href="{{ route('trainers') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Trainers</a>
+    <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Pricing</a>
+    <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Shop</a>
+    <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Contact Us</a>
 </div>
 
 </header>

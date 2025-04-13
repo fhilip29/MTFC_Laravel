@@ -124,7 +124,7 @@
         $chunks = collect($products)->chunk(4);
     @endphp
 <div class="bg-[#121212] mb-0 pb-16">
-    <section class="products-section py-16 pb-16" data-animate>
+    <section class="products-section py-16 pb-16" data-animate x-data="{ modalOpen: false, activeProduct: null }">
     <div class="container mx-auto my-10">
         <h2 class="text-center mb-8">Top Rated Products</h2>
 
@@ -140,7 +140,7 @@
                                         <h3 class="text-md font-semibold mb-1">{{ $product['name'] }}</h3>
                                         <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product['price'], 2) }}</p>
                                         <div class="flex justify-between items-center">
-                                            <button class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                            <button @click="modalOpen = true; activeProduct = {name: '{{ $product['name'] }}', price: '{{ number_format($product['price'], 2) }}', imgUrl: '{{ $product['imgUrl'] }}'}" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
                                                 <i class="fas fa-eye"></i>
                                                 <span>View</span>
                                             </button>
@@ -157,21 +157,62 @@
                 @endforeach
             </div>
 
-            <button class="carousel-control-prev" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon"></span>
+            <button class="carousel-control-prev absolute left-0 top-1/2 -translate-y-1/2 text-gray-300 p-4 transition-all hover:text-white" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="prev">
+                <i class="fas fa-chevron-left text-2xl"></i>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon"></span>
+            <button class="carousel-control-next absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 p-4 transition-all hover:text-white" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="next">
+                <i class="fas fa-chevron-right text-2xl"></i>
             </button>
+        </div>
+        
+        <!-- Product Modal -->
+        <div x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <!-- Background overlay -->
+                <div x-show="modalOpen" @click="modalOpen = false" class="fixed inset-0 transition-opacity" aria-hidden="true">
+                    <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
+                </div>
+
+                <!-- Modal panel -->
+                <div x-show="modalOpen" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h3 class="text-lg leading-6 font-medium text-gray-900" x-text="activeProduct?.name"></h3>
+                                    <button @click="modalOpen = false" class="text-gray-400 hover:text-gray-500">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="mt-2 flex flex-col md:flex-row gap-4">
+                                    <div class="md:w-1/3">
+                                        <img :src="activeProduct?.imgUrl" class="w-full rounded-lg" :alt="activeProduct?.name">
+                                    </div>
+                                    <div class="md:w-2/3">
+                                        <p class="text-sm text-gray-500 mb-2">Product Details:</p>
+                                        <p class="text-sm text-gray-700 mb-4">High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.</p>
+                                        <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="activeProduct?.price"></span></p>
+                                        <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                                            Add to Cart
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     </section>
 
-    <!-- Swiper Pagination & Navigation -->
+    <!-- Custom Pagination dots -->
     <div class="pb-16">
-        <div class="swiper-pagination mt-4"></div>
-        <div class="swiper-button-prev"></div>
-        <div class="swiper-button-next"></div>
+        <div class="flex justify-center mt-4 gap-1.5">
+            <div class="w-2 h-2 rounded-full bg-red-600 opacity-100"></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 opacity-60 hover:opacity-100 transition-all duration-300"></div>
+            <div class="w-2 h-2 rounded-full bg-gray-300 opacity-60 hover:opacity-100 transition-all duration-300"></div>
+        </div>
     </div>
 </div>
 
@@ -220,31 +261,6 @@
 
     document.querySelector('.products-button')?.addEventListener('click', () => {
         window.location.href = '{{ url("products") }}';
-    });
-
-    const swiper = new Swiper('.swiper-container', {
-        slidesPerView: 1,
-        spaceBetween: 20,
-        loop: true,
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true
-        },
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-        breakpoints: {
-            640: {
-                slidesPerView: 1.5,
-            },
-            768: {
-                slidesPerView: 2,
-            },
-            1024: {
-                slidesPerView: 3,
-            }
-        }
     });
 </script>
 

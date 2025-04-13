@@ -41,6 +41,14 @@ Route::get('/trainers', function () {
     return view('trainers');
 })->name('trainers');
 
+Route::get('/account-settings', function () {
+    return view('account-settings');
+})->name('account-settings');
+
+Route::get('/orders', function () {
+    return view('orders');
+})->name('orders');
+
 
 //pricing routes
 Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
@@ -53,6 +61,7 @@ Route::view('/terms', 'terms')->name('terms');
 
 // 👇 Add these dummy routes so your header/footer doesn't crash
 Route::view('/about', 'about')->name('about');
+
 Route::view('/trainers', 'trainers')->name('trainers');
 Route::view('/shop', 'shop')->name('shop');
 Route::view('/contact', 'contact')->name('contact');

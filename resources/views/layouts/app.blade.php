@@ -50,7 +50,7 @@
 
     @include('components.header')
 
-    <main class="mb-16">
+    <main>
         @yield('content')
     </main>
 

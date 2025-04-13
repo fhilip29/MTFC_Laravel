@@ -49,6 +49,20 @@ Route::get('/orders', function () {
     return view('orders');
 })->name('orders');
 
+Route::get('/profile', function () {
+    return view('profile');
+})->name('profile');
+
+Route::get('/community', function () {
+    return view('community');
+})->name('community');
+
+Route::get('/payment-method', function () {
+    return view('payment-method');
+})->name('payment-method');
+
+
+
 
 //pricing routes
 Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');

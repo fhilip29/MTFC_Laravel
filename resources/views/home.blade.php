@@ -126,13 +126,13 @@
 <div class="bg-[#121212] mb-0 pb-16">
     <section class="products-section py-16 pb-16" data-animate x-data="{ modalOpen: false, activeProduct: null }">
     <div class="container mx-auto my-10">
-        <h2 class="text-center mb-8">Top Rated Products</h2>
+        <h2 class="text-center mb-8 text-white">Top Rated Products</h2>
 
         <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 @foreach ($chunks as $chunkIndex => $chunk)
                     <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-                        <div class="d-flex justify-content-center gap-4 px-4">
+                        <div class="d-flex justify-content-center gap-4">
                             @foreach ($chunk as $product)
                                 <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 16rem;">
                                     <img src="{{ $product['imgUrl'] }}" class="w-full h-40 object-cover" alt="{{ $product['name'] }}">
@@ -157,12 +157,18 @@
                 @endforeach
             </div>
 
-            <button class="carousel-control-prev absolute left-0 top-1/2 -translate-y-1/2 text-gray-300 p-4 transition-all hover:text-white" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="prev">
-                <i class="fas fa-chevron-left text-2xl"></i>
-            </button>
-            <button class="carousel-control-next absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 p-4 transition-all hover:text-white" type="button" data-bs-target="#topItemsCarousel" data-bs-slide="next">
-                <i class="fas fa-chevron-right text-2xl"></i>
-            </button>
+            <!-- Carousel Pagination -->
+            <div class="flex justify-center mt-8 gap-3">
+                @foreach ($chunks as $index => $chunk)
+                    <button type="button" 
+                        data-bs-target="#topItemsCarousel" 
+                        data-bs-slide-to="{{ $index }}" 
+                        class="{{ $index === 0 ? 'w-4 h-4 rounded-full bg-red-600' : 'w-4 h-4 rounded-full bg-gray-300' }} hover:bg-red-400 transition-all duration-300"
+                        aria-label="Slide {{ $index + 1 }}" 
+                        {{ $index === 0 ? 'aria-current="true"' : '' }}>
+                    </button>
+                @endforeach
+            </div>
         </div>
         
         <!-- Product Modal -->
@@ -206,15 +212,7 @@
     </div>
     </section>
 
-    <!-- Custom Pagination dots -->
-    <div class="pb-16">
-        <div class="flex justify-center mt-4 gap-1.5">
-            <div class="w-2 h-2 rounded-full bg-red-600 opacity-100"></div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 opacity-60 hover:opacity-100 transition-all duration-300"></div>
-            <div class="w-2 h-2 rounded-full bg-gray-300 opacity-60 hover:opacity-100 transition-all duration-300"></div>
-        </div>
-    </div>
-</div>
+    
 
 <!-- Scripts -->
 <script>
@@ -256,7 +254,7 @@
     });
 
     document.querySelector('.about-button').addEventListener('click', () => {
-        window.location.href = '{{ url("about-us") }}';
+        window.location.href = '{{ url("about") }}';
     });
 
     document.querySelector('.products-button')?.addEventListener('click', () => {

@@ -37,11 +37,19 @@ Route::get('/notifications', function () {
     return view('notifications');
 })->name('notifications');
 
+Route::get('/trainers', function () {
+    return view('trainers');
+})->name('trainers');
+
+
 //pricing routes
 Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
 Route::view('/pricing/boxing', 'pricing.boxing')->name('pricing.boxing');
 Route::view('/pricing/muay', 'pricing.muay')->name('pricing.muay');
 Route::view('/pricing/jiu', 'pricing.jiu')->name('pricing.jiu');
+
+// Terms page route
+Route::view('/terms', 'terms')->name('terms');
 
 // 👇 Add these dummy routes so your header/footer doesn't crash
 Route::view('/about', 'about')->name('about');

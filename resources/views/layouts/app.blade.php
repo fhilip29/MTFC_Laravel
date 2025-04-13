@@ -38,7 +38,7 @@
         display: none !important;
     }
 
-    /* Optional: Make sure Swiper arrows don’t show if not used */
+    /* Optional: Make sure Swiper arrows don't show if not used */
     .swiper-button-prev,
     .swiper-button-next {
         display: none !important;
@@ -50,7 +50,7 @@
 
     @include('components.header')
 
-    <main>
+    <main class="mb-16">
         @yield('content')
     </main>
 

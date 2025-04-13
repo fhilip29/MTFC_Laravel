@@ -1,4 +1,3 @@
-
 @extends('layouts.app')
 
 @section('title', 'Home')
@@ -22,9 +21,9 @@
 @section('content')
 
 <!-- Hero Section -->
-<section class="hero" style="background-image: url('{{ asset('assets/hero.jpg') }}');">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
+<section class="hero h-[800px]" style="background-image: url('{{ asset('assets/hero.jpg') }}'); height: 900px; max-height: 900px; position: relative;">
+    <div class="hero-overlay" style="height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
+    <div class="hero-content" style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 2rem;">
         <h1>Manila Total Fitness Center:</h1>
         <h2>Prepare Yourself At All Times</h2>
         <p>
@@ -57,7 +56,7 @@
                     <p>Welcome to the ActiveGym community, Sarah! We're thrilled to have you. Don't hesitate to reach out if you have any questions.</p>
                 </div>
             </div>
-            <button class="community-button">Join the Community Now!</button>
+            <button class="community-button bg-red-900 text-white hover:bg-red-800 transition">Join the Community Now!</button>
         </div>
     </div>
 </section>
@@ -72,7 +71,7 @@
             <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1">
             <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2">
         </div>
-        <button class="about-button">Learn more</button>
+        <button class="about-button bg-red-900 text-white hover:bg-red-800 transition">Learn more</button>
     </div>
 </section>
 
@@ -124,22 +123,32 @@
 
         $chunks = collect($products)->chunk(4);
     @endphp
-    <section class="bg-[#121212] products-section py-16 " data-animate>
-    <div class=" container my-10">
-        <h2 class="text-2xl font-bold mb-4 text-center">Top Rated Products</h2>
+<div class="bg-[#121212] mb-0 pb-16">
+    <section class="products-section py-16 pb-16" data-animate>
+    <div class="container mx-auto my-10">
+        <h2 class="text-center mb-8">Top Rated Products</h2>
 
         <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
             <div class="carousel-inner">
                 @foreach ($chunks as $chunkIndex => $chunk)
                     <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-                        <div class=" d-flex justify-content-center gap-4 px-4">
+                        <div class="d-flex justify-content-center gap-4 px-4">
                             @foreach ($chunk as $product)
-                                <div class=" card text-center " style="width: 16rem;">
-                                    <img src="{{ $product['imgUrl'] }}" class="card-img-top" alt="{{ $product['name'] }}">
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ $product['name'] }}</h5>
-                                        <p class="card-text font-semibold">₱{{ number_format($product['price'], 2) }}</p>
-                                        <a href="#" class="btn btn-primary">Add to Cart</a>
+                                <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 16rem;">
+                                    <img src="{{ $product['imgUrl'] }}" class="w-full h-40 object-cover" alt="{{ $product['name'] }}">
+                                    <div class="p-3">
+                                        <h3 class="text-md font-semibold mb-1">{{ $product['name'] }}</h3>
+                                        <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product['price'], 2) }}</p>
+                                        <div class="flex justify-between items-center">
+                                            <button class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                                <i class="fas fa-eye"></i>
+                                                <span>View</span>
+                                            </button>
+                                            <button class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
+                                                <i class="fas fa-shopping-cart"></i>
+                                                <span>Add</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -156,15 +165,15 @@
             </button>
         </div>
     </div>
-
     </section>
 
-        <!-- Swiper Pagination & Navigation -->
+    <!-- Swiper Pagination & Navigation -->
+    <div class="pb-16">
         <div class="swiper-pagination mt-4"></div>
         <div class="swiper-button-prev"></div>
         <div class="swiper-button-next"></div>
     </div>
-</section>
+</div>
 
 <!-- Scripts -->
 <script>
@@ -209,7 +218,7 @@
         window.location.href = '{{ url("about-us") }}';
     });
 
-    document.querySelector('.products-button').addEventListener('click', () => {
+    document.querySelector('.products-button')?.addEventListener('click', () => {
         window.location.href = '{{ url("products") }}';
     });
 

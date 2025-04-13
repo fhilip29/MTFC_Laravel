@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <!-- Notification Section -->
-<div x-data="{ modalOpen: false, currentNotification: null }" class="container mx-auto px-4 py-8">
+<div x-data="{ modalOpen: false, currentNotification: null }" class="container mx-auto px-4 py-8 pb-12">
     <h1 class="text-3xl font-bold mb-8 text-gray-800">Notifications</h1>
     
     <div class="space-y-4">
@@ -24,7 +24,7 @@
         </div>
 
         <!-- Boxing Tournament Notification -->
-        <div class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200">
+        <div @click="modalOpen = true; currentNotification = { title: 'Boxing Tournament', time: '1 day ago', icon: 'bell', color: 'red', content: 'Upcoming boxing tournament registration is now open. Don\'t miss out on this exciting opportunity!', details: 'We are thrilled to announce our upcoming boxing tournament! Registration is now open for all skill levels. The tournament will be held on July 15th at the main gym. Entry fee is ₱500 which includes a tournament t-shirt and participation certificate. Winners will receive trophies and special prizes from our sponsors. Register before July 1st to secure your spot. Limited slots available!' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
             <div class="flex-shrink-0">
                 <i class="fas fa-bell text-red-500 text-xl"></i>
             </div>
@@ -38,7 +38,7 @@
         </div>
 
         <!-- SOntukan Event Notification -->
-        <div class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200">
+        <div @click="modalOpen = true; currentNotification = { title: 'SOntukan Event', time: '2 days ago', icon: 'bell', color: 'red', content: 'Special SOntukan training session this weekend. Limited spots available!', details: 'We\'re hosting an exclusive SOntukan training session this weekend led by Master Juan Santos. This specialized Filipino martial arts training will focus on traditional techniques and their modern applications. The session will run from 9 AM to 3 PM on Saturday with a lunch break. Only 20 slots available to ensure personalized instruction. Secure your spot today by registering at the front desk. Fee: ₱1,200 including lunch and training materials.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
             <div class="flex-shrink-0">
                 <i class="fas fa-bell text-red-500 text-xl"></i>
             </div>
@@ -52,7 +52,7 @@
         </div>
 
         <!-- Tournament Update Notification -->
-        <div class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200">
+        <div @click="modalOpen = true; currentNotification = { title: 'Tournament Update', time: '3 days ago', icon: 'bell', color: 'red', content: 'Important updates regarding the upcoming tournament schedule and rules.', details: 'Attention all tournament participants! There have been some important changes to the tournament schedule and rules. The event will now start at 10 AM instead of 8 AM. Weight-ins will be conducted the day before. Additionally, we\'ve updated the scoring system and protective gear requirements. Please review the complete rules on our website or pick up a printed copy at the front desk. If you have any questions, please contact our tournament coordinator at tournament@mtfc.ph.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
             <div class="flex-shrink-0">
                 <i class="fas fa-bell text-red-500 text-xl"></i>
             </div>
@@ -66,7 +66,7 @@
         </div>
 
         <!-- Test Notification -->
-        <div class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200">
+        <div @click="modalOpen = true; currentNotification = { title: 'Skill Assessment Test', time: '4 days ago', icon: 'bell', color: 'red', content: 'Monthly skill assessment test results are now available. Check your progress!', details: 'The results of your monthly skill assessment are now available for review. You can check your scores and progress via your member dashboard or request a printed copy at the front desk. Your instructor has added personalized feedback and recommendations for improvement. Overall, there has been a 15% improvement in technique and 8% in strength compared to last month\'s assessment. Schedule a one-on-one session with your trainer to discuss your results in detail and create a targeted improvement plan.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
             <div class="flex-shrink-0">
                 <i class="fas fa-bell text-red-500 text-xl"></i>
             </div>

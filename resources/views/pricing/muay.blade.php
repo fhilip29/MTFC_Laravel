@@ -1,15 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
-<section class="relative w-full min-h-screen text-gray-800">
+<section class="relative w-full min-h-[calc(100vh-5rem)] text-gray-800">
     <!-- Background image -->
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('/assets/gym-bg.jpg');"></div>
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('/assets/gym-bg.jpg'); height: calc(100% + 5rem);"></div>
 
     <!-- Overlay to darken -->
-    <div class="absolute inset-0 bg-black opacity-50"></div>
+    <div class="absolute inset-0 bg-black opacity-50" style="height: calc(100% + 5rem);"></div>
 
     <!-- Main content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-6 py-16">
+    <div class="relative z-10 max-w-7xl mx-auto px-6 py-16 pb-24">
         <!-- Title -->
         <h1 class="text-3xl md:text-5xl font-bold text-white text-center mb-10">Muay Thai Pricing Table</h1>
 

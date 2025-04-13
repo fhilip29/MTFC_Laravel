@@ -21,7 +21,7 @@
 </section>
 
 <!-- Products Section -->
-<section id="products" class="py-16 bg-gray-100">
+<section id="products" class="py-16 pb-24 bg-gray-100">
     <div class="container mx-auto px-4">
         <!-- Equipment Section -->
         <div class="mb-16">

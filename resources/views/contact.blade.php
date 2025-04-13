@@ -3,7 +3,7 @@
 @section('title', 'Contact Us')
 
 @section('content')
-<section class="bg-gray-100 min-h-screen py-12 px-4 md:px-36">
+<section class="bg-gray-100 min-h-screen py-12 pb-24 px-4 md:px-36">
     <div class="flex justify-center mb-10">
     
     </div>

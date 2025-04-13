@@ -12,7 +12,7 @@
             <a href="/" class="inline-block">
                 <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="Logo" class="w-50 h-30 object-cover">
             </a>
-            <p class="text-sm text-black">&copy; 2024 ActiveGym. All rights reserved.</p>
+            <p class="text-sm text-black">&copy; 2023 Manila Total Fitness Center. All rights reserved.</p>
             <div class="flex space-x-3 mt-4">
                 <a href="https://www.facebook.com/profile.php?id=100064094075912" target="_blank" class="transform hover:scale-110 transition-transform duration-300">
                     <img src="{{ asset('assets/fb.png') }}" alt="FB" class="w-8 h-8">

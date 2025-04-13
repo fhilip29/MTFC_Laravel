@@ -49,7 +49,7 @@
     </div>
 
     <!-- Visit Us Section -->
-    <div class="bg-gradient-to-br from-blue-50 to-white py-16 px-6 md:px-36 animate-fade-in">
+    <div class="bg-gradient-to-br from-blue-50 to-white py-16 pb-24 px-6 md:px-36 animate-fade-in">
         <div class="flex flex-col md:flex-row gap-12">
             <!-- Google Map -->
             <div class="w-full md:w-1/2 rounded-2xl overflow-hidden shadow-lg">

@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.admin')
+
+@section('title', 'Trainer Management')
 
 @section('content')
 <div class="container mx-auto px-6 py-10">

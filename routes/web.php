@@ -61,6 +61,11 @@ Route::get('/payment-method', function () {
     return view('payment-method');
 })->name('payment-method');
 
+Route::get('/admin', function () {
+    return view('layouts.admin');
+})->name('admin');
+
+
 
 
 

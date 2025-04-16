@@ -65,7 +65,9 @@ Route::get('/admin', function () {
     return view('layouts.admin');
 })->name('admin');
 
-
+Route::get('/admin/admin_members', function () {
+    return view('admin.admin_members');
+})->name('members');
 
 
 

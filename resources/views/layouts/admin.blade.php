@@ -194,7 +194,7 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="/admin/members" class="nav-link {{ request()->is('admin/members') ? 'active' : '' }}">
+            <a href="/admin/admin_members" class="nav-link {{ request()->is('admin/admin_members') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Manage Members</span>
             </a>

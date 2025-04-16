@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 
-
+//User routes
 Route::get('/', function () {
     return view('home');
 })->name('home');
@@ -61,6 +61,10 @@ Route::get('/payment-method', function () {
     return view('payment-method');
 })->name('payment-method');
 
+
+
+
+
 //Admin routes
 Route::get('/admin', function () {
     return view('layouts.admin');
@@ -70,11 +74,11 @@ Route::get('/admin/dashboard', function () {
     return view('admin.admin_dashboard');
 })->name('admin.dashboard');
 
-Route::get('/admin/trainers', function () {
-    return view('admin.trainers.admin_trainers');
-})->name('admin.trainers');
+Route::get('/admin/trainer/admin_trainer', function () {
+    return view('admin.trainer.admin_trainer');
+})->name('admin.trainer.admin_trainer');
 
-Route::get('/admin/members', function () {
+Route::get('/admin/members/admin_members', function () {
     return view('admin.members.admin_members');
 })->name('admin.trainers');
 

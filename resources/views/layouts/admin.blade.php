@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     @vite(['resources/css/app.css'])
     <style>
+        body {
+            background-color: #111827;
+            min-height: 100vh;
+        }
+
         .sidebar {
             width: 280px;
             min-height: 100vh;
@@ -113,9 +118,10 @@
 
         .main-content {
             margin-left: 280px;
-            padding: 2rem;
+            min-height: 100vh;
             transition: margin-left 0.3s ease;
-            padding-top: 4rem; /* Adjusted for fixed header */
+            padding-top: 4rem;
+            background-color: #111827;
         }
 
         .main-content.expanded {
@@ -157,6 +163,13 @@
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 50;
+                box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
             }
 
             .sidebar.show {
@@ -167,11 +180,25 @@
                 margin-left: 0;
                 padding-top: 4rem;
             }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 40;
+            }
+
+            .mobile-overlay.show {
+                display: block;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100">
-
+<body>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="/" class="nav-button home" title="Go to Home">
@@ -194,7 +221,7 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="/admin/admin_members" class="nav-link {{ request()->is('admin/admin_members') ? 'active' : '' }}">
+            <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin//membersadmin_members') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Manage Members</span>
             </a>
@@ -210,13 +237,13 @@
                 <i class="fas fa-calendar-alt"></i>
                 <span>Session Management</span>
             </a>
-            <a href="/admin/trainers" class="nav-link {{ request()->is('admin/trainers') ? 'active' : '' }}">
+            <a href="/admin/trainer/admin_trainer" class="nav-link {{ request()->is('admin/trainer/admin_trainer') ? 'active' : '' }}">
                 <i class="fas fa-dumbbell"></i>
                 <span>Trainer Management</span>
             </a>
             <a href="/admin/promotions" class="nav-link {{ request()->is('admin/promotions') ? 'active' : '' }}">
                 <i class="fas fa-bullhorn"></i>
-                <span>Promotion Management</span>
+                <span>Announce Management</span>
             </a>
             <a href="/admin/equipment" class="nav-link {{ request()->is('admin/equipment') ? 'active' : '' }}">
                 <i class="fas fa-dumbbell"></i>
@@ -254,17 +281,29 @@
             }
         });
 
+        // Create mobile overlay
+        const mobileOverlay = document.createElement('div');
+        mobileOverlay.className = 'mobile-overlay';
+        document.body.appendChild(mobileOverlay);
+
         // Mobile menu toggle
         const mobileToggle = document.createElement('button');
-        mobileToggle.className = 'fixed top-4 left-4 z-50 md:hidden bg-gray-800 text-white p-2 rounded-lg';
-        mobileToggle.innerHTML = '<i class="fas fa-bars"></i>';
+        mobileToggle.className = 'fixed top-4 left-4 z-50 md:hidden bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors';
+        mobileToggle.innerHTML = '<i class="fas fa-bars text-xl"></i>';
         document.body.appendChild(mobileToggle);
 
         mobileToggle.addEventListener('click', function() {
             sidebar.classList.toggle('show');
+            mobileOverlay.classList.toggle('show');
+            document.body.style.overflow = sidebar.classList.contains('show') ? 'hidden' : '';
+        });
+
+        mobileOverlay.addEventListener('click', function() {
+            sidebar.classList.remove('show');
+            mobileOverlay.classList.remove('show');
+            document.body.style.overflow = '';
         });
     });
     </script>
-
 </body>
 </html>

@@ -3,99 +3,114 @@
 @section('title', 'Product Management')
 
 @section('content')
-<div class="bg-white p-6 rounded-2xl shadow-md">
-    <!-- Header -->
-    <div class="mb-6">
-        <h1 class="text-2xl font-semibold text-gray-800">🛒 Product Management</h1>
-    </div>
+<div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+    <div class="bg-[#1F2937] p-4 sm:p-6 rounded-2xl shadow-md border border-[#374151]">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mb-6">
+            <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 w-full sm:w-auto">
+                <i class="fas fa-box text-[#9CA3AF]"></i> Product Management
+            </h1>
+            <button class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
+                <i class="fas fa-plus"></i> <span class="sm:inline">Add Product</span>
+            </button>
+        </div>
 
-    <!-- Search and Add -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <input
-            type="text"
-            placeholder="Search Products"
-            class="w-full md:w-1/3 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
+        <div class="mb-6">
+            <div class="relative w-full sm:w-1/3">
+                <input 
+                    type="text" 
+                    placeholder="Search products..." 
+                    class="w-full pl-10 pr-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] text-sm sm:text-base"
+                >
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
+            </div>
+        </div>
 
-        <a href="#"
-           class="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-            <i class="fas fa-plus"></i> Add Product
-        </a>
-    </div>
-
-    <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full table-auto border border-gray-200 text-sm rounded-xl overflow-hidden">
-            <thead class="bg-gray-100 text-gray-700 text-left">
-                <tr>
-                    <th class="py-3 px-4">Image</th>
-                    <th class="py-3 px-4">Product Name</th>
-                    <th class="py-3 px-4">Description</th>
-                    <th class="py-3 px-4">Price</th>
-                    <th class="py-3 px-4">Stocks</th>
-                    <th class="py-3 px-4 text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="text-gray-800">
-                @php
-                    $products = [
-                        [
-                            'image' => 'https://i.imgur.com/Qfhx6vL.png',
-                            'name' => 'ON Amino Energy, 30 Servings',
-                            'desc' => 'Sample description 2',
-                            'price' => 600,
-                            'stock' => 100,
-                        ],
-                        [
-                            'image' => 'https://i.imgur.com/tMdX7la.png',
-                            'name' => 'Scivation XTend, 30 Servings',
-                            'desc' => 'Sample description 4',
-                            'price' => 3000,
-                            'stock' => 123,
-                        ],
-                        [
-                            'image' => 'https://i.imgur.com/jkIFNyz.png',
-                            'name' => 'Primeval Labs APESH*T Cutz, 50 Servings',
-                            'desc' => 'Sample description 2',
-                            'price' => 2500,
-                            'stock' => 1,
-                        ],
-                        [
-                            'image' => 'https://i.imgur.com/7Gzj4ZP.png',
-                            'name' => 'All Max Classic All Whey, 5lbs',
-                            'desc' => 'Sample description 2',
-                            'price' => 3000,
-                            'stock' => 100,
-                        ],
-                        [
-                            'image' => 'https://i.imgur.com/pzSK7yT.png',
-                            'name' => 'Nutrex Lipo-6 Black UC, 60 Capsules',
-                            'desc' => 'Sample description',
-                            'price' => 1000,
-                            'stock' => 100,
-                        ],
-                    ];
-                @endphp
-
-                @foreach($products as $product)
-                    <tr class="border-t hover:bg-gray-50">
-                        <td class="py-3 px-4">
-                            <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}"
-                                 class="w-12 h-12 object-contain rounded">
-                        </td>
-                        <td class="py-3 px-4 font-medium">{{ $product['name'] }}</td>
-                        <td class="py-3 px-4 text-gray-600">{{ $product['desc'] }}</td>
-                        <td class="py-3 px-4 text-blue-600 font-semibold">₱{{ number_format($product['price']) }}</td>
-                        <td class="py-3 px-4">{{ $product['stock'] }}</td>
-                        <td class="py-3 px-4 text-center">
-                            <a href="#" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-pen"></i>
-                            </a>
-                        </td>
+        <div class="overflow-x-auto rounded-lg shadow-sm -mx-4 sm:mx-0">
+            <div class="inline-block min-w-full align-middle">
+            <table class="min-w-full text-xs sm:text-sm table-auto">
+                <thead class="bg-[#374151] text-[#9CA3AF] uppercase text-xs">
+                    <tr>
+                        <th class="py-4 px-4 text-left">Image</th>
+                        <th class="py-4 px-4 text-left">Product Name</th>
+                        <th class="py-4 px-4 text-left">Category</th>
+                        <th class="py-4 px-4 text-left">Status</th>
+                        <th class="py-4 px-4 text-center">Actions</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody class="text-[#9CA3AF]">
+                    @php
+                        $products = [
+                            [
+                                'name' => 'Protein Powder',
+                                'category' => 'Supplements',
+                                'image' => 'https://i.imgur.com/7Gzj4ZP.png',
+                                'status' => 'In Stock',
+                                'status_class' => 'bg-green-500',
+                            ],
+                            [
+                                'name' => 'Weightlifting Belt',
+                                'category' => 'Accessories',
+                                'image' => 'https://i.imgur.com/Qfhx6vL.png',
+                                'status' => 'Low Stock',
+                                'status_class' => 'bg-orange-500',
+                            ],
+                            [
+                                'name' => 'Pre-Workout',
+                                'category' => 'Supplements',
+                                'image' => 'https://i.imgur.com/pzSK7yT.png',
+                                'status' => 'Out of Stock',
+                                'status_class' => 'bg-red-500',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach($products as $product)
+                        <tr class="hover:bg-[#374151] border-b border-[#374151]">
+                            <td class="py-4 px-4 align-middle">
+                                <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" class="w-16 h-16 object-contain rounded-md">
+                            </td>
+                            <td class="py-4 px-4 text-white align-middle">{{ $product['name'] }}</td>
+                            <td class="py-4 px-4 align-middle">{{ $product['category'] }}</td>
+                            <td class="py-4 px-4 align-middle">
+                                <span class="text-white px-2 py-1 rounded text-xs {{ $product['status_class'] }}">
+                                    {{ $product['status'] }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-center align-middle">
+                                <div class="flex justify-center gap-2">
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Edit Product">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Delete Product">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<script>
+// Frontend-only confirmation dialog
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete this product?')) {
+        alert('Product deleted successfully!');
+    }
+}
+
+// Add click handlers to all delete buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('a:has(i.fa-trash)');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', confirmDelete);
+    });
+});
+</script>
 @endsection

@@ -11,7 +11,7 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- SweetAlert2 (optional for feedback) -->
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
@@ -22,29 +22,58 @@
 </head>
 <body class="bg-[#1D1B20] text-white overflow-hidden">
 
-    <div class="flex h-screen">
+<div class="flex h-screen">
 
-        <!-- LEFT: Sign-up Form -->
-        <div class="flex-1 flex justify-center items-center px-6" x-data="signUpForm()">
-            <div class="w-full max-w-md">
+    <!-- LEFT: Sign-up Form -->
+    <div class="flex-1 flex justify-center items-center px-6">
+        <div class="w-full max-w-md">
 
-                <h3 class="text-3xl font-bold text-center mb-2">Sign Up now!</h3>
-                <p class="text-center text-gray-300 mb-6">Unlock Your Potential: Join Us Today!</p>
+            <h3 class="text-3xl font-bold text-center mb-2">Sign Up now!</h3>
+            <p class="text-center text-gray-300 mb-6">Unlock Your Potential: Join Us Today!</p>
 
-                <input type="text" placeholder="First Name" x-model="firstName"
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded focus:outline-none focus:ring focus:ring-purple-400"/>
+            @if ($errors->any())
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Validation Error',
+                            html: `{!! implode('<br>', $errors->all()) !!}`
+                        });
+                    });
+                </script>
+            @endif
 
-                <input type="text" placeholder="Last Name" x-model="lastName"
+            @if (session('success'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Signed Up!',
+                            text: '{{ session('success') }}'
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    });
+                </script>
+            @endif
+
+            <form method="POST" action="{{ route('signup') }}">
+                @csrf
+
+                <input type="text" name="first_name" placeholder="First Name" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
-                <select x-model="gender"
+                <input type="text" name="last_name" placeholder="Last Name" required
+                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+
+                <select name="gender" required
                         class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
                     <option value="" disabled selected>Gender</option>
                     <option value="male" class="text-black">Male</option>
                     <option value="female" class="text-black">Female</option>
                 </select>
 
-                <select x-model="fitnessGoal"
+                <select name="fitness_goal" required
                         class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
                     <option value="" disabled selected>Fitness Goal</option>
                     <option value="lose-weight" class="text-black">Lose Weight</option>
@@ -52,68 +81,35 @@
                     <option value="maintain" class="text-black">Maintain</option>
                 </select>
 
-                <input type="email" placeholder="Email Address" x-model="email"
+                <input type="email" name="email" placeholder="Email Address" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
-                <input type="password" placeholder="Password" x-model="password"
+                <input type="password" name="password" placeholder="Password" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
-                <input type="password" placeholder="Confirm Password" x-model="confirmPassword"
+                <input type="password" name="password_confirmation" placeholder="Confirm Password" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
-                <button @click="submitForm"
+                <button type="submit"
                         class="w-full py-3 bg-white text-black rounded hover:bg-gray-200 transition mt-4">
                     Sign Up
                 </button>
 
                 <p class="text-center text-sm mt-6">
                     Already have an account?
-                    <a href="/login" class="text-white font-semibold underline hover:text-purple-300">Log in</a>
+                    <a href="{{ route('login') }}" class="text-white font-semibold underline hover:text-purple-300">Log in</a>
                 </p>
-            </div>
+            </form>
         </div>
-
-        <!-- RIGHT: Clipped background image -->
-        <div class="hidden md:block flex-1 relative clip-path-custom">
-            <img src="{{ asset('assets/signup_background.png') }}"
-                 alt="Sign Up Image"
-                 class="absolute inset-0 w-full h-full object-cover z-[-1]" />
-        </div>
-
     </div>
 
-    <script>
-        function signUpForm() {
-            return {
-                firstName: '',
-                lastName: '',
-                gender: '',
-                fitnessGoal: '',
-                email: '',
-                password: '',
-                confirmPassword: '',
+    <!-- RIGHT: Clipped Image -->
+    <div class="hidden md:block flex-1 relative clip-path-custom">
+        <img src="{{ asset('assets/signup_background.png') }}"
+             alt="Sign Up Image"
+             class="absolute inset-0 w-full h-full object-cover z-[-1]" />
+    </div>
 
-                submitForm() {
-                    if (this.password !== this.confirmPassword) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops!',
-                            text: 'Passwords do not match.'
-                        });
-                        return;
-                    }
-
-                    // Mock submit
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Signed Up!',
-                        text: 'Redirecting to login...'
-                    }).then(() => {
-                        window.location.href = '/login';
-                    });
-                }
-            }
-        }
-    </script>
+</div>
 </body>
 </html>

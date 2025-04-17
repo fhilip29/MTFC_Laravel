@@ -1,4 +1,4 @@
-<header x-data="{ mobileMenuOpen: false }" class="bg-white text-white shadow-md">
+<header x-data="{ mobileMenuOpen: false, adminProfileModal: false }" class="bg-white text-white shadow-md">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <!-- Left: Logo -->
         <div class="absolute left-5 flex w-1/3 min-w-[200px]">
@@ -36,6 +36,7 @@
 
         <!-- Right: User/Profile Area -->
         <div class="absolute right-5 flex justify-end items-center space-x-4 w-1/3 min-w-[200px]">
+            @auth
             <a href="{{ route('notifications') }}" class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
@@ -44,6 +45,7 @@
             <button id="cartButton" class="right- text-gray-600 hover:text-black focus:outline-none">
                 <i class="fas fa-shopping-cart text-xl"></i>
             </button>
+            @endauth
 
             @guest
                 <a href="{{ route('login') }}" class="bg-red-500 hover:bg-red-600 transition px-4 py-2 rounded text-white text-sm font-semibold">
@@ -60,12 +62,14 @@
                         <p class="text-sm font-semibold mb-2">Hello, {{ Auth::user()->full_name ?? 'User' }}</p>
                         <hr>
                         <div class="mt-2 space-y-1 text-sm">
-                            @if (Auth::user()->user_type === 'admin')
+                            @if (Auth::user()->role === 'admin')
                                 <a href="{{ route('admin.dashboard') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Admin Panel</a>
-                            @endif
-                            <a href="{{ route('profile.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
-                            @if (Auth::user()->user_type !== 'admin')
-                                <a href="{{ Auth::user()->user_type === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
+                                <button @click="adminProfileModal = true; open = false" type="button" class="w-full text-left hover:bg-gray-100 px-2 py-1 rounded">
+                                    Profile
+                                </button>
+                            @else
+                                <a href="{{ route('profile.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
+                                <a href="{{ Auth::user()->role === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
                                 <a href="{{ route('community') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Community</a>
                                 <a href="{{ route('orders') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Orders</a>
                             @endif
@@ -98,3 +102,24 @@
 </div>
 
 </header>
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('headerData', () => ({
+            mobileMenuOpen: false,
+            adminProfileModal: false,
+            toggleModal() {
+                this.adminProfileModal = !this.adminProfileModal;
+            }
+        }))
+    });
+</script>
+@endpush
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

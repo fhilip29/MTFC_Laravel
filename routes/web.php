@@ -1,113 +1,94 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 
-//User routes
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
-Route::get('/login', function () {
-    return view('auth/login');
-})->name('login');
 
-Route::get('/signup', function () {
-    return view('signup');
-})->name('signup');
+// ===================
+// AUTH ROUTES
+// ===================
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
+Route::post('/login', [AuthController::class, 'login'])->name('login');
 
-Route::get('/forgot', function () {
-    return view('auth/forgot_password');
-})->name('forgot_password');
+Route::get('/signup', [AuthController::class, 'showSignupForm'])->name('signup.form');
+Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::view('/forgot', 'auth.forgot_password')->name('forgot_password');
 
 
-Route::get('/contact', function () {
-    return view('contact');
+// ===================
+// HEADER BTNS ROUTES
+// ===================
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
+Route::view('/shop', 'shop')->name('shop');
+Route::view('/trainers', 'trainers')->name('trainers');
+
+// ===================
+// PRICING ROUTES
+// ===================
+Route::view('/pricing', 'pricing')->name('pricing');
+Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
+Route::view('/pricing/boxing', 'pricing.boxing')->name('pricing.boxing');
+Route::view('/pricing/muay', 'pricing.muay')->name('pricing.muay');
+Route::view('/pricing/jiu', 'pricing.jiu')->name('pricing.jiu');
+// ===================
+// TERMS / POLICIES
+// ===================
+Route::view('/terms', 'terms')->name('terms');
+Route::view('/privacypolicy', 'privacy')->name('privacy');
+
+// ===================
+// ALL USER ROUTES
+// ===================
+Route::middleware(['auth', 'role:user,trainer,admin'])->group(function () {
+Route::view('/notifications', 'notifications')->name('notifications');
+Route::view('/account-settings', 'account-settings')->name('account-settings');
+Route::view('/orders', 'orders')->name('orders');
+Route::view('/community', 'community')->name('community');
+Route::view('/payment-method', 'payment-method')->name('payment-method');
+Route::view('/checkout', 'checkout')->name('checkout');
+Route::view('/cart', 'cart')->name('cart');
+Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
 });
 
-Route::get('/shop', function () {
-    return view('shop');
-})->name('shop');
+// ===================
+// USER ROUTES
+// ===================
+Route::middleware(['auth', 'role:user'])->group(function () {
+Route::view('/profile', 'profile')->name('profile');
+});
 
-Route::get('/notifications', function () {
-    return view('notifications');
-})->name('notifications');
+// ===================
+// TRAINER ROUTES
+// ===================
+Route::middleware(['auth', 'role:trainer'])->group(function () {
+Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
+});
 
-Route::get('/trainers', function () {
-    return view('trainers');
-})->name('trainers');
+// ===================
+// ADMIN ROUTES
+// ===================
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+Route::view('/admin', 'admin.admin_dashboard')->name('admin');
+Route::view('/admin/dashboard', 'admin.admin_dashboard')->name('admin.dashboard');
+Route::view('/admin/trainer/admin_trainer', 'admin.trainer.admin_trainer')->name('admin.trainer.admin_trainer');
+Route::view('/admin/members/admin_members', 'admin.members.admin_members')->name('admin.trainers');
+Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
+Route::view('/admin/session', 'admin.session.admin_session')->name('admin.session.admin_session');
+Route::view('/admin/promotion', 'admin.promotion.admin_promo')->name('admin.promotion.promo');
+Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
+Route::view('/admin/products', 'admin.product.admin_product')->name('admin.product.products');
+Route::view('/admin/orders', 'admin.orders.admin_orders')->name('admin.orders.orders');
 
-Route::get('/account-settings', function () {
-    return view('account-settings');
-})->name('account-settings');
-
-Route::get('/orders', function () {
-    return view('orders');
-})->name('orders');
-
-Route::get('/profile', function () {
-    return view('profile');
-})->name('profile');
-
-Route::get('/community', function () {
-    return view('community');
-})->name('community');
-
-Route::get('/payment-method', function () {
-    return view('payment-method');
-})->name('payment-method');
-
-
-
-
-
-//Admin routes
-Route::get('/admin', function () {
-    return view('layouts.admin');
-})->name('admin');
-
-Route::get('/admin/dashboard', function () {
-    return view('admin.admin_dashboard');
-})->name('admin.dashboard');
-
-Route::get('/admin/trainer/admin_trainer', function () {
-    return view('admin.trainer.admin_trainer');
-})->name('admin.trainer.admin_trainer');
-
-Route::get('/admin/members/admin_members', function () {
-    return view('admin.members.admin_members');
-})->name('admin.trainers');
-
-Route::get('/admin/invoices', function () {
-    return view('admin.invoice.admin_invoice');
-})->name('admin.invoice.invoice');
-
-Route::get('/admin/sessions', function () {
-    return view('admin.session.admin_session');
-})->name('admin.session.session');
-
-Route::get('/admin/promotions', function () {
-    return view('admin.promotion.admin_promo');
-})->name('admin.promotion.promo');
-
-Route::get('/admin/equipment', function () {
-    return view('admin.gym.admin_gym');
-})->name('admin.gym.gym');
-
-Route::get('/admin/products', function () {
-    return view('admin.product.admin_product');
-})->name('admin.product.products');
-
-
-Route::get('/admin/orders', function () {
-    return view('admin.orders.admin_orders');
-})->name('admin.orders.orders');
-
-//Until you connect to a DB, you can pass dummy data in your route like this:
+// Admin Manage Orders (dummy data for now)
 Route::get('/admin/manage-orders', function () {
     $orders = [
         (object)['id' => '67fb3540086200c3004a8000', 'date' => '2025-04-13', 'status' => 'Accepted'],
@@ -125,47 +106,4 @@ Route::get('/admin/manage-orders', function () {
     return view('admin.orders.index', compact('orders'));
 });
 
-
-
-
-
-
-
-//pricing routes
-Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
-Route::view('/pricing/boxing', 'pricing.boxing')->name('pricing.boxing');
-Route::view('/pricing/muay', 'pricing.muay')->name('pricing.muay');
-Route::view('/pricing/jiu', 'pricing.jiu')->name('pricing.jiu');
-
-// Terms page route
-Route::view('/terms', 'terms')->name('terms');
-
-// 👇 Add these dummy routes so your header/footer doesn't crash
-Route::view('/about', 'about')->name('about');
-
-Route::view('/trainers', 'trainers')->name('trainers');
-Route::view('/shop', 'shop')->name('shop');
-Route::view('/contact', 'contact')->name('contact');
-Route::view('/cart', 'cart')->name('cart');
-Route::view('/checkout', 'checkout')->name('checkout');
-Route::view('/pricing', 'pricing')->name('pricing');
-Route::view('/notifications', 'notifications')->name('notifications');
-Route::view('/terms', 'terms')->name('terms');
-Route::view('/privacypolicy', 'privacy')->name('privacy');
-
-// Dummy user/profile/admin routes (for dropdown, no errors for now)
-Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
-Route::view('/profile', 'profile')->name('profile');
-Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
-
-Route::view('/community_dashboard', 'community')->name('community');
-Route::view('/orders', 'orders')->name('orders');
-
-// Log out fallback (no actual logic yet)
-Route::post('/logout', function () {
-    return redirect()->route('home');
-})->name('logout');
-
-
-
-
+});

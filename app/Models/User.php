@@ -18,10 +18,18 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'full_name',
         'email',
         'password',
+        'mobile_number',
+        'gender',
+        'fitness_goal',
+        'profile_image',
+        'qr_code',
+        'role',
+        'is_agreed_to_terms',
     ];
+    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -43,6 +51,37 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_agreed_to_terms' => 'boolean',
         ];
+    }
+    
+    /**
+     * Check if user is an admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+    
+    /**
+     * Check if user is a trainer
+     *
+     * @return bool
+     */
+    public function isTrainer(): bool
+    {
+        return $this->role === 'trainer';
+    }
+    
+    /**
+     * Check if user is a regular member
+     *
+     * @return bool
+     */
+    public function isMember(): bool
+    {
+        return $this->role === 'member';
     }
 }

@@ -2,15 +2,148 @@
 @section('title', 'Manage Members')
 
 @section('content')
-<div class="container mx-auto px-4 py-6 sm:py-8">
+<!-- Add SweetAlert2 at the top of the content section -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div x-data="{ 
+    showModal: false, 
+    currentMember: null, 
+    showSubscriptionModal: false, 
+    currentMemberId: null, 
+    subscriptions: [],
+    setEditFormValues(subscription) {
+        // Set form data for edit
+        document.getElementById('edit-type').value = subscription.type;
+        document.getElementById('edit-plan').value = subscription.plan;
+        document.getElementById('edit-price').value = subscription.price;
+        document.getElementById('edit-start-date').value = subscription.start_date;
+        document.getElementById('edit-end-date').value = subscription.end_date || '';
+        document.getElementById('edit-is-active').checked = subscription.is_active;
+        document.getElementById('edit-subscription-id').value = subscription.id;
+        
+        // Show/hide cancel button based on subscription status
+        const cancelBtn = document.getElementById('cancel-subscription-btn');
+        if (subscription.is_active) {
+            cancelBtn.classList.remove('hidden');
+        } else {
+            cancelBtn.classList.add('hidden');
+        }
+        
+        // Show edit form
+        document.getElementById('edit-subscription-modal').classList.remove('hidden');
+    },
+    confirmArchive(memberId, isArchived) {
+        const action = isArchived ? 'restore' : 'archive';
+        const title = isArchived ? 'Restore Member' : 'Archive Member';
+        const text = isArchived 
+            ? 'This will make the member visible in the main list again.'
+            : 'This will hide the member from the main list.';
+        const confirmButtonText = isArchived ? 'Yes, restore it!' : 'Yes, archive it!';
+        const confirmButtonColor = isArchived ? '#10B981' : '#EF4444';
+        const successMessage = isArchived ? 'Member has been restored!' : 'Member has been archived!';
+        
+        Swal.fire({
+            title: title,
+            text: text,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: confirmButtonColor,
+            cancelButtonColor: '#6B7280',
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Cancel',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            customClass: {
+                popup: 'rounded-lg border border-[#374151]',
+                title: 'text-white text-xl',
+                htmlContainer: 'text-[#9CA3AF]',
+                confirmButton: 'rounded-md px-4 py-2',
+                cancelButton: 'rounded-md px-4 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/admin/members/' + memberId + '/archive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Remove the row from the table
+                        const row = document.querySelector('#member-row-' + memberId);
+                        if (row) row.remove();
+                        
+                        // Show success message
+                        Swal.fire({
+                            title: 'Success!',
+                            text: successMessage,
+                            icon: 'success',
+                            confirmButtonColor: '#3B82F6',
+                            background: '#1F2937',
+                            color: '#FFFFFF',
+                            customClass: {
+                                popup: 'rounded-lg border border-[#374151]',
+                                title: 'text-white text-xl',
+                                htmlContainer: 'text-[#9CA3AF]',
+                                confirmButton: 'rounded-md px-4 py-2'
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonColor: '#3B82F6',
+                            background: '#1F2937',
+                            color: '#FFFFFF',
+                            customClass: {
+                                popup: 'rounded-lg border border-[#374151]',
+                                title: 'text-white text-xl',
+                                htmlContainer: 'text-[#9CA3AF]',
+                                confirmButton: 'rounded-md px-4 py-2'
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'An error occurred. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#3B82F6',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        customClass: {
+                            popup: 'rounded-lg border border-[#374151]',
+                            title: 'text-white text-xl',
+                            htmlContainer: 'text-[#9CA3AF]',
+                            confirmButton: 'rounded-md px-4 py-2'
+                        }
+                    });
+                });
+            }
+        });
+    }
+}" class="container mx-auto px-4 py-6 sm:py-8">
     <div class="bg-[#1F2937] p-4 sm:p-6 rounded-2xl shadow-md border border-[#374151]">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-2 mb-6">
             <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
                 <i class="fas fa-users text-[#9CA3AF]"></i> Manage Members
             </h1>
-            <button class="w-full sm:w-auto bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center justify-center gap-2 px-4 py-2 rounded-lg shadow transition-colors">
-                <i class="fas fa-plus"></i> Add Member
-            </button>
+            
+            @if(isset($showArchived) && $showArchived)
+            <div class="bg-yellow-500 text-white px-4 py-2 rounded-lg flex items-center">
+                <i class="fas fa-archive mr-2"></i> 
+                Viewing archived members
+                <a href="{{ route('admin.members.admin_members') }}" class="ml-3 bg-[#374151] hover:bg-[#4B5563] text-white px-3 py-1 rounded-md text-sm">
+                    Show Active
+                </a>
+            </div>
+            @endif
         </div>
 
         <div class="mb-6 flex flex-col sm:flex-row gap-4">
@@ -22,11 +155,14 @@
                 >
                 <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
             </div>
-            <select class="w-full sm:w-48 px-4 py-3 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
-                <option value="all">All Members</option>
-                <option value="active">Active</option>
+            <select 
+                id="status-filter"
+                onchange="filterMembers(this.value)"
+                class="w-full sm:w-48 px-4 py-3 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
+                <option value="all" {{ !isset($showArchived) ? 'selected' : '' }}>All Members</option>
+                <option value="active" {{ !isset($showArchived) || !$showArchived ? 'selected' : '' }}>Active</option>
                 <option value="inactive">Inactive</option>
-                <option value="archived">Archived</option>
+                <option value="archived" {{ isset($showArchived) && $showArchived ? 'selected' : '' }}>Archived</option>
             </select>
         </div>
 
@@ -44,70 +180,595 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#374151] text-[#9CA3AF]">
-                            @php
-                                $members = [
-                                    [
-                                        'name' => 'John Doe',
-                                        'email' => 'john.doe@example.com',
-                                        'join_date' => 'Jan 15, 2024',
-                                        'status' => 'Active',
-                                        'status_class' => 'bg-green-500',
-                                    ],
-                                    [
-                                        'name' => 'Jane Smith',
-                                        'email' => 'jane.smith@example.com',
-                                        'join_date' => 'Feb 1, 2024',
-                                        'status' => 'Active',
-                                        'status_class' => 'bg-green-500',
-                                    ],
-                                    [
-                                        'name' => 'Mike Johnson',
-                                        'email' => 'mike.johnson@example.com',
-                                        'join_date' => 'Jan 20, 2024',
-                                        'status' => 'Inactive',
-                                        'status_class' => 'bg-red-500',
-                                    ],
-                                ];
-                            @endphp
-
-                            @foreach($members as $member)
-                                <tr class="hover:bg-[#374151] transition-colors">
-                                    <td class="px-4 py-3 text-white">
-                                        <div class="flex items-center gap-3">
-                                            <img src="{{ asset('assets/default-profile.jpg') }}" alt="{{ $member['name'] }}" class="w-10 h-10 rounded-full object-cover">
-                                            <div class="flex flex-col">
-                                                <span class="font-medium">{{ $member['name'] }}</span>
-                                                <span class="text-xs text-[#9CA3AF] sm:hidden">{{ $member['email'] }}</span>
-                                            </div>
+                        @foreach($members as $member)
+                            <tr id="member-row-{{ $member->id }}" class="hover:bg-[#374151] transition-colors">
+                                <td class="px-4 py-3 text-white">
+                                    <div class="flex items-center gap-3">
+                                        <img src="{{ $member->profile_image ? asset('storage/' . $member->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                             alt="{{ $member->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                                        <div class="flex flex-col">
+                                            <span class="font-medium">{{ $member->full_name }}</span>
+                                            <span class="text-xs text-[#9CA3AF] sm:hidden">{{ $member->email }}</span>
                                         </div>
-                                    </td>
-                                    <td class="hidden sm:table-cell px-4 py-3">{{ $member['email'] }}</td>
-                                    <td class="hidden md:table-cell px-4 py-3">{{ $member['join_date'] }}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white {{ $member['status_class'] }}">
-                                            {{ $member['status'] }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 text-center">
-                                        <div class="flex justify-center items-center gap-3">
-                                            <button class="text-blue-400 hover:text-blue-300 transition-colors" title="Edit Member">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-blue-400 hover:text-blue-300 transition-colors" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-blue-400 hover:text-blue-300 transition-colors" title="Archive Member">
-                                                <i class="fas fa-archive"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
+                                    </div>
+                                </td>
+                                <td class="hidden sm:table-cell px-4 py-3">{{ $member->email }}</td>
+                                <td class="hidden md:table-cell px-4 py-3">{{ $member->created_at->format('M d, Y') }}</td>
+                                <td class="px-4 py-3">
+                                    @php
+                                        $status = 'Active'; // replace with real status if available
+                                        $statusClass = 'bg-green-500'; // or use a field like $member->status
+                                    @endphp
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white {{ $statusClass }}">
+                                        {{ $status }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <div class="flex justify-center items-center gap-3">
+                                        <button 
+                                            type="button"
+                                            @click="showSubscriptionModal = true; currentMemberId = {{ $member->id }}; 
+                                                fetch('/admin/members/'+{{ $member->id }}+'/subscriptions')
+                                                .then(response => response.json())
+                                                .then(data => { subscriptions = data; })"
+                                            class="text-blue-400 hover:text-blue-300 transition-colors" 
+                                            title="Manage Subscription">
+                                            <i class="fas fa-crown"></i>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="showModal = true; currentMember = {{ json_encode($member) }}" 
+                                            class="text-blue-400 hover:text-blue-300 transition-colors" 
+                                            title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            @click="confirmArchive({{ $member->id }}, {{ isset($showArchived) && $showArchived ? 'true' : 'false' }})"
+                                            @if(isset($showArchived) && $showArchived)
+                                            class="text-green-400 hover:text-green-300 transition-colors" 
+                                            title="Restore Member">
+                                            <i class="fas fa-undo-alt"></i>
+                                            @else
+                                            class="text-red-400 hover:text-red-300 transition-colors" 
+                                            title="Archive Member">
+                                            <i class="fas fa-archive"></i>
+                                            @endif
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+    
+    <!-- Member Details Modal -->
+    <div 
+        x-show="showModal" 
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div @click="showModal = false" class="fixed inset-0 bg-black opacity-50"></div>
+            
+            <div 
+                class="relative bg-[#1F2937] rounded-lg max-w-xl w-full mx-auto shadow-xl z-50 border border-[#374151]">
+                
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b border-[#374151] pb-4">
+                        <h3 class="text-xl font-bold text-white">Member Details</h3>
+                        <button @click="showModal = false" class="text-[#9CA3AF] hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4" x-show="currentMember">
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <div class="flex flex-col items-center">
+                                <img :src="currentMember?.profile_image ? '/storage/' + currentMember.profile_image : '/assets/default-profile.jpg'" 
+                                     :alt="currentMember?.full_name" 
+                                     class="w-32 h-32 rounded-full object-cover border-4 border-[#374151] mb-2">
+                                <h4 x-text="currentMember?.full_name" class="text-lg font-bold text-white"></h4>
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full mt-1">Active Member</span>
+                            </div>
+                            
+                            <div class="flex-1 space-y-3">
+                                <div class="border-b border-[#374151] pb-3">
+                                    <h5 class="text-[#9CA3AF] uppercase text-xs font-semibold mb-2">Contact Information</h5>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Email:</span>
+                                            <span x-text="currentMember?.email" class="text-white"></span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Phone:</span>
+                                            <span x-text="currentMember?.mobile_number || 'Not provided'" class="text-white"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="border-b border-[#374151] pb-3">
+                                    <h5 class="text-[#9CA3AF] uppercase text-xs font-semibold mb-2">Personal Information</h5>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Gender:</span>
+                                            <span x-text="currentMember?.gender ? (currentMember.gender.charAt(0).toUpperCase() + currentMember.gender.slice(1)) : 'Not specified'" class="text-white"></span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Goal:</span>
+                                            <span x-text="currentMember?.fitness_goal ? (currentMember.fitness_goal.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')) : 'Not specified'" class="text-white"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h5 class="text-[#9CA3AF] uppercase text-xs font-semibold mb-2">Membership Information</h5>
+                                    <div class="grid grid-cols-1 gap-2">
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Joined:</span>
+                                            <span x-text="new Date(currentMember?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })" class="text-white"></span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-24 text-[#9CA3AF]">Status:</span>
+                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-green-500">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-right">
+                        <button @click="showModal = false" class="px-4 py-2 bg-[#374151] text-white rounded hover:bg-[#4B5563] transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    
+    <!-- Subscription Management Modal -->
+    <div 
+        x-show="showSubscriptionModal" 
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div @click="showSubscriptionModal = false" class="fixed inset-0 bg-black opacity-50"></div>
+            
+            <div class="relative bg-[#1F2937] rounded-lg max-w-3xl w-full mx-auto shadow-xl z-50 border border-[#374151]">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b border-[#374151] pb-4">
+                        <h3 class="text-xl font-bold text-white">Manage Subscriptions</h3>
+                        <button @click="showSubscriptionModal = false" class="text-[#9CA3AF] hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <!-- Subscription list -->
+                        <div class="mb-6" x-show="subscriptions.length > 0">
+                            <div class="overflow-x-auto rounded-lg shadow-md">
+                                <table class="min-w-full divide-y divide-[#374151] text-sm">
+                                    <thead class="bg-[#374151] text-[#9CA3AF] uppercase text-xs">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left">Type</th>
+                                            <th class="px-4 py-3 text-left">Plan</th>
+                                            <th class="px-4 py-3 text-left">Price</th>
+                                            <th class="px-4 py-3 text-left">Start Date</th>
+                                            <th class="px-4 py-3 text-left">End Date</th>
+                                            <th class="px-4 py-3 text-left">Status</th>
+                                            <th class="px-4 py-3 text-center">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-[#1F2937] divide-y divide-[#374151] text-[#9CA3AF]">
+                                        <template x-for="subscription in subscriptions" :key="subscription.id">
+                                            <tr class="hover:bg-[#374151] transition-colors">
+                                                <td class="px-4 py-3 text-white" x-text="subscription.type.charAt(0).toUpperCase() + subscription.type.slice(1)"></td>
+                                                <td class="px-4 py-3" x-text="subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)"></td>
+                                                <td class="px-4 py-3" x-text="'$' + subscription.price"></td>
+                                                <td class="px-4 py-3" x-text="subscription.start_date ? new Date(subscription.start_date).toLocaleDateString() : 'N/A'"></td>
+                                                <td class="px-4 py-3" x-text="subscription.end_date ? new Date(subscription.end_date).toLocaleDateString() : 'N/A'"></td>
+                                                <td class="px-4 py-3">
+                                                    <span 
+                                                        :class="subscription.is_active ? 'bg-green-500' : 'bg-red-500'" 
+                                                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white"
+                                                        x-text="subscription.is_active ? 'Active' : 'Inactive'">
+                                                    </span>
+                                                </td>
+                                                <td class="px-4 py-3 text-center">
+                                                    <div class="flex justify-center items-center gap-2">
+                                                        <button 
+                                                            @click="setEditFormValues(subscription)"
+                                                            class="text-blue-400 hover:text-blue-300 transition-colors" 
+                                                            title="Edit">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button 
+                                                            @click="
+                                                                if (confirm('Are you sure you want to cancel this subscription?')) {
+                                                                    fetch('/admin/members/'+currentMemberId+'/subscriptions/'+subscription.id+'/cancel', {
+                                                                        method: 'POST',
+                                                                        headers: {
+                                                                            'Content-Type': 'application/json',
+                                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                                        }
+                                                                    })
+                                                                    .then(response => response.json())
+                                                                    .then(data => {
+                                                                        if (data.success) {
+                                                                            // Refresh the subscriptions list
+                                                                            fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                                                .then(response => response.json())
+                                                                                .then(data => { subscriptions = data; });
+                                                                        } else {
+                                                                            alert('Error cancelling subscription: ' + data.message);
+                                                                        }
+                                                                    })
+                                                                    .catch(error => {
+                                                                        console.error('Error:', error);
+                                                                        alert('An error occurred. Please try again.');
+                                                                    });
+                                                                }
+                                                            "
+                                                            class="text-red-400 hover:text-red-300 transition-colors"
+                                                            title="Cancel"
+                                                            x-show="subscription.is_active">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- No subscriptions message -->
+                        <div 
+                            x-show="subscriptions.length === 0"
+                            class="py-6 text-center">
+                            <i class="fas fa-scroll text-[#4B5563] text-4xl mb-3"></i>
+                            <p class="text-[#9CA3AF]">This member doesn't have any subscriptions yet.</p>
+                        </div>
+                        
+                        <!-- Add subscription form -->
+                        <div class="mt-6 border-t border-[#374151] pt-6">
+                            <h4 class="text-white font-semibold mb-4">Add New Subscription</h4>
+                            <form 
+                                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                @submit.prevent="
+                                    fetch('/admin/members/' + currentMemberId + '/subscriptions', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                        },
+                                        body: JSON.stringify({
+                                            type: $event.target.elements.type.value,
+                                            plan: $event.target.elements.plan.value,
+                                            price: $event.target.elements.price.value,
+                                            start_date: $event.target.elements.start_date.value,
+                                            end_date: $event.target.elements.end_date.value,
+                                            is_active: $event.target.elements.is_active.checked
+                                        })
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            // Refresh the subscriptions list
+                                            fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                .then(response => response.json())
+                                                .then(data => { 
+                                                    subscriptions = data; 
+                                                    // Reset form
+                                                    $event.target.reset();
+                                                });
+                                        } else {
+                                            alert('Error adding subscription: ' + data.message);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error:', error);
+                                        alert('An error occurred. Please try again.');
+                                    })
+                                "
+                            >
+                                <div>
+                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
+                                    <select name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Type</option>
+                                        <option value="gym">Gym</option>
+                                        <option value="boxing">Boxing</option>
+                                        <option value="muay">Muay Thai</option>
+                                        <option value="jiu-jitsu">Jiu-Jitsu</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
+                                    <select name="plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option value="">Select Plan</option>
+                                        <option value="daily">Daily</option>
+                                        <option value="monthly">Monthly</option>
+                                        <option value="per-session">Per Session</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Price ($)</label>
+                                    <input name="price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                                </div>
+                                <div>
+                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Start Date</label>
+                                    <input name="start_date" type="date" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">End Date</label>
+                                    <input name="end_date" type="date" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div class="flex items-center mt-3">
+                                    <input name="is_active" type="checkbox" id="is_active" checked class="h-4 w-4 text-blue-600 rounded border-[#4B5563] focus:ring-blue-500 bg-[#374151]">
+                                    <label for="is_active" class="ml-2 text-[#9CA3AF]">Active</label>
+                                </div>
+                            
+                                <div class="md:col-span-2 mt-6 flex justify-end">
+                                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                        <i class="fas fa-plus mr-1"></i> Add Subscription
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Subscription Modal -->
+    <div id="edit-subscription-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div onclick="document.getElementById('edit-subscription-modal').classList.add('hidden')" class="fixed inset-0 bg-black opacity-50"></div>
+            
+            <div class="relative bg-[#1F2937] rounded-lg max-w-md w-full mx-auto shadow-xl z-50 border border-[#374151]">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b border-[#374151] pb-4">
+                        <h3 class="text-xl font-bold text-white">Edit Subscription</h3>
+                        <button onclick="document.getElementById('edit-subscription-modal').classList.add('hidden')" class="text-[#9CA3AF] hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <form 
+                            id="edit-subscription-form"
+                            class="space-y-4"
+                            onsubmit="
+                                event.preventDefault();
+                                const form = event.target;
+                                const subscriptionId = form.elements['subscription_id'].value;
+                                
+                                fetch(`/admin/members/${currentMemberId}/subscriptions/${subscriptionId}`, {
+                                    method: 'PUT',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                    },
+                                    body: JSON.stringify({
+                                        type: form.elements['type'].value,
+                                        plan: form.elements['plan'].value,
+                                        price: form.elements['price'].value,
+                                        start_date: form.elements['start_date'].value,
+                                        end_date: form.elements['end_date'].value || null,
+                                        is_active: form.elements['is_active'].checked
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Refresh the subscriptions list
+                                        fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                            .then(response => response.json())
+                                            .then(data => { 
+                                                subscriptions = data;
+                                                // Hide modal
+                                                document.getElementById('edit-subscription-modal').classList.add('hidden');
+                                            });
+                                    } else {
+                                        alert('Error updating subscription: ' + data.message);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    alert('An error occurred. Please try again.');
+                                });
+                            "
+                        >
+                            <input type="hidden" id="edit-subscription-id" name="subscription_id">
+                            
+                            <div>
+                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
+                                <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Type</option>
+                                    <option value="gym">Gym</option>
+                                    <option value="boxing">Boxing</option>
+                                    <option value="muay">Muay Thai</option>
+                                    <option value="jiu-jitsu">Jiu-Jitsu</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
+                                <select id="edit-plan" name="plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Select Plan</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="per-session">Per Session</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Price ($)</label>
+                                <input id="edit-price" name="price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Start Date</label>
+                                <input id="edit-start-date" name="start_date" type="date" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">End Date</label>
+                                <input id="edit-end-date" name="end_date" type="date" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <input id="edit-is-active" name="is_active" type="checkbox" class="h-4 w-4 text-blue-600 rounded border-[#4B5563] focus:ring-blue-500 bg-[#374151]">
+                                <label for="edit-is-active" class="ml-2 text-[#9CA3AF]">Active</label>
+                            </div>
+                            
+                            <div class="flex flex-wrap justify-end gap-3 mt-6">
+                                <button 
+                                    type="button" 
+                                    onclick="document.getElementById('edit-subscription-modal').classList.add('hidden')"
+                                    class="px-4 py-2 bg-[#374151] text-white rounded hover:bg-[#4B5563] transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="button"
+                                    id="cancel-subscription-btn"
+                                    class="hidden px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                    onclick="
+                                        Swal.fire({
+                                            title: 'Cancel Subscription',
+                                            text: 'Are you sure you want to cancel this subscription?',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#EF4444',
+                                            cancelButtonColor: '#6B7280',
+                                            confirmButtonText: 'Yes, cancel it!',
+                                            cancelButtonText: 'No, keep it',
+                                            background: '#1F2937',
+                                            color: '#FFFFFF',
+                                            customClass: {
+                                                popup: 'rounded-lg border border-[#374151]',
+                                                title: 'text-white text-xl',
+                                                htmlContainer: 'text-[#9CA3AF]',
+                                                confirmButton: 'rounded-md px-4 py-2',
+                                                cancelButton: 'rounded-md px-4 py-2'
+                                            }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                const subscriptionId = document.getElementById('edit-subscription-id').value;
+                                                
+                                                fetch(`/admin/members/${currentMemberId}/subscriptions/${subscriptionId}/cancel`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                    }
+                                                })
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.success) {
+                                                        // Refresh the subscriptions list
+                                                        fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                            .then(response => response.json())
+                                                            .then(data => { 
+                                                                subscriptions = data;
+                                                                // Hide modal
+                                                                document.getElementById('edit-subscription-modal').classList.add('hidden');
+                                                                
+                                                                // Show success message
+                                                                Swal.fire({
+                                                                    title: 'Success!',
+                                                                    text: 'Subscription has been cancelled!',
+                                                                    icon: 'success',
+                                                                    confirmButtonColor: '#3B82F6',
+                                                                    background: '#1F2937',
+                                                                    color: '#FFFFFF',
+                                                                    customClass: {
+                                                                        popup: 'rounded-lg border border-[#374151]',
+                                                                        title: 'text-white text-xl',
+                                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                                        confirmButton: 'rounded-md px-4 py-2'
+                                                                    }
+                                                                });
+                                                            });
+                                                    } else {
+                                                        Swal.fire({
+                                                            title: 'Error!',
+                                                            text: 'Error cancelling subscription: ' + data.message,
+                                                            icon: 'error',
+                                                            confirmButtonColor: '#3B82F6',
+                                                            background: '#1F2937',
+                                                            color: '#FFFFFF',
+                                                            customClass: {
+                                                                popup: 'rounded-lg border border-[#374151]',
+                                                                title: 'text-white text-xl',
+                                                                htmlContainer: 'text-[#9CA3AF]',
+                                                                confirmButton: 'rounded-md px-4 py-2'
+                                                            }
+                                                        });
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Error:', error);
+                                                    Swal.fire({
+                                                        title: 'Error!',
+                                                        text: 'An error occurred. Please try again.',
+                                                        icon: 'error',
+                                                        confirmButtonColor: '#3B82F6',
+                                                        background: '#1F2937',
+                                                        color: '#FFFFFF',
+                                                        customClass: {
+                                                            popup: 'rounded-lg border border-[#374151]',
+                                                            title: 'text-white text-xl',
+                                                            htmlContainer: 'text-[#9CA3AF]',
+                                                            confirmButton: 'rounded-md px-4 py-2'
+                                                        }
+                                                    });
+                                                });
+                                            }
+                                        });
+                                    "
+                                >
+                                    <i class="fas fa-ban mr-1"></i> Cancel Subscription
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                >
+                                    Update Subscription
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+    [x-cloak] { display: none !important; }
+</style>
+
+<script>
+    function filterMembers(status) {
+        if (status === 'archived') {
+            window.location.href = "{{ route('admin.members.admin_members') }}?show_archived=1";
+        } else if (status === 'all') {
+            window.location.href = "{{ route('admin.members.admin_members') }}";
+        } else {
+            // Future implementation for filtering by other statuses
+            // For now just reload the page without archived members
+            window.location.href = "{{ route('admin.members.admin_members') }}";
+        }
+    }
+</script>
 @endsection

@@ -3,8 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>MTFC Admin - @yield('title', 'Dashboard')</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/app.css'])
     <style>
         body {
@@ -221,7 +227,7 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin//membersadmin_members') ? 'active' : '' }}">
+            <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin/members/admin_members') ? 'active' : '' }}">
                 <i class="fas fa-users"></i>
                 <span>Manage Members</span>
             </a>
@@ -253,6 +259,26 @@
                 <i class="fas fa-box"></i>
                 <span>Product Management</span>
             </a>
+            
+            <div class="mt-auto pt-8 border-t border-[#374151] mt-4">
+                <a href="javascript:void(0)" onclick="confirmAdminLogout()" class="nav-link text-red-400 hover:text-red-300">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+                
+                <!-- Alternative direct logout link -->
+                <form action="{{ route('logout') }}" method="POST" class="mt-2">
+                    @csrf
+                    <button type="submit" class="nav-link w-full text-left text-yellow-500 hover:text-yellow-400">
+                        <i class="fas fa-power-off"></i>
+                        <span>Direct Logout</span>
+                    </button>
+                </form>
+            </div>
+            
+            <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                @csrf
+            </form>
         </div>
     </nav>
 
@@ -304,6 +330,62 @@
             document.body.style.overflow = '';
         });
     });
+    
+    function confirmAdminLogout() {
+        console.log('confirmAdminLogout called');
+        Swal.fire({
+            title: '<span class="text-2xl font-bold">Logout Confirmation</span>',
+            html: '<p class="text-lg mt-2">Are you sure you want to log out from the admin panel?</p>',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#DC2626',
+            cancelButtonColor: '#4B5563',
+            confirmButtonText: '<i class="fas fa-sign-out-alt mr-2"></i>Yes, log me out!',
+            cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancel',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            customClass: {
+                popup: 'rounded-xl border-2 border-red-500/20 shadow-2xl',
+                title: 'text-white text-xl',
+                htmlContainer: 'text-[#9CA3AF]',
+                confirmButton: 'rounded-md px-4 py-2',
+                cancelButton: 'rounded-md px-4 py-2'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                console.log('Logout confirmed, submitting form');
+                
+                // Get the form element explicitly
+                const logoutForm = document.getElementById('admin-logout-form');
+                
+                if (!logoutForm) {
+                    console.error('Logout form not found!');
+                    // Fallback direct link if form not found
+                    window.location.href = '/logout';
+                    return;
+                }
+                
+                // Ensure form has CSRF token
+                if (!logoutForm.querySelector('input[name="_token"]')) {
+                    console.warn('CSRF token not found in form, adding it');
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                    const tokenInput = document.createElement('input');
+                    tokenInput.type = 'hidden';
+                    tokenInput.name = '_token';
+                    tokenInput.value = csrfToken;
+                    logoutForm.appendChild(tokenInput);
+                }
+                
+                try {
+                    logoutForm.submit();
+                } catch (e) {
+                    console.error('Error submitting form:', e);
+                    // Fallback if form submission fails
+                    window.location.href = '/logout';
+                }
+            }
+        });
+    }
     </script>
 </body>
 </html>

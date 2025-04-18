@@ -2,7 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AdminMemberController;
 
+
+
+
+//middleware sample
+// Route::middleware(['auth', 'role:user'])->group(function () {
+// Route::view('/profile', 'profile')->name('profile');
+// });
 
 Route::get('/', function () {
     return view('home');
@@ -19,6 +27,8 @@ Route::get('/signup', [AuthController::class, 'showSignupForm'])->name('signup.f
 Route::post('/signup', [AuthController::class, 'signup'])->name('signup');
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Fallback for logout if POST request fails
+Route::get('/logout', [AuthController::class, 'logout']);
 
 Route::view('/forgot', 'auth.forgot_password')->name('forgot_password');
 
@@ -48,7 +58,7 @@ Route::view('/privacypolicy', 'privacy')->name('privacy');
 // ===================
 // ALL USER ROUTES
 // ===================
-Route::middleware(['auth', 'role:user,trainer,admin'])->group(function () {
+
 Route::view('/notifications', 'notifications')->name('notifications');
 Route::view('/account-settings', 'account-settings')->name('account-settings');
 Route::view('/orders', 'orders')->name('orders');
@@ -57,14 +67,15 @@ Route::view('/payment-method', 'payment-method')->name('payment-method');
 Route::view('/checkout', 'checkout')->name('checkout');
 Route::view('/cart', 'cart')->name('cart');
 Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
-});
+
 
 // ===================
 // USER ROUTES
 // ===================
-Route::middleware(['auth', 'role:user'])->group(function () {
+
 Route::view('/profile', 'profile')->name('profile');
-});
+
+
 
 // ===================
 // TRAINER ROUTES
@@ -76,11 +87,20 @@ Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
 // ===================
 // ADMIN ROUTES
 // ===================
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+
 Route::view('/admin', 'admin.admin_dashboard')->name('admin');
 Route::view('/admin/dashboard', 'admin.admin_dashboard')->name('admin.dashboard');
 Route::view('/admin/trainer/admin_trainer', 'admin.trainer.admin_trainer')->name('admin.trainer.admin_trainer');
-Route::view('/admin/members/admin_members', 'admin.members.admin_members')->name('admin.trainers');
+
+//Members module
+Route::get('/admin/members/admin_members', [AdminMemberController::class, 'index'])->name('admin.members.admin_members');
+Route::get('/admin/members/{id}', [AdminMemberController::class, 'show'])->name('admin.members.show');
+Route::get('/admin/members/{user}/subscriptions', [AdminMemberController::class, 'manageMemberSubscriptions'])->name('admin.members.subscriptions');
+Route::post('/admin/members/{user}/subscriptions', [AdminMemberController::class, 'storeSubscription'])->name('admin.members.subscriptions.store');
+Route::put('/admin/members/{user}/subscriptions/{subscription}', [AdminMemberController::class, 'updateSubscription'])->name('admin.members.subscriptions.update');
+Route::post('/admin/members/{user}/subscriptions/{subscription}/cancel', [AdminMemberController::class, 'cancelSubscription'])->name('admin.members.subscriptions.cancel');
+Route::post('/admin/members/{user}/archive', [AdminMemberController::class, 'archiveMember'])->name('admin.members.archive');
+
 Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
 Route::view('/admin/session', 'admin.session.admin_session')->name('admin.session.admin_session');
 Route::view('/admin/promotion', 'admin.promotion.admin_promo')->name('admin.promotion.promo');
@@ -106,4 +126,4 @@ Route::get('/admin/manage-orders', function () {
     return view('admin.orders.index', compact('orders'));
 });
 
-});
+

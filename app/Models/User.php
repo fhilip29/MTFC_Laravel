@@ -28,6 +28,7 @@ class User extends Authenticatable
         'qr_code',
         'role',
         'is_agreed_to_terms',
+        'is_archived',
     ];
     
 
@@ -52,6 +53,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_agreed_to_terms' => 'boolean',
+            'is_archived' => 'boolean',
         ];
     }
     
@@ -84,4 +86,37 @@ class User extends Authenticatable
     {
         return $this->role === 'member';
     }
+
+//subscriptions
+    public function subscriptions()
+{
+    return $this->hasMany(Subscription::class);
+}
+
+public function activeSubscriptions()
+{
+    return $this->subscriptions()->where('is_active', true);
+}
+
+/**
+ * Scope a query to only include non-archived users.
+ *
+ * @param  \Illuminate\Database\Eloquent\Builder  $query
+ * @return \Illuminate\Database\Eloquent\Builder
+ */
+public function scopeNotArchived($query)
+{
+    return $query->where('is_archived', false);
+}
+
+/**
+ * Scope a query to only include archived users.
+ *
+ * @param  \Illuminate\Database\Eloquent\Builder  $query
+ * @return \Illuminate\Database\Eloquent\Builder
+ */
+public function scopeArchived($query)
+{
+    return $query->where('is_archived', true);
+}
 }

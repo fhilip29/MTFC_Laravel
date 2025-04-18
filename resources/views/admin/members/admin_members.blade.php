@@ -663,25 +663,25 @@
                                             }
                                         }).then((result) => {
                                             if (result.isConfirmed) {
-                                                const subscriptionId = document.getElementById('edit-subscription-id').value;
-                                                
-                                                fetch(`/admin/members/${currentMemberId}/subscriptions/${subscriptionId}/cancel`, {
-                                                    method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                                                    }
-                                                })
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    if (data.success) {
-                                                        // Refresh the subscriptions list
-                                                        fetch('/admin/members/'+currentMemberId+'/subscriptions')
-                                                            .then(response => response.json())
-                                                            .then(data => { 
-                                                                subscriptions = data;
-                                                                // Hide modal
-                                                                document.getElementById('edit-subscription-modal').classList.add('hidden');
+                                            const subscriptionId = document.getElementById('edit-subscription-id').value;
+                                            
+                                            fetch(`/admin/members/${currentMemberId}/subscriptions/${subscriptionId}/cancel`, {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                }
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.success) {
+                                                    // Refresh the subscriptions list
+                                                    fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                        .then(response => response.json())
+                                                        .then(data => { 
+                                                            subscriptions = data;
+                                                            // Hide modal
+                                                            document.getElementById('edit-subscription-modal').classList.add('hidden');
                                                                 
                                                                 // Show success message
                                                                 Swal.fire({
@@ -698,8 +698,8 @@
                                                                         confirmButton: 'rounded-md px-4 py-2'
                                                                     }
                                                                 });
-                                                            });
-                                                    } else {
+                                                        });
+                                                } else {
                                                         Swal.fire({
                                                             title: 'Error!',
                                                             text: 'Error cancelling subscription: ' + data.message,
@@ -714,10 +714,10 @@
                                                                 confirmButton: 'rounded-md px-4 py-2'
                                                             }
                                                         });
-                                                    }
-                                                })
-                                                .catch(error => {
-                                                    console.error('Error:', error);
+                                                }
+                                            })
+                                            .catch(error => {
+                                                console.error('Error:', error);
                                                     Swal.fire({
                                                         title: 'Error!',
                                                         text: 'An error occurred. Please try again.',
@@ -732,8 +732,8 @@
                                                             confirmButton: 'rounded-md px-4 py-2'
                                                         }
                                                     });
-                                                });
-                                            }
+                                            });
+                                        }
                                         });
                                     "
                                 >

@@ -87,16 +87,16 @@ class User extends Authenticatable
         return $this->role === 'member';
     }
 
-//subscriptions
-    public function subscriptions()
-{
-    return $this->hasMany(Subscription::class);
-}
+     //subscriptions
+      public function subscriptions()
+     {
+      return $this->hasMany(Subscription::class);
+     }
 
-public function activeSubscriptions()
-{
-    return $this->subscriptions()->where('is_active', true);
-}
+     public function activeSubscriptions()
+    {
+      return $this->subscriptions()->where('is_active', true);
+    }
 
 /**
  * Scope a query to only include non-archived users.

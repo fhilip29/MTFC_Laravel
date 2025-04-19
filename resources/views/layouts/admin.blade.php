@@ -239,7 +239,7 @@
                 <i class="fas fa-file-invoice"></i>
                 <span>Manage Invoice</span>
             </a>
-            <a href="/admin/sessions" class="nav-link {{ request()->is('admin/sessions') ? 'active' : '' }}">
+            <a href="/admin/session/admin_session" class="nav-link {{ request()->is('admin/session/admin_session') ? 'active' : '' }}">
                 <i class="fas fa-calendar-alt"></i>
                 <span>Session Management</span>
             </a>

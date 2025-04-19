@@ -119,4 +119,10 @@ public function scopeArchived($query)
 {
     return $query->where('is_archived', true);
 }
+
+//Sessions
+public function sessions()
+{
+    return $this->hasMany(Session::class);
+}
 }

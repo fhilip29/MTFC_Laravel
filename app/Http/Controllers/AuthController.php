@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -45,6 +46,9 @@ class AuthController extends Controller
             'password'              => 'required|min:6|confirmed',
         ]);
 
+        // Generate unique QR code for the user
+        $qrCode = Str::random(24);
+
         $user = User::create([
             'full_name' => $request->first_name . ' ' . $request->last_name,
             'email' => $request->email,
@@ -52,6 +56,7 @@ class AuthController extends Controller
             'gender' => $request->gender,
             'fitness_goal' => $request->fitness_goal,
             'is_agreed_to_terms' => $request->has('terms'),
+            'qr_code' => $qrCode,
         ]);
 
         Auth::login($user);

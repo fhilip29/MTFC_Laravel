@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminMemberController;
+use App\Http\Controllers\SessionController;
+
 
 
 
@@ -72,7 +74,6 @@ Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
 // ===================
 // USER ROUTES
 // ===================
-
 Route::view('/profile', 'profile')->name('profile');
 
 
@@ -83,6 +84,7 @@ Route::view('/profile', 'profile')->name('profile');
 Route::middleware(['auth', 'role:trainer'])->group(function () {
 Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
 });
+
 
 // ===================
 // ADMIN ROUTES
@@ -101,8 +103,14 @@ Route::put('/admin/members/{user}/subscriptions/{subscription}', [AdminMemberCon
 Route::post('/admin/members/{user}/subscriptions/{subscription}/cancel', [AdminMemberController::class, 'cancelSubscription'])->name('admin.members.subscriptions.cancel');
 Route::post('/admin/members/{user}/archive', [AdminMemberController::class, 'archiveMember'])->name('admin.members.archive');
 
+//Sessions module
+Route::get('/admin/session/admin_session', [SessionController::class, 'index'])->name('admin.session.admin_session');
+Route::post('/admin/sessions/store', [SessionController::class, 'store'])->name('admin.session.store');
+
+
+
+
 Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
-Route::view('/admin/session', 'admin.session.admin_session')->name('admin.session.admin_session');
 Route::view('/admin/promotion', 'admin.promotion.admin_promo')->name('admin.promotion.promo');
 Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 Route::view('/admin/products', 'admin.product.admin_product')->name('admin.product.products');

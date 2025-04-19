@@ -22,7 +22,7 @@
         <input 
             type="text" 
             id="searchInput" 
-            placeholder="Search by client ID or name..." 
+            placeholder="Search by name or date..." 
             class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4"
         >
 
@@ -32,8 +32,9 @@
                     <table class="min-w-full divide-y divide-[#374151] text-sm text-left" id="sessionTable">
                         <thead class="bg-[#374151] text-[#9CA3AF] uppercase sticky top-0 z-10">
                             <tr>
-                                <th class="px-4 py-3">Client ID</th>
-                                <th class="px-4 py-3">Full Name</th>
+                                <th class="px-4 py-3">Profile</th>
+                                <th class="px-4 py-3">Name</th>
+                                <th class="px-4 py-3">Date</th>
                                 <th class="px-4 py-3">Time</th>
                                 <th class="px-4 py-3">Status</th>
                             </tr>
@@ -52,9 +53,16 @@
 
                             @foreach ($sessions as $session)
                                 <tr class="hover:bg-[#374151] transition-colors">
-                                    <td class="px-4 py-3 font-mono text-white">{{ $session['id'] }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="flex items-center">
+                                            <div class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
+                                                {{ strtoupper(substr($session['name'], 0, 2)) }}
+                                            </div>
+                                        </div>
+                                    </td>
                                     <td class="px-4 py-3 font-medium text-white">{{ $session['name'] }}</td>
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session['time'])->format('M d, Y h:i A') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session['time'])->format('M d, Y') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session['time'])->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                             {{ $session['status'] === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white' }}">
@@ -90,6 +98,7 @@
                         <div class="mt-4">
                             <div id="scanner-container" class="relative overflow-hidden rounded-lg bg-black aspect-square w-full max-w-md mx-auto">
                                 <video id="scanner-video" class="w-full h-full object-cover"></video>
+                                <canvas id="scanner-canvas" class="hidden absolute top-0 left-0"></canvas>
                                 <div id="scanner-overlay" class="absolute inset-0 border-2 border-transparent flex items-center justify-center">
                                     <div class="w-2/3 h-2/3 border-2 border-green-500 relative">
                                         <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-green-500"></div>
@@ -101,6 +110,16 @@
                                 <div id="scan-animation" class="absolute top-0 left-0 w-full h-1 bg-green-500 opacity-75 transform -translate-y-full"></div>
                             </div>
                             <div id="scanner-message" class="mt-4 text-center text-white">Position the QR code within the frame</div>
+                            
+                            <!-- Time In/Out Selection -->
+                            <div class="flex gap-3 mt-4 justify-center">
+                                <button id="timeInBtn" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow active:bg-green-800 flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-sign-in-alt"></i> Time In
+                                </button>
+                                <button id="timeOutBtn" class="py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow active:bg-red-800 flex items-center gap-2 transition-colors">
+                                    <i class="fas fa-sign-out-alt"></i> Time Out
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -116,6 +135,9 @@
         </div>
     </div>
 </div>
+
+<!-- Import jsQR library -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
 <script>
     // Simple search filter
@@ -136,12 +158,45 @@
         const closeScanner = document.getElementById('closeScanner');
         const cancelScanner = document.getElementById('cancelScanner');
         const startScannerBtn = document.getElementById('startScanner');
+        const timeInBtn = document.getElementById('timeInBtn');
+        const timeOutBtn = document.getElementById('timeOutBtn');
         const video = document.getElementById('scanner-video');
+        const canvas = document.getElementById('scanner-canvas');
         const scanAnimation = document.getElementById('scan-animation');
         const scannerMessage = document.getElementById('scanner-message');
         
         let scanning = false;
         let stream = null;
+        let scanMode = 'IN'; // Default scan mode
+        let canvasContext = canvas.getContext('2d');
+        
+        // Set active scan mode
+        function setActiveScanMode(mode) {
+            scanMode = mode;
+            
+            if (mode === 'IN') {
+                timeInBtn.classList.add('ring-2', 'ring-white');
+                timeOutBtn.classList.remove('ring-2', 'ring-white');
+            } else {
+                timeOutBtn.classList.add('ring-2', 'ring-white');
+                timeInBtn.classList.remove('ring-2', 'ring-white');
+            }
+            
+            scannerMessage.textContent = `Ready to scan for Time ${mode}`;
+        }
+        
+        // Set initial active mode
+        setActiveScanMode('IN');
+        
+        // Time In button click
+        timeInBtn.addEventListener('click', function() {
+            setActiveScanMode('IN');
+        });
+        
+        // Time Out button click
+        timeOutBtn.addEventListener('click', function() {
+            setActiveScanMode('OUT');
+        });
         
         // Show scanner modal
         scanButton.addEventListener('click', function() {
@@ -183,14 +238,16 @@
                         video.play();
                         scanning = true;
                         startScanAnimation();
-                        scannerMessage.textContent = 'Scanning...';
+                        scannerMessage.textContent = `Scanning for Time ${scanMode}...`;
                         
-                        // Simulate QR code detection (in a real app, you'd use a library like jsQR)
-                        setTimeout(function() {
-                            if (scanning) {
-                                handleSuccessfulScan('67dfbb6ea96c19be54fae25b');
-                            }
-                        }, 5000);
+                        // Set canvas size to match video
+                        video.addEventListener('loadedmetadata', function() {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                        });
+                        
+                        // Start QR code detection loop
+                        requestAnimationFrame(scanQRCode);
                     })
                     .catch(function(error) {
                         console.error('Error accessing camera:', error);
@@ -203,6 +260,34 @@
             }
         }
         
+        // Scan for QR code
+        function scanQRCode() {
+            if (!scanning) return;
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                // Draw current video frame to canvas
+                canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Get image data for QR code detection
+                const imageData = canvasContext.getImageData(0, 0, canvas.width, canvas.height);
+                
+                // Try to detect QR code
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code) {
+                    // QR code detected
+                    console.log("QR Code detected:", code.data);
+                    processScannedQRCode(code.data);
+                    return;
+                }
+            }
+            
+            // Continue scanning loop if no QR code found
+            requestAnimationFrame(scanQRCode);
+        }
+        
         // Stop scanner function
         function stopScanner() {
             if (stream) {
@@ -212,46 +297,88 @@
             }
             scanning = false;
             stopScanAnimation();
-            scannerMessage.textContent = 'Position the QR code within the frame';
+            scannerMessage.textContent = `Ready to scan for Time ${scanMode}`;
             scannerMessage.classList.remove('text-red-500', 'text-green-500');
         }
         
-        // Handle successful scan
-        function handleSuccessfulScan(memberId) {
+        // Process scanned QR code
+        function processScannedQRCode(qrCode) {
             stopScanAnimation();
-            scannerMessage.textContent = 'Member ID: ' + memberId + ' - Successfully scanned!';
-            scannerMessage.classList.add('text-green-500');
+            scannerMessage.textContent = `Processing QR code...`;
+            
+            // Send the QR code to the server
+            fetch('{{ route("admin.session.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    qr_code: qrCode,
+                    status: scanMode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    handleSuccessfulScan(data.data);
+                } else {
+                    scannerMessage.textContent = data.error || 'Error processing QR code';
+                    scannerMessage.classList.add('text-red-500');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                scannerMessage.textContent = 'Error processing scan. Please try again.';
+                scannerMessage.classList.add('text-red-500');
+            });
+            
             scanning = false;
             startScannerBtn.textContent = 'Start Scanner';
             startScannerBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
             startScannerBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+        }
+        
+        // Handle successful scan
+        function handleSuccessfulScan(data) {
+            scannerMessage.textContent = `Member: ${data.full_name} - Successfully scanned for Time ${data.status}!`;
+            scannerMessage.classList.add('text-green-500');
             
-            // In a real application, you would send this ID to the server
-            // and update the session table with the new check-in/out
-            console.log('Member scanned:', memberId);
+            // Add the new session to the table
+            const tbody = document.querySelector('#sessionTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.className = 'hover:bg-[#374151] transition-colors';
             
-            // Simulate adding a new row to the table
-            setTimeout(function() {
-                const tbody = document.querySelector('#sessionTable tbody');
-                const newRow = document.createElement('tr');
-                newRow.className = 'hover:bg-[#374151] transition-colors';
-                
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + 
-                                     ' ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-                
-                newRow.innerHTML = `
-                    <td class="px-4 py-3 font-mono text-white">${memberId}</td>
-                    <td class="px-4 py-3 font-medium text-white">King Dranreb Languido</td>
-                    <td class="px-4 py-3 text-[#9CA3AF]">${formattedDate}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-500 text-white">IN</span>
-                    </td>
-                `;
-                
+            const date = new Date(data.time);
+            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const formattedTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            const initials = data.full_name.substring(0, 2).toUpperCase();
+            
+            newRow.innerHTML = `
+                <td class="px-4 py-3">
+                    <div class="flex items-center">
+                        <div class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
+                            ${initials}
+                        </div>
+                    </div>
+                </td>
+                <td class="px-4 py-3 font-medium text-white">${data.full_name}</td>
+                <td class="px-4 py-3 text-[#9CA3AF]">${formattedDate}</td>
+                <td class="px-4 py-3 text-[#9CA3AF]">${formattedTime}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${data.status === 'IN' ? 'bg-green-500' : 'bg-red-500'} text-white">${data.status}</span>
+                </td>
+            `;
+            
+            // Insert the new row at the top of the table
+            if (tbody.firstChild) {
                 tbody.insertBefore(newRow, tbody.firstChild);
-                closeModal();
-            }, 1500);
+            } else {
+                tbody.appendChild(newRow);
+            }
+            
+            // Close the modal after a brief delay
+            setTimeout(closeModal, 1500);
         }
         
         // Scan animation

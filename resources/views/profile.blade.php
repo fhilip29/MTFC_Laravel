@@ -13,6 +13,35 @@
     .rotate-icon-open {
         transform: rotate(180deg);
     }
+    
+    /* QR Code Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 50;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .modal-content {
+        background-color: #2d2d2d;
+        margin: 10% auto;
+        padding: 25px;
+        border-radius: 12px;
+        max-width: 400px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    
+    .modal-open {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 </style>
 @endsection
 
@@ -35,20 +64,20 @@
                 <div class="absolute bottom-2 right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
             <div class="text-center">
-                <h2 class="text-xl md:text-2xl font-bold">King Dranreb Languido</h2>
-                <p class="text-gray-400 text-xs md:text-sm">Member since 03/29/2023</p>
+                <h2 class="text-xl md:text-2xl font-bold">{{ Auth::user()->full_name }}</h2>
+                <p class="text-gray-400 text-xs md:text-sm">Member since {{ Auth::user()->created_at->format('m/d/Y') }}</p>
             </div>
         </div>
 
         <!-- QR Code -->
         <div class="bg-[#2d2d2d] p-4 md:p-6 rounded-xl">
             <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center">Check-In QR</h3>
-            <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center">
+            <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center cursor-pointer" id="qrCodeContainer" onclick="openQrModal()">
                 <div class="w-32 h-32 md:w-40 md:h-40">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=MTFC123456789" alt="QR Code" class="w-full h-full">
+                    {!! QrCode::size(150)->generate(Auth::user()->qr_code) !!}
                 </div>
             </div>
-            <p class="text-xs text-center mt-2 md:mt-3 text-gray-400">Scan this QR code at the entrance</p>
+            <p class="text-xs text-center mt-2 md:mt-3 text-gray-400">Tap the QR code to enlarge</p>
         </div>
 
         <!-- Personal Information -->
@@ -57,15 +86,15 @@
             <div class="space-y-3 md:space-y-4">
                 <div class="flex justify-between items-center">
                     <label class="text-gray-400 text-sm">Gender</label>
-                    <p class="font-medium text-sm md:text-base">MALE</p>
+                    <p class="font-medium text-sm md:text-base">{{ strtoupper(Auth::user()->gender) }}</p>
                 </div>
                 <div class="flex justify-between items-center">
                     <label class="text-gray-400 text-sm">Fitness Goals</label>
-                    <p class="font-medium text-sm md:text-base">LOSE WEIGHT</p>
+                    <p class="font-medium text-sm md:text-base">{{ strtoupper(str_replace('-', ' ', Auth::user()->fitness_goal)) }}</p>
                 </div>
                 <div class="flex justify-between items-center">
                     <label class="text-gray-400 text-sm">Mobile Number</label>
-                    <p class="font-medium text-sm md:text-base">09770772168</p>
+                    <p class="font-medium text-sm md:text-base">{{ Auth::user()->mobile_number ?? 'Not provided' }}</p>
                 </div>
             </div>
         </div>
@@ -244,6 +273,24 @@
     </div>
 </div>
 
+<!-- QR Code Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-white">Your Check-In QR Code</h2>
+            <button onclick="closeQrModal()" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-lg"></i>
+            </button>
+        </div>
+        <div class="bg-white p-4 rounded-lg flex justify-center items-center">
+            <div class="w-64 h-64">
+                {!! QrCode::size(250)->generate(Auth::user()->qr_code) !!}
+            </div>
+        </div>
+        <p class="text-center mt-4 text-gray-300 text-sm">Show this QR code at the gym entrance to check in</p>
+    </div>
+</div>
+
 <!-- Inline script for immediate execution -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
@@ -271,6 +318,23 @@
                 }
             });
         }
+        
+        // QR Code Modal
+        window.openQrModal = function() {
+            document.getElementById('qrModal').classList.add('modal-open');
+        };
+        
+        window.closeQrModal = function() {
+            document.getElementById('qrModal').classList.remove('modal-open');
+        };
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('qrModal');
+            if (event.target === modal) {
+                closeQrModal();
+            }
+        });
         
         // Chart.js initialization
         try {

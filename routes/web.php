@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminMemberController;
 use App\Http\Controllers\SessionController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ShopController;
+use App\Http\Controllers\CartController;
 
 
 
@@ -40,7 +43,7 @@ Route::view('/forgot', 'auth.forgot_password')->name('forgot_password');
 // ===================
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
-Route::view('/shop', 'shop')->name('shop');
+Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::view('/trainers', 'trainers')->name('trainers');
 
 // ===================
@@ -108,12 +111,21 @@ Route::get('/admin/session/admin_session', [SessionController::class, 'index'])-
 Route::post('/admin/sessions/store', [SessionController::class, 'store'])->name('admin.session.store');
 
 
+//Products module
+Route::get('/admin/products', [ProductController::class, 'index'])->name('admin.product.products');
+Route::post('/admin/products', [ProductController::class, 'store'])->name('admin.product.store');
+Route::put('/admin/products/{id}', [ProductController::class, 'update'])->name('admin.product.update');
+Route::delete('/admin/products/{id}', [ProductController::class, 'destroy'])->name('admin.product.destroy');
+
+
 
 
 Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
 Route::view('/admin/promotion', 'admin.promotion.admin_promo')->name('admin.promotion.promo');
 Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
-Route::view('/admin/products', 'admin.product.admin_product')->name('admin.product.products');
+
+
+
 Route::view('/admin/orders', 'admin.orders.admin_orders')->name('admin.orders.orders');
 
 // Admin Manage Orders (dummy data for now)
@@ -133,5 +145,12 @@ Route::get('/admin/manage-orders', function () {
 
     return view('admin.orders.index', compact('orders'));
 });
+
+// ===================
+// CART ROUTES
+// ===================
+Route::get('/cart', [CartController::class, 'showCart'])->name('cart');
+Route::get('/cart/get', [CartController::class, 'getCart'])->name('cart.get')->middleware('auth');
+Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync')->middleware('auth');
 
 

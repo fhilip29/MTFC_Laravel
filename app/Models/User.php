@@ -125,4 +125,10 @@ public function sessions()
 {
     return $this->hasMany(Session::class);
 }
+
+//Cart
+public function cart()
+{
+    return $this->hasOne(Cart::class);
+}
 }

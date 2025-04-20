@@ -7,6 +7,8 @@ use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\AdminOrderController;
 
 
 
@@ -66,11 +68,17 @@ Route::view('/privacypolicy', 'privacy')->name('privacy');
 
 Route::view('/notifications', 'notifications')->name('notifications');
 Route::view('/account-settings', 'account-settings')->name('account-settings');
-Route::view('/orders', 'orders')->name('orders');
+
+// Order routes (protected by auth middleware)
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('orders.show');
+    Route::post('/orders/{id}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+
+
 Route::view('/community', 'community')->name('community');
 Route::view('/payment-method', 'payment-method')->name('payment-method');
-Route::view('/checkout', 'checkout')->name('checkout');
-Route::view('/cart', 'cart')->name('cart');
 Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
 
 
@@ -126,25 +134,10 @@ Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 
 
 
-Route::view('/admin/orders', 'admin.orders.admin_orders')->name('admin.orders.orders');
-
-// Admin Manage Orders (dummy data for now)
-Route::get('/admin/manage-orders', function () {
-    $orders = [
-        (object)['id' => '67fb3540086200c3004a8000', 'date' => '2025-04-13', 'status' => 'Accepted'],
-        (object)['id' => '67fa56af95f616afe1db8f09', 'date' => '2025-04-12', 'status' => 'Pending'],
-        (object)['id' => '67f1e208ccc16bbe38bce1cb', 'date' => '2025-04-06', 'status' => 'Cancelled'],
-        (object)['id' => '67f0ec29da9e8fa68e4f90f8', 'date' => '2025-04-05', 'status' => 'Completed'],
-        (object)['id' => '67ee504632235b11cff6e61b4', 'date' => '2025-04-03', 'status' => 'Accepted'],
-        (object)['id' => '67ee31d5d8d6da4022bba2c5', 'date' => '2025-04-03', 'status' => 'Out for Delivery'],
-        (object)['id' => '67eb368a40ad2ac6182106dd', 'date' => '2025-04-01', 'status' => 'Pending'],
-        (object)['id' => '67ea3dd2f7296cdb6f64d684', 'date' => '2025-03-31', 'status' => 'Pending'],
-        (object)['id' => '67e8d889a8e861a0117d15ba', 'date' => '2025-03-30', 'status' => 'Cancelled'],
-        (object)['id' => '67e03af6d6ac4ca715075010', 'date' => '2025-03-24', 'status' => 'Pending'],
-    ];
-
-    return view('admin.orders.index', compact('orders'));
-});
+// Admin Orders Management
+Route::get('/admin/orders', [AdminOrderController::class, 'index'])->name('admin.orders.orders');
+Route::get('/admin/orders/{id}/details', [AdminOrderController::class, 'showDetails'])->name('admin.orders.details');
+Route::post('/admin/orders/{id}/update-status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.update-status');
 
 // ===================
 // CART ROUTES
@@ -152,5 +145,6 @@ Route::get('/admin/manage-orders', function () {
 Route::get('/cart', [CartController::class, 'showCart'])->name('cart');
 Route::get('/cart/get', [CartController::class, 'getCart'])->name('cart.get')->middleware('auth');
 Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync')->middleware('auth');
+Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 
 

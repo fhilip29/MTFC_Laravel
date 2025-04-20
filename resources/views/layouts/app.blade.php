@@ -20,6 +20,9 @@
      <!-- ✅ Tailwind CSS CDN (Quick Fix) -->
      <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
     header a, footer a {
         text-decoration: none !important;
@@ -43,6 +46,41 @@
     .swiper-button-next {
         display: none !important;
     }
+
+    /* Custom scrollbar styling for cart */
+    #cartItems::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #cartItems::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    #cartItems::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 10px;
+    }
+    
+    #cartItems::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af;
+    }
+    
+    /* Firefox scrollbar */
+    #cartItems {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db #f1f1f1;
+    }
+    
+    /* Item hover effect */
+    .cart-item {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .cart-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
 </style>
 
 </head>
@@ -57,23 +95,36 @@
     @include('components.footer')
 
    <!-- 🛒 Cart Drawer -->
-<div id="cartDrawer" class="fixed top-0 right-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition-transform z-50 overflow-y-auto">
+<div id="cartDrawer" class="fixed top-0 right-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition-transform z-50 overflow-hidden flex flex-col">
     <!-- Drawer Header -->
     <div class="flex items-center justify-between px-5 py-4 border-b">
         <h2 class="text-xl font-semibold">Shopping Cart</h2>
         <button id="closeCart" class="text-gray-600 hover:text-black text-2xl">&times;</button>
     </div>
 
-    <!-- Cart Items -->
-    <div id="cartItems" class="p-4 space-y-4">
-        <!-- Cart items will be inserted here dynamically -->
+    <!-- Item count indicator -->
+    <div id="cartItemCount" class="px-5 py-2 text-sm text-gray-600">
+        <span id="cartTotalItems">0</span> items in your cart
     </div>
 
-    <!-- Empty Cart Message -->
-    <div id="emptyCartMessage" class="p-8 text-center text-gray-500">
-        <i class="fas fa-shopping-cart text-4xl mb-4 block"></i>
-        <p>Your cart is empty</p>
-        <p class="text-sm mt-2">Start shopping to add items to your cart</p>
+    <!-- Cart Items with Scrollable Container -->
+    <div class="flex-1 overflow-hidden relative">
+        <!-- Empty Cart Message -->
+        <div id="emptyCartMessage" class="p-8 text-center text-gray-500">
+            <i class="fas fa-shopping-cart text-4xl mb-4 block"></i>
+            <p>Your cart is empty</p>
+            <p class="text-sm mt-2">Start shopping to add items to your cart</p>
+        </div>
+        
+        <!-- Scrollable Cart Items Container -->
+        <div id="cartItems" class="p-4 space-y-4 overflow-y-auto h-full max-h-[calc(100vh-220px)]">
+            <!-- Cart items will be inserted here dynamically -->
+        </div>
+        
+        <!-- Scroll to top button -->
+        <button id="cartScrollTopBtn" class="absolute bottom-2 right-2 bg-white rounded-full w-8 h-8 shadow flex items-center justify-center text-gray-600 hover:bg-gray-100 hidden">
+            <i class="fas fa-chevron-up"></i>
+        </button>
     </div>
 
     <!-- Total and Checkout -->
@@ -250,6 +301,13 @@
 
         // Function to render cart items
         function renderCart() {
+            // Update cart items count
+            const cartTotalItems = document.getElementById('cartTotalItems');
+            if (cartTotalItems) {
+                const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+                cartTotalItems.textContent = totalItems;
+            }
+            
             // Clear current cart display
             cartItems.innerHTML = '';
             
@@ -274,20 +332,27 @@
                 totalPrice += item.price * item.quantity;
                 
                 const itemElement = document.createElement('div');
-                itemElement.className = 'flex items-center space-x-4 border-b pb-4';
+                itemElement.className = 'flex items-center space-x-4 border-b pb-4 mb-4 cart-item rounded p-2';
                 itemElement.innerHTML = `
                     <img src="${item.image || '{{ asset('assets/default-product.jpg') }}'}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
                     <div class="flex-1">
                         <h4 class="text-md font-semibold">${item.name}</h4>
-                        <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)}</p>
-                        <div class="flex items-center space-x-2 mt-1">
-                            <button type="button" class="bg-gray-200 px-2 py-1 rounded-l hover:bg-gray-300" onclick="event.stopPropagation(); decreaseQuantity(${index})">-</button>
-                            <span>${item.quantity}</span>
-                            <button type="button" class="bg-gray-200 px-2 py-1 rounded-r hover:bg-gray-300" onclick="event.stopPropagation(); increaseQuantity(${index})">+</button>
+                        <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="event.stopPropagation(); decreaseQuantity(${index})">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="quantity-value text-center w-6">${item.quantity}</span>
+                            <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="event.stopPropagation(); increaseQuantity(${index})">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
                             <button type="button" class="ml-2 text-red-500 hover:text-red-700" onclick="event.stopPropagation(); confirmRemoveFromCart(${index})">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold">₱${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
                 `;
                 
@@ -297,6 +362,28 @@
             // Update totals
             cartTotalQuantity.textContent = totalQuantity;
             cartTotalPrice.textContent = `₱${totalPrice.toFixed(2)}`;
+            
+            // Setup scroll to top button
+            const cartScrollTopBtn = document.getElementById('cartScrollTopBtn');
+            
+            if (cartScrollTopBtn && cartItems) {
+                // Show button when scrolling down
+                cartItems.addEventListener('scroll', function() {
+                    if (this.scrollTop > 100) {
+                        cartScrollTopBtn.classList.remove('hidden');
+                    } else {
+                        cartScrollTopBtn.classList.add('hidden');
+                    }
+                });
+                
+                // Scroll to top when clicked
+                cartScrollTopBtn.addEventListener('click', function() {
+                    cartItems.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
         }
 
         // Function to update cart badge

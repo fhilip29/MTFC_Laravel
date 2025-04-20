@@ -57,4 +57,24 @@ class CartController extends Controller
     {
         return view('cart');
     }
+    
+    /**
+     * Show the checkout page
+     */
+    public function checkout()
+    {
+        $cartItems = [];
+        
+        // If user is logged in, get cart from database
+        if (Auth::check()) {
+            $user = Auth::user();
+            $cart = Cart::where('user_id', $user->id)->first();
+            
+            if ($cart && !empty($cart->items)) {
+                $cartItems = $cart->items;
+            }
+        }
+        
+        return view('checkout', ['cartItems' => $cartItems]);
+    }
 } 

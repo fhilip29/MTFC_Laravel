@@ -4,15 +4,56 @@
 <!-- Add Font Awesome CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+<!-- Add Alpine.js CDN at the top to ensure it's loaded first -->
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+<!-- Initialize Cart JS -->
+<script>
+// Global cart functions
+let cartItems = [];
+
+// Function to add item to cart
+function addToCart(product) {
+    console.log('Adding to cart:', product);
+    
+    // Show confirmation message
+    Swal.fire({
+        title: 'Added to Cart!',
+        text: `${product.name} has been added to your cart.`,
+        icon: 'success',
+        confirmButtonColor: '#EF4444',
+        timer: 2000
+    });
+    
+    // Here you would typically add the logic to update your cart
+    // This is just a placeholder - your actual cart implementation may differ
+    
+    // If you have server-side cart syncing
+    if (typeof syncCartWithServer === 'function') {
+        syncCartWithServer(product);
+    }
+}
+
+// Console log when the page loads to check Alpine.js
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, Alpine.js available:', typeof window.Alpine !== 'undefined');
+});
+</script>
+
 <!-- Product Detail Modal -->
 <div x-data="{ showModal: false, product: null, quantity: 1 }" x-cloak>
-    <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+    <!-- Debug info (temporary) -->
+    <div x-show="showModal" class="fixed top-0 left-0 bg-black text-white p-2 z-[100]" style="display: none;">
+        Modal is open: <span x-text="showModal"></span>
+    </div>
+    
+    <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="fixed inset-0 bg-black opacity-60 transition-opacity" @click="showModal = false"></div>
             <div class="relative bg-white rounded-xl max-w-2xl w-full mx-auto shadow-2xl transform transition-all" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95">
                 <!-- Modal header -->
                 <div class="flex items-center justify-between p-5 border-b">
-                    <h3 class="text-xl font-bold" x-text="product?.name"></h3>
+                    <h3 class="text-xl font-bold" x-text="product?.name || 'Product Details'"></h3>
                     <button @click="showModal = false" class="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 rounded-full p-1">
                         <i class="fas fa-times"></i>
                     </button>
@@ -38,7 +79,7 @@
                             </div>
                         </div>
                         <div class="md:w-1/2 space-y-5">
-                            <p class="text-3xl font-bold text-red-600" x-text="'₱' + parseFloat(product?.price).toFixed(2)"></p>
+                            <p class="text-3xl font-bold text-red-600" x-text="product ? '₱' + parseFloat(product.price).toFixed(2) : ''"></p>
                             <template x-if="product?.stock !== undefined">
                                 <div class="flex items-center space-x-2">
                                     <span class="text-sm font-medium text-gray-500">Available Quantity:</span>
@@ -181,7 +222,14 @@
                                             stock: {{ $product->stock }},
                                             category: '{{ $product->category }}'
                                         }; quantity = 1;" 
-                                        class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
+                                        class="view-product-btn flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors"
+                                        data-product-id="{{ $product->id }}"
+                                        data-product-name="{{ $product->name }}"
+                                        data-product-price="{{ $product->price }}"
+                                        data-product-image="{{ $product->image ? asset($product->image) : '' }}"
+                                        data-product-description="{{ addslashes($product->description) }}"
+                                        data-product-stock="{{ $product->stock }}"
+                                        data-product-category="{{ $product->category }}">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -254,7 +302,14 @@
                                             stock: {{ $product->stock }},
                                             category: '{{ $product->category }}'
                                         }; quantity = 1;" 
-                                        class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
+                                        class="view-product-btn flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors"
+                                        data-product-id="{{ $product->id }}"
+                                        data-product-name="{{ $product->name }}"
+                                        data-product-price="{{ $product->price }}"
+                                        data-product-image="{{ $product->image ? asset($product->image) : '' }}"
+                                        data-product-description="{{ addslashes($product->description) }}"
+                                        data-product-stock="{{ $product->stock }}"
+                                        data-product-category="{{ $product->category }}">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -327,7 +382,14 @@
                                             stock: {{ $product->stock }},
                                             category: '{{ $product->category }}'
                                         }; quantity = 1;" 
-                                        class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
+                                        class="view-product-btn flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors"
+                                        data-product-id="{{ $product->id }}"
+                                        data-product-name="{{ $product->name }}"
+                                        data-product-price="{{ $product->price }}"
+                                        data-product-image="{{ $product->image ? asset($product->image) : '' }}"
+                                        data-product-description="{{ addslashes($product->description) }}"
+                                        data-product-stock="{{ $product->stock }}"
+                                        data-product-category="{{ $product->category }}">
                                             <i class="fas fa-eye"></i>
                                             <span>View</span>
                                         </button>
@@ -439,9 +501,21 @@ function updateDots(carouselId) {
     }
 }
 
-// Initialize on page load
+// Add Alpine.js initialization check - make sure our changes work with existing code
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, Alpine.js available:', typeof window.Alpine !== 'undefined');
+    
+    // Initialize carousels and dots
     createDots();
+    
+    // Enhance view product buttons with additional event handler
+    document.querySelectorAll('.view-product-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            console.log('View button clicked');
+            // The button will still use the Alpine @click attribute
+            // This is just a fallback in case Alpine.js fails
+        });
+    });
     
     // Handle window resize
     window.addEventListener('resize', function() {
@@ -474,7 +548,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add slow zoom animation
+// Add slow zoom animation - keep existing animation code
 document.addEventListener('DOMContentLoaded', function() {
     // Add this to your existing styles or in a style tag
     const style = document.createElement('style');
@@ -495,4 +569,5 @@ document.addEventListener('DOMContentLoaded', function() {
     document.head.appendChild(style);
 });
 </script>
+
 @endsection

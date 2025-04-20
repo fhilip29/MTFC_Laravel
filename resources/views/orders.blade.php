@@ -16,52 +16,63 @@
                     </tr>
                 </thead>
                 <tbody class="bg-[#111827] divide-y divide-[#374151]">
-                    <!-- Sample Order Data - Replace with actual data from database -->
+                    @forelse ($orders as $order)
                     <tr class="hover:bg-[#374151] transition-colors duration-200">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">67fb354008620e3004a8000</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">2025-04-13</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $order->reference_no }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">{{ $order->order_date->format('M d, Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#374151] text-[#9CA3AF]">Pending</span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#374151] 
+                                @if($order->status == 'Completed') text-green-400 
+                                @elseif($order->status == 'Cancelled') text-red-400 
+                                @else text-[#9CA3AF] @endif">
+                                {{ $order->status }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">
-                            <button @click="showModal = true; selectedOrder = { id: '67fb354008620e3004a8000', date: '2025-04-13', status: 'Pending', progress: 25, items: [{ name: 'All Max Classic All Whey', image: '/assets/Product2_MTFC.jpg', qty: 1, price: 3000 }], total: 3000, address: '123 Main St, City, Country' }" class="text-[#9CA3AF] hover:text-white focus:outline-none transition duration-150 ease-in-out">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                            </button>
+                            <div class="flex items-center space-x-3">
+                                <button @click="showModal = true; selectedOrder = { 
+                                    id: '{{ $order->reference_no }}', 
+                                    date: '{{ $order->order_date->format('M d, Y') }}', 
+                                    status: '{{ $order->status }}', 
+                                    progress: @if($order->status == 'Completed') 100 
+                                              @elseif($order->status == 'Cancelled') 0 
+                                              @elseif($order->status == 'Out for Delivery') 75 
+                                              @elseif($order->status == 'Accepted') 50 
+                                              @else 25 @endif, 
+                                    items: {{ Illuminate\Support\Js::from($order->items->map(function($item) { 
+                                        return [
+                                            'name' => $item->product->name, 
+                                            'image' => $item->product->image, 
+                                            'qty' => $item->quantity, 
+                                            'price' => $item->price * $item->quantity
+                                        ]; 
+                                    })) }},
+                                    total: {{ $order->items->sum(function($item) { return $item->price * $item->quantity; }) }},
+                                    address: '{{ $order->street }}, {{ $order->barangay }}, {{ $order->city }}, {{ $order->postal_code }}'
+                                }" class="text-[#9CA3AF] hover:text-white focus:outline-none transition duration-150 ease-in-out">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                </button>
+                                
+                                @if($order->status == 'Pending')
+                                    <button onclick="confirmCancelOrder('{{ $order->id }}', '{{ $order->reference_no }}')" class="text-red-400 hover:text-red-500 focus:outline-none transition duration-150 ease-in-out">
+                                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                @endif
+                            </div>
                         </td>
                     </tr>
-                    <tr class="hover:bg-[#374151] transition-colors duration-200">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">67f1e208cc16bbe38bce1cb</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">2025-04-06</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#374151] text-red-400">Cancelled</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">
-                            <button @click="showModal = true; selectedOrder = { id: '67f1e208cc16bbe38bce1cb', date: '2025-04-06', status: 'Cancelled', progress: 0, items: [{ name: 'All Max Classic All Whey', image: '/assets/Product2_MTFC.jpg', qty: 2, price: 6000 }], total: 6000, address: '456 Oak St, City, Country' }" class="text-[#9CA3AF] hover:text-white focus:outline-none transition duration-150 ease-in-out">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                            </button>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-sm text-[#9CA3AF]">
+                            No orders found. <a href="{{ route('shop') }}" class="text-red-500 hover:text-red-400">Start shopping</a>
                         </td>
                     </tr>
-                    <tr class="hover:bg-[#374151] transition-colors duration-200">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">67f0ec29da9e8fa68e4f90f8</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">2025-04-05</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#374151] text-green-400">Completed</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">
-                            <button @click="showModal = true; selectedOrder = { id: '67f0ec29da9e8fa68e4f90f8', date: '2025-04-05', status: 'Completed', progress: 100, items: [{ name: 'All Max Classic All Whey', image: '/assets/Product2_MTFC.jpg', qty: 3, price: 9000 }], total: 9000, address: '789 Pine St, City, Country' }" class="text-[#9CA3AF] hover:text-white focus:outline-none transition duration-150 ease-in-out">
-                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                            </button>
-                        </td>
-                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
@@ -138,4 +149,62 @@
         </div>
     </div>
 </div>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    // Display session messages with SweetAlert
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        @endif
+    });
+
+    function confirmCancelOrder(orderId, referenceNo) {
+        Swal.fire({
+            title: 'Cancel Order?',
+            text: `Are you sure you want to cancel order #${referenceNo}?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#4b5563',
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/orders/${orderId}/cancel`;
+                
+                // Add CSRF token
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+                form.appendChild(csrfToken);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    }
+</script>
 @endsection

@@ -9,15 +9,32 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Middleware\RoleMiddleware;
+
+//Role Middleware
+// Only Admins
+Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function () {
+    Route::get('/admin/dashboard', function () {
+        return view('admin.admin_dashboard');
+    })->name('admin.dashboard');
+});
+
+// Only Trainers
+Route::middleware(['auth', 'role:trainer'])->group(function () {
+    Route::get('/trainer/dashboard', function () {
+        return view('trainer.dashboard');
+    })->name('trainer.dashboard');
+});
+
+// Only Members
+Route::middleware(['auth', 'role:member'])->group(function () {
+    Route::get('/', function () {
+        return view('home');
+    })->name('member.dashboard');
+});
 
 
 
-
-
-//middleware sample
-// Route::middleware(['auth', 'role:user'])->group(function () {
-// Route::view('/profile', 'profile')->name('profile');
-// });
 
 Route::get('/', function () {
     return view('home');
@@ -101,8 +118,7 @@ Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
 // ADMIN ROUTES
 // ===================
 
-Route::view('/admin', 'admin.admin_dashboard')->name('admin');
-Route::view('/admin/dashboard', 'admin.admin_dashboard')->name('admin.dashboard');
+
 Route::view('/admin/trainer/admin_trainer', 'admin.trainer.admin_trainer')->name('admin.trainer.admin_trainer');
 
 //Members module

@@ -123,7 +123,7 @@ public function scopeArchived($query)
 //Sessions
 public function sessions()
 {
-    return $this->hasMany(Session::class);
+    return $this->hasMany(Sessions::class);
 }
 
 //Cart

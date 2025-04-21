@@ -6,18 +6,22 @@ use App\Http\Controllers\AdminMemberController;
 use App\Http\Controllers\SessionController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminOrderController;
+use App\Http\Controllers\EquipmentMaintenanceController;
+use App\Http\Controllers\VendorController;
 use App\Http\Middleware\RoleMiddleware;
+
 
 //Role Middleware
 // Only Admins
-Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function () {
+//Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.admin_dashboard');
     })->name('admin.dashboard');
-});
+//});
 
 // Only Trainers
 Route::middleware(['auth', 'role:trainer'])->group(function () {
@@ -27,11 +31,11 @@ Route::middleware(['auth', 'role:trainer'])->group(function () {
 });
 
 // Only Members
-Route::middleware(['auth', 'role:member'])->group(function () {
+//Route::middleware(['auth', 'role:member'])->group(function () {
     Route::get('/', function () {
         return view('home');
     })->name('member.dashboard');
-});
+//});
 
 
 
@@ -155,6 +159,8 @@ Route::get('/admin/orders', [AdminOrderController::class, 'index'])->name('admin
 Route::get('/admin/orders/{id}/details', [AdminOrderController::class, 'showDetails'])->name('admin.orders.details');
 Route::post('/admin/orders/{id}/update-status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.update-status');
 
+
+
 // ===================
 // CART ROUTES
 // ===================
@@ -162,5 +168,28 @@ Route::get('/cart', [CartController::class, 'showCart'])->name('cart');
 Route::get('/cart/get', [CartController::class, 'getCart'])->name('cart.get')->middleware('auth');
 Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync')->middleware('auth');
 Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+
+
+// Equipment management routes
+Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
+    // Equipment routes
+    Route::get('/equipment', [EquipmentController::class, 'index'])->name('admin.gym.gym');
+    Route::get('/equipment/{equipment}', [EquipmentController::class, 'show'])->name('admin.gym.equipment.show');
+    Route::post('/equipment', [EquipmentController::class, 'store'])->name('admin.gym.equipment.store');
+    Route::put('/equipment/{equipment}', [EquipmentController::class, 'update'])->name('admin.gym.equipment.update');
+    Route::delete('/equipment/{equipment}', [EquipmentController::class, 'destroy'])->name('admin.gym.equipment.destroy');
+    
+    // Maintenance routes
+    Route::get('/equipment/maintenance/logs', [EquipmentMaintenanceController::class, 'index'])->name('admin.gym.maintenance');
+    Route::post('/equipment/maintenance', [EquipmentMaintenanceController::class, 'store'])->name('admin.gym.maintenance.store');
+    Route::delete('/equipment/maintenance/{maintenance}', [EquipmentMaintenanceController::class, 'destroy'])->name('admin.gym.maintenance.destroy');
+    
+    // Vendor routes
+    Route::get('/vendors', [VendorController::class, 'index'])->name('admin.gym.vendors');
+    Route::post('/vendors', [VendorController::class, 'store'])->name('admin.gym.vendors.store');
+    Route::get('/vendors/{vendor}', [VendorController::class, 'show'])->name('admin.gym.vendors.show');
+    Route::put('/vendors/{vendor}', [VendorController::class, 'update'])->name('admin.gym.vendors.update');
+    Route::delete('/vendors/{vendor}', [VendorController::class, 'destroy'])->name('admin.gym.vendors.destroy');
+});
 
 

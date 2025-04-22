@@ -256,7 +256,7 @@
                 <i class="fas fa-dumbbell"></i>
                 <span>Trainer Management</span>
             </a>
-            <a href="/admin/promotions" class="nav-link {{ request()->is('admin/promotions') ? 'active' : '' }}">
+            <a href="/admin/promotion/admin_promo" class="nav-link {{ request()->is('admin/promotion/admin_promo') ? 'active' : '' }}">
                 <i class="fas fa-bullhorn"></i>
                 <span>Announce Management</span>
             </a>

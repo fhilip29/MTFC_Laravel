@@ -13,6 +13,7 @@ use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\EquipmentMaintenanceController;
 use App\Http\Controllers\VendorController;
 use App\Http\Middleware\RoleMiddleware;
+use App\Http\Controllers\AnnouncementController;
 
 
 //Role Middleware
@@ -147,10 +148,16 @@ Route::delete('/admin/products/{id}', [ProductController::class, 'destroy'])->na
 
 
 
-
+Route::view('/announcements', 'announcements')->name('announcements');
 Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
-Route::view('/admin/promotion', 'admin.promotion.admin_promo')->name('admin.promotion.promo');
 Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
+
+
+
+// Change announcement routes to use controller
+Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+Route::get('/admin/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
+
 
 
 
@@ -191,5 +198,21 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
     Route::put('/vendors/{vendor}', [VendorController::class, 'update'])->name('admin.gym.vendors.update');
     Route::delete('/vendors/{vendor}', [VendorController::class, 'destroy'])->name('admin.gym.vendors.destroy');
 });
+
+// Admin Announcement Routes
+Route::middleware(['auth', 'role:admin'])->group(function () {
+    Route::get('/admin/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
+    Route::post('/admin/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
+    Route::get('/admin/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
+    Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('admin.announcements.edit');
+    Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
+    Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
+    Route::patch('/admin/announcements/{announcement}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggle-active');
+});
+
+// API route for fetching announcement details
+Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
+
+Route::view('/admin/announcement', 'admin.announcement.admin_announcement')->name('admin.announcement');
 
 

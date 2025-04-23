@@ -20,7 +20,30 @@
 </div>
 
 <div class="trainers-container">
-    <!-- Sample Trainer Cards - To be populated from backend -->
+    @forelse($trainers as $trainer)
+    <div class="trainer-card" data-category="{{ strtolower(str_replace(',', ' ', $trainer->instructor_for)) }}">
+        <div class="trainer-image">
+            <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 
+                    ? $trainer->profile_url 
+                    : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" 
+                alt="{{ $trainer->user->full_name }}">
+        </div>
+        <div class="trainer-info">
+            <h3>{{ $trainer->user->full_name }}</h3>
+            <p class="specialization">{{ $trainer->specialization }}</p>
+            <p class="description">{{ $trainer->short_intro }}</p>
+            <div class="schedule">
+                <h4>Instructor Schedule:</h4>
+                @forelse($trainer->formatted_schedule as $day => $hours)
+                    <p>{{ $day }}: {{ $hours }}</p>
+                @empty
+                    <p>No schedule available</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+    @empty
+    <!-- Sample Trainer Cards as fallbacks -->
     <div class="trainer-card" data-category="boxing gym">
         <div class="trainer-image">
             <img src="{{ asset('assets/about_1.jpg') }}" alt="Mark Reges Cruz">
@@ -28,7 +51,7 @@
         <div class="trainer-info">
             <h3>Mark Reges Cruz</h3>
             <p class="specialization">Boxing & Gym Instructor</p>
-            <p class="description">Mark Reges Cruz is a skilled boxing and gym instructor with a strong martial arts background. Known for his focus on discipline and technique, he creates personalized workouts to improve strength, agility, and overall health. Mark's dynamic coaching style appeals to both beginners and experienced athletes.</p>
+            <p class="description">Mark Reges Cruz is a skilled boxing and gym instructor with a strong martial arts background.</p>
             <div class="schedule">
                 <h4>Instructor Schedule:</h4>
                 <p>Weekdays: 8:00AM - 1:00PM</p>
@@ -44,7 +67,7 @@
         <div class="trainer-info">
             <h3>Isabella Mae Navarro</h3>
             <p class="specialization">Woman Gym Instructor</p>
-            <p class="description">Isabella Mae Navarro is a skilled taekwondo and gym instructor. Known for her focus on discipline and technique, she creates personalized workouts to improve strength, agility, and overall health. Isabella's dynamic coaching style appeals to both beginners and experienced athletes.</p>
+            <p class="description">Isabella Mae Navarro is a skilled taekwondo and gym instructor.</p>
             <div class="schedule">
                 <h4>Instructor Schedule:</h4>
                 <p>Weekdays: 2:00PM - 7:00PM</p>
@@ -52,70 +75,7 @@
             </div>
         </div>
     </div>
-
-    <div class="trainer-card" data-category="muay-thai">
-        <div class="trainer-image">
-            <img src="{{ asset('assets/about_3.jpg') }}" alt="Rajesh Kumar">
-        </div>
-        <div class="trainer-info">
-            <h3>Rajesh Kumar</h3>
-            <p class="specialization">Muay Thai Master Instructor</p>
-            <p class="description">With over 15 years of experience in Muay Thai, Rajesh specializes in teaching authentic Thai boxing techniques. His training focuses on building strength, agility, and mental discipline through traditional Muay Thai methods.</p>
-            <div class="schedule">
-                <h4>Instructor Schedule:</h4>
-                <p>Weekdays: 7:00AM - 12:00PM</p>
-                <p>Weekends: 8:00AM - 11:00AM</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="trainer-card" data-category="muay-thai">
-        <div class="trainer-image">
-            <img src="{{ asset('assets/about_1.jpg') }}" alt="Sarah Martinez">
-        </div>
-        <div class="trainer-info">
-            <h3>Sarah Martinez</h3>
-            <p class="specialization">Muay Thai & Conditioning Coach</p>
-            <p class="description">Sarah combines modern fitness science with traditional Muay Thai training. Her classes emphasize proper form, cardiovascular endurance, and practical self-defense techniques suitable for all skill levels.</p>
-            <div class="schedule">
-                <h4>Instructor Schedule:</h4>
-                <p>Weekdays: 1:00PM - 6:00PM</p>
-                <p>Weekends: 2:00PM - 5:00PM</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="trainer-card" data-category="muay-thai">
-        <div class="trainer-image">
-            <img src="{{ asset('assets/about_2.jpg') }}" alt="Mike Thompson">
-        </div>
-        <div class="trainer-info">
-            <h3>Mike Thompson</h3>
-            <p class="specialization">Advanced Muay Thai Instructor</p>
-            <p class="description">Mike is a former professional fighter turned instructor. His classes focus on advanced striking techniques, clinch work, and fight strategy. He excels at preparing students for competition while maintaining a safe training environment.</p>
-            <div class="schedule">
-                <h4>Instructor Schedule:</h4>
-                <p>Weekdays: 3:00PM - 8:00PM</p>
-                <p>Weekends: 10:00AM - 1:00PM</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="trainer-card" data-category="muay-thai">
-        <div class="trainer-image">
-            <img src="{{ asset('assets/about_3.jpg') }}" alt="Lisa Chen">
-        </div>
-        <div class="trainer-info">
-            <h3>Lisa Chen</h3>
-            <p class="specialization">Muay Thai Fundamentals Coach</p>
-            <p class="description">Lisa specializes in introducing beginners to Muay Thai. Her patient teaching style and focus on fundamentals make her classes perfect for those new to martial arts. She creates a welcoming environment while maintaining high training standards.</p>
-            <div class="schedule">
-                <h4>Instructor Schedule:</h4>
-                <p>Weekdays: 9:00AM - 2:00PM</p>
-                <p>Weekends: 3:00PM - 6:00PM</p>
-            </div>
-        </div>
-    </div>
+    @endforelse
 </div>
 
 <style>

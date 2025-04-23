@@ -12,6 +12,8 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AdminOrderController;
 use App\Http\Controllers\EquipmentMaintenanceController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\TrainerController;
+use App\Http\Controllers\FileUploadController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\AnnouncementController;
 
@@ -68,7 +70,7 @@ Route::view('/forgot', 'auth.forgot_password')->name('forgot_password');
 Route::view('/about', 'about')->name('about');
 Route::view('/contact', 'contact')->name('contact');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
-Route::view('/trainers', 'trainers')->name('trainers');
+Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers');
 
 // ===================
 // PRICING ROUTES
@@ -124,7 +126,12 @@ Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
 // ===================
 
 
-Route::view('/admin/trainer/admin_trainer', 'admin.trainer.admin_trainer')->name('admin.trainer.admin_trainer');
+// Trainer management
+Route::get('/admin/trainer/admin_trainer', [TrainerController::class, 'indexAdmin'])->name('admin.trainer.admin_trainer');
+Route::post('/admin/trainers', [TrainerController::class, 'store'])->name('admin.trainers.store');
+Route::get('/admin/trainers/{id}/edit', [TrainerController::class, 'edit'])->name('admin.trainers.edit');
+Route::put('/admin/trainers/{id}', [TrainerController::class, 'update'])->name('admin.trainers.update');
+Route::post('/admin/trainers/{id}/archive', [TrainerController::class, 'archive'])->name('admin.trainers.archive');
 
 //Members module
 Route::get('/admin/members/admin_members', [AdminMemberController::class, 'index'])->name('admin.members.admin_members');
@@ -214,5 +221,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
 
 Route::view('/admin/announcement', 'admin.announcement.admin_announcement')->name('admin.announcement');
+
+// File Upload Routes for FilePond
+Route::post('/upload', [FileUploadController::class, 'process'])->name('upload.process');
+Route::delete('/upload', [FileUploadController::class, 'revert'])->name('upload.revert');
+Route::get('/upload/{filename}', [FileUploadController::class, 'load'])->name('upload.load');
 
 

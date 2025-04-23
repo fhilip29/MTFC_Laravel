@@ -131,4 +131,11 @@ public function cart()
 {
     return $this->hasOne(Cart::class);
 }
+
+public function trainer()
+{
+    return $this->hasOne(Trainer::class);
+}
+
+
 }

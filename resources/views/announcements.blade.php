@@ -27,9 +27,6 @@
                 <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="recent">
                     Recent
                 </button>
-                <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="important">
-                    Important
-                </button>
             </div>
         </div>
     </div>
@@ -61,11 +58,7 @@
             </div>
             
             <!-- Card Footer -->
-            <div class="px-6 py-4 bg-gray-50 flex justify-between items-center">
-                <span class="text-sm text-gray-600">
-                    <i class="fas fa-users mr-2"></i>
-                    {{ ucfirst($announcement->target_audience) }}
-                </span>
+            <div class="px-6 py-4 bg-gray-50 flex justify-end items-center">
                 <button 
                     onclick="viewAnnouncement({{ $announcement->id }})"
                     class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
@@ -104,7 +97,6 @@
                 <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 mb-2"></h2>
                 <div class="flex items-center gap-4 mb-6">
                     <span id="modalDate" class="text-sm text-gray-500"></span>
-                    <span id="modalAudience" class="text-sm text-gray-500"></span>
                 </div>
                 <div id="modalContent" class="prose max-w-none">
                     <!-- Content will be inserted here -->
@@ -160,11 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 showCard = date >= thirtyDaysAgo;
             }
             
-            // Apply important filter (you can customize this based on your criteria)
-            if (showCard && activeFilter === 'important') {
-                showCard = card.querySelector('.bg-red-100') !== null;
-            }
-            
             card.style.display = showCard ? 'block' : 'none';
             if (showCard) visibleCount++;
         });
@@ -184,7 +171,6 @@ function viewAnnouncement(id) {
                 const modal = document.getElementById('viewModal');
                 const title = document.getElementById('modalTitle');
                 const date = document.getElementById('modalDate');
-                const audience = document.getElementById('modalAudience');
                 const content = document.getElementById('modalContent');
 
                 title.textContent = data.announcement.title;
@@ -193,7 +179,6 @@ function viewAnnouncement(id) {
                     month: 'long',
                     day: 'numeric'
                 });
-                audience.innerHTML = `<i class="fas fa-users mr-1"></i> ${data.announcement.target_audience}`;
                 content.innerHTML = data.announcement.message;
 
                 modal.classList.remove('hidden');

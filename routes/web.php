@@ -163,7 +163,6 @@ Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 
 // Change announcement routes to use controller
 Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
-Route::get('/admin/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
 
 
 
@@ -207,7 +206,10 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
 });
 
 // Admin Announcement Routes
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
+    // Direct route for admin_promo page 
+    Route::get('/admin/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
+    
     Route::get('/admin/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
     Route::post('/admin/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
     Route::get('/admin/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
@@ -216,6 +218,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
     Route::patch('/admin/announcements/{announcement}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggle-active');
 });
+
 
 // API route for fetching announcement details
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');

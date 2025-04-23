@@ -13,9 +13,6 @@ class Announcement extends Model
     protected $fillable = [
         'title',
         'message',
-        'target_audience',
-        'send_email',
-        'send_in_app',
         'scheduled_at',
         'sent_at',
         'is_active',
@@ -23,8 +20,6 @@ class Announcement extends Model
     ];
 
     protected $casts = [
-        'send_email' => 'boolean',
-        'send_in_app' => 'boolean',
         'is_active' => 'boolean',
         'scheduled_at' => 'datetime',
         'sent_at' => 'datetime',

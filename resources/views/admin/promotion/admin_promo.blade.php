@@ -3,480 +3,486 @@
 @section('title', 'Announcement Management')
 
 @section('content')
-<div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-    <div class="bg-[#1F2937] p-4 sm:p-6 rounded-2xl shadow-md border border-[#374151]">
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-6 mb-6">
-            <h1 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 w-full sm:w-auto">
-                <i class="fas fa-bullhorn text-[#9CA3AF]"></i> Announcement Management
-            </h1>
-            <div class="flex gap-4 w-full sm:w-auto">
-                <div class="relative flex-grow sm:flex-grow-0">
-                    <input 
-                        type="text" 
-                        id="searchAnnouncement"
-                        placeholder="Search announcements..." 
-                        class="w-full pl-10 pr-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF]"
-                    >
-                    <i class="fas fa-search absolute left-3 top-3 text-[#9CA3AF]"></i>
-                </div>
-                <button type="button" id="createAnnouncementBtn" class="bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors">
-                    <i class="fas fa-plus"></i> <span class="hidden sm:inline">Create Announcement</span>
-                </button>
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="p-6" x-data="{ 
+    showAddModal: false, 
+    showViewModal: false,
+    showEditModal: false,
+    currentAnnouncement: null,
+    
+    openEditModal(announcement) {
+        this.currentAnnouncement = JSON.parse(JSON.stringify(announcement));
+        this.showEditModal = true;
+    },
+    
+    openViewModal(announcement) {
+        this.currentAnnouncement = JSON.parse(JSON.stringify(announcement));
+        this.showViewModal = true;
+    }
+}">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-white">Announcement Management</h1>
+        <div class="flex gap-4">
+            <button @click="showAddModal = true" class="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded flex items-center">
+                <i class="fas fa-plus mr-2"></i> Create Announcement
+            </button>
+        </div>
+    </div>
+
+    <!-- Announcement Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+            <div class="rounded-full bg-red-600 p-3 mr-4">
+                <i class="fas fa-bullhorn text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-gray-400 text-sm">Total Announcements</p>
+                <p class="text-2xl font-bold text-white">{{ count($announcements) }}</p>
             </div>
         </div>
-
-        <!-- Announcements Table -->
-        <div class="overflow-x-auto rounded-lg shadow-sm">
-            <div class="inline-block min-w-full align-middle">
-                <table class="min-w-full divide-y divide-[#374151]">
-                    <thead class="bg-[#374151]">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Title</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Target Audience</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Delivery</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-[#9CA3AF] uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-[#1F2937] divide-y divide-[#374151]" id="announcementsTableBody">
-                        @foreach($announcements as $announcement)
-                        <tr class="hover:bg-[#374151] transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{{ $announcement['title'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">{{ $announcement['date'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">{{ $announcement['sent_to'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-[#9CA3AF]">{{ $announcement['method'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $announcement['status_class'] }}">
-                                    {{ $announcement['status'] }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                <div class="flex justify-center space-x-3">
-                                    <button type="button"
-                                        class="text-blue-400 hover:text-blue-300 transition-colors view-btn"
-                                        data-id="{{ $announcement['id'] }}"
-                                        title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="text-yellow-400 hover:text-yellow-300 transition-colors edit-btn"
-                                        data-id="{{ $announcement['id'] }}"
-                                        title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="text-red-400 hover:text-red-300 transition-colors delete-btn"
-                                        data-id="{{ $announcement['id'] }}"
-                                        title="Delete">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
-                                    <button type="button"
-                                        class="text-green-400 hover:text-green-300 transition-colors toggle-btn"
-                                        data-id="{{ $announcement['id'] }}"
-                                        title="Toggle Status">
-                                        <i class="fas fa-toggle-on"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+            <div class="rounded-full bg-green-600 p-3 mr-4">
+                <i class="fas fa-check-circle text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-gray-400 text-sm">Active Announcements</p>
+                <p class="text-2xl font-bold text-white">{{ $announcements->where('is_active', true)->count() }}</p>
+            </div>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+            <div class="rounded-full bg-blue-600 p-3 mr-4">
+                <i class="fas fa-calendar-alt text-white text-xl"></i>
+            </div>
+            <div>
+                <p class="text-gray-400 text-sm">Scheduled Announcements</p>
+                <p class="text-2xl font-bold text-white">{{ $announcements->whereNotNull('scheduled_at')->where('scheduled_at', '>', now())->count() }}</p>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Announcement Modal -->
-<div id="announcementModal" class="fixed inset-0 z-50 hidden overflow-y-auto" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity"></div>
-        
-        <div class="relative bg-[#1F2937] rounded-lg max-w-2xl w-full shadow-xl transform transition-all border border-[#374151]">
-            <form id="announcementForm" class="relative">
-                @csrf
-                <input type="hidden" id="announcement_id" name="id">
-                
-                <!-- Modal Header -->
-                <div class="px-6 py-4 border-b border-[#374151] flex items-center justify-between">
-                    <h3 class="text-lg font-medium text-white" id="modalTitle">Create New Announcement</h3>
-                    <button type="button" class="text-[#9CA3AF] hover:text-white close-modal">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- Announcement Table -->
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+        <div class="p-4 border-b border-gray-700 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h2 class="text-xl font-semibold text-white">Announcement Records</h2>
+            <div class="flex flex-col md:flex-row gap-3 items-center w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="searchAnnouncement" placeholder="Search announcements..." class="bg-gray-700 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full pl-10 p-2.5">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
                 </div>
-                
-                <!-- Modal Body -->
-                <div class="px-6 py-4 space-y-4">
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-gray-800 text-white">
+                <thead class="bg-gray-700 text-xs uppercase font-medium">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left tracking-wider">Title</th>
+                        <th scope="col" class="px-6 py-3 text-left tracking-wider">Date</th>
+                        <th scope="col" class="px-6 py-3 text-left tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                    @forelse($announcements as $announcement)
+                    <tr class="hover:bg-gray-700 transition" data-id="{{ $announcement->id }}">
+                        <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $announcement->title }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $announcement->created_at->format('M d, Y') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs rounded-full {{ $announcement->statusClass }}">
+                                {{ $announcement->status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex space-x-2">
+                                <button @click="openViewModal({{ $announcement }})" class="text-blue-400 hover:text-blue-300 view-announcement" data-id="{{ $announcement->id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button @click="openEditModal({{ $announcement }})" class="text-yellow-400 hover:text-yellow-300 edit-announcement" data-id="{{ $announcement->id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button @click="confirmDelete('{{ $announcement->id }}', '{{ $announcement->title }}')" class="text-red-400 hover:text-red-300 delete-announcement" data-id="{{ $announcement->id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                <button @click="toggleStatus('{{ $announcement->id }}')" class="toggle-status {{ $announcement->is_active ? 'text-green-400 hover:text-green-300' : 'text-gray-400 hover:text-gray-300' }}" data-id="{{ $announcement->id }}">
+                                    <i class="fas {{ $announcement->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4" class="px-6 py-4 text-center text-gray-400">
+                            No announcements found. Click "Create Announcement" to add your first announcement.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add Announcement Modal -->
+    <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+        <div class="relative bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full mx-auto p-6 border border-gray-700" @click.away="showAddModal = false">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 class="text-xl font-semibold text-white">Create New Announcement</h3>
+                <button @click="showAddModal = false" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="announcementForm" action="{{ route('admin.announcements.store') }}" method="POST">
+                @csrf
+                <div class="space-y-4">
                     <div>
-                        <label for="title" class="block text-sm font-medium text-[#9CA3AF] mb-1">Title</label>
-                        <input type="text" id="title" name="title" required
-                            class="w-full rounded-md bg-[#374151] border-[#4B5563] text-white focus:ring-red-500 focus:border-red-500">
+                        <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                        <input type="text" name="title" id="title" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                        <div class="text-red-500 text-xs mt-1">@error('title'){{ $message }}@enderror</div>
                     </div>
                     
                     <div>
-                        <label for="message" class="block text-sm font-medium text-[#9CA3AF] mb-1">Message</label>
-                        <textarea id="message" name="message" rows="4" required
-                            class="w-full rounded-md bg-[#374151] border-[#4B5563] text-white focus:ring-red-500 focus:border-red-500"></textarea>
+                        <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                        <textarea name="message" id="message" rows="5" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"></textarea>
+                        <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="target_audience" class="block text-sm font-medium text-[#9CA3AF] mb-1">Target Audience</label>
-                            <select id="target_audience" name="target_audience" required
-                                class="w-full rounded-md bg-[#374151] border-[#4B5563] text-white focus:ring-red-500 focus:border-red-500">
-                                <option value="all">All Users</option>
-                                <option value="active">Active Members</option>
-                                <option value="trainers">Trainers Only</option>
-                                <option value="staff">Admin Only</option>
-                            </select>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-[#9CA3AF] mb-1">Delivery Method</label>
-                            <div class="space-y-2">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="send_in_app" checked
-                                        class="rounded bg-[#374151] border-[#4B5563] text-red-600 focus:ring-red-500">
-                                    <span class="ml-2 text-white text-sm">In-App Notification</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="send_email"
-                                        class="rounded bg-[#374151] border-[#4B5563] text-red-600 focus:ring-red-500">
-                                    <span class="ml-2 text-white text-sm">Email</span>
-                                </label>
+                    <div class="flex items-center">
+                        <input type="checkbox" name="is_active" id="is_active" checked class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500">
+                        <label for="is_active" class="ml-2 text-sm font-medium text-gray-300">Make announcement active</label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="schedule_later" id="schedule_later" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500">
+                        <label for="schedule_later" class="ml-2 text-sm font-medium text-gray-300">Schedule for later</label>
+                    </div>
+                    
+                    <div id="schedulingOptions" class="hidden space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date</label>
+                                <input type="date" name="schedule_date" id="schedule_date" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <div class="text-red-500 text-xs mt-1">@error('schedule_date'){{ $message }}@enderror</div>
+                            </div>
+                            <div>
+                                <label for="schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time</label>
+                                <input type="time" name="schedule_time" id="schedule_time" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <div class="text-red-500 text-xs mt-1">@error('schedule_time'){{ $message }}@enderror</div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" id="schedule_later" name="schedule_later"
-                                class="rounded bg-[#374151] border-[#4B5563] text-red-600 focus:ring-red-500">
-                            <span class="ml-2 text-white text-sm">Schedule for later</span>
-                        </label>
-                    </div>
-                    
-                    <div id="scheduleFields" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="schedule_date" class="block text-sm font-medium text-[#9CA3AF] mb-1">Date</label>
-                            <input type="date" id="schedule_date" name="schedule_date"
-                                class="w-full rounded-md bg-[#374151] border-[#4B5563] text-white focus:ring-red-500 focus:border-red-500">
-                        </div>
-                        <div>
-                            <label for="schedule_time" class="block text-sm font-medium text-[#9CA3AF] mb-1">Time</label>
-                            <input type="time" id="schedule_time" name="schedule_time"
-                                class="w-full rounded-md bg-[#374151] border-[#4B5563] text-white focus:ring-red-500 focus:border-red-500">
-                        </div>
-                    </div>
                 </div>
-                
-                <!-- Modal Footer -->
-                <div class="px-6 py-4 border-t border-[#374151] flex justify-end space-x-3">
-                    <button type="button" class="close-modal px-4 py-2 text-sm font-medium text-[#9CA3AF] hover:text-white bg-transparent border border-[#4B5563] rounded-md hover:bg-[#374151] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4B5563]">
-                        Cancel
-                    </button>
-                    <button type="submit"
-                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                        Save Announcement
-                    </button>
+                <div class="flex justify-end mt-6 space-x-3">
+                    <button type="button" @click="showAddModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Save Announcement</button>
                 </div>
             </form>
         </div>
     </div>
-</div>
-@endsection
 
-@push('scripts')
+    <!-- Edit Announcement Modal -->
+    <div x-show="showEditModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+        <div class="relative bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full mx-auto p-6 border border-gray-700" @click.away="showEditModal = false">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 class="text-xl font-semibold text-white">Edit Announcement</h3>
+                <button @click="showEditModal = false" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editAnnouncementForm" method="POST" x-bind:action="'/admin/announcements/' + currentAnnouncement?.id">
+                @csrf
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="id" x-bind:value="currentAnnouncement?.id">
+                <div class="space-y-4">
+                    <div>
+                        <label for="edit_title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
+                        <input type="text" name="title" id="edit_title" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.title">
+                        <div class="text-red-500 text-xs mt-1">@error('title'){{ $message }}@enderror</div>
+                    </div>
+                    
+                    <div>
+                        <label for="edit_message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                        <textarea name="message" id="edit_message" rows="5" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-text="currentAnnouncement?.message"></textarea>
+                        <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="is_active" id="edit_is_active" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500" x-bind:checked="currentAnnouncement?.is_active">
+                        <label for="edit_is_active" class="ml-2 text-sm font-medium text-gray-300">Make announcement active</label>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" name="schedule_later" id="edit_schedule_later" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500" x-bind:checked="currentAnnouncement?.scheduled_at !== null">
+                        <label for="edit_schedule_later" class="ml-2 text-sm font-medium text-gray-300">Schedule for later</label>
+                    </div>
+                    
+                    <div id="editSchedulingOptions" class="hidden space-y-4" x-bind:class="{ 'hidden': !currentAnnouncement?.scheduled_at }">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="edit_schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date</label>
+                                <input type="date" name="schedule_date" id="edit_schedule_date" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.scheduled_at ? currentAnnouncement.scheduled_at.split('T')[0] : ''">
+                                <div class="text-red-500 text-xs mt-1">@error('schedule_date'){{ $message }}@enderror</div>
+                            </div>
+                            <div>
+                                <label for="edit_schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time</label>
+                                <input type="time" name="schedule_time" id="edit_schedule_time" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.scheduled_at ? currentAnnouncement.scheduled_at.split('T')[1].substring(0, 5) : ''">
+                                <div class="text-red-500 text-xs mt-1">@error('schedule_time'){{ $message }}@enderror</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-6 space-x-3">
+                    <button type="button" @click="showEditModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Update Announcement</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Announcement Modal -->
+    <div x-show="showViewModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+        <div class="relative bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full mx-auto p-6 border border-gray-700" @click.away="showViewModal = false">
+            <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+                <h3 class="text-xl font-semibold text-white">View Announcement</h3>
+                <button @click="showViewModal = false" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <h4 x-text="currentAnnouncement?.title" class="text-xl text-white font-semibold"></h4>
+                </div>
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <p x-text="currentAnnouncement?.message" class="text-gray-300"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Status:</span> 
+                            <span x-show="currentAnnouncement?.is_active" class="px-2 py-1 text-xs rounded-full bg-green-600 text-white">Active</span>
+                            <span x-show="!currentAnnouncement?.is_active" class="px-2 py-1 text-xs rounded-full bg-gray-600 text-white">Inactive</span>
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm"><span class="font-medium">Created:</span> <span x-text="new Date(currentAnnouncement?.created_at).toLocaleString()"></span></p>
+                    </div>
+                    <div x-show="currentAnnouncement?.scheduled_at">
+                        <p class="text-sm"><span class="font-medium">Scheduled for:</span> <span x-text="new Date(currentAnnouncement?.scheduled_at).toLocaleString()"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" @click="showViewModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Simple direct DOM access
-    var modal = document.getElementById('announcementModal');
-    var createBtn = document.getElementById('createAnnouncementBtn');
-    var closeButtons = document.querySelectorAll('.close-modal');
-    var form = document.getElementById('announcementForm');
-    var scheduleLater = document.getElementById('schedule_later');
-    var scheduleFields = document.getElementById('scheduleFields');
-    var searchInput = document.getElementById('searchAnnouncement');
+    // Toggle scheduling options in Add modal
+    const scheduleLater = document.getElementById('schedule_later');
+    const schedulingOptions = document.getElementById('schedulingOptions');
     
-    // Open modal
-    createBtn.onclick = function() {
-        console.log('Create button clicked');
-        modal.classList.remove('hidden');
-        form.reset();
-        document.getElementById('modalTitle').textContent = 'Create New Announcement';
-        document.getElementById('announcement_id').value = '';
-        scheduleFields.classList.add('hidden');
-    };
+    if (scheduleLater && schedulingOptions) {
+        scheduleLater.addEventListener('change', function() {
+            schedulingOptions.classList.toggle('hidden', !this.checked);
+        });
+    }
     
-    // Close modal
-    closeButtons.forEach(function(button) {
-        button.onclick = function() {
-            modal.classList.add('hidden');
-        };
-    });
+    // Toggle scheduling options in Edit modal
+    const editScheduleLater = document.getElementById('edit_schedule_later');
+    const editSchedulingOptions = document.getElementById('editSchedulingOptions');
     
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.classList.add('hidden');
-        }
-    };
-    
-    // Toggle schedule fields
-    scheduleLater.onchange = function() {
-        scheduleFields.classList.toggle('hidden', !this.checked);
-    };
+    if (editScheduleLater && editSchedulingOptions) {
+        editScheduleLater.addEventListener('change', function() {
+            editSchedulingOptions.classList.toggle('hidden', !this.checked);
+        });
+    }
     
     // Search functionality
-    searchInput.oninput = function() {
-        var searchTerm = this.value.toLowerCase();
-        var rows = document.querySelectorAll('#announcementsTableBody tr');
-        
-        rows.forEach(function(row) {
-            var text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
-        });
-    };
+    const searchInput = document.getElementById('searchAnnouncement');
+    const rows = document.querySelectorAll('tbody tr');
     
-    // Form submission
-    form.onsubmit = function(e) {
-        e.preventDefault();
-        
-        var formData = new FormData(form);
-        var id = formData.get('id');
-        var url = id ? '/admin/announcements/' + id : '/admin/announcements';
-        var method = id ? 'PUT' : 'POST';
-        
-        // Convert FormData to object
-        var formObject = {};
-        formData.forEach(function(value, key) {
-            // Handle checkboxes
-            if (key === 'send_in_app' || key === 'send_email' || key === 'schedule_later') {
-                formObject[key] = value === 'on';
-            } else {
-                formObject[key] = value;
-            }
-        });
-        
-        // Ajax request
-        fetch(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(formObject)
-        })
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            if (data.success) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: data.message || 'Announcement saved successfully',
-                    icon: 'success',
-                    confirmButtonColor: '#DC2626',
-                    background: '#1F2937',
-                    color: '#FFFFFF'
-                }).then(function() {
-                    window.location.reload();
-                });
-            } else {
-                throw new Error(data.message || 'Something went wrong');
-            }
-        })
-        .catch(function(error) {
-            console.error('Error:', error);
-            Swal.fire({
-                title: 'Error!',
-                text: error.message || 'Something went wrong',
-                icon: 'error',
-                confirmButtonColor: '#DC2626',
-                background: '#1F2937',
-                color: '#FFFFFF'
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            
+            rows.forEach(row => {
+                // Skip empty rows
+                if (row.cells.length <= 1) return;
+                
+                // Check if row matches search text
+                const matchesSearch = Array.from(row.querySelectorAll('td')).some(cell => 
+                    cell.textContent.toLowerCase().includes(searchText)
+                );
+                
+                // Show/hide row
+                row.style.display = matchesSearch ? '' : 'none';
             });
+            
+            // Show no results message if needed
+            const visibleRows = document.querySelectorAll('tbody tr:not([style*="display: none"])');
+            const noResultsRow = document.getElementById('no-results-row');
+            
+            if (visibleRows.length === 0 && !noResultsRow) {
+                const tbody = document.querySelector('tbody');
+                const newRow = document.createElement('tr');
+                newRow.id = 'no-results-row';
+                newRow.innerHTML = '<td colspan="4" class="px-6 py-4 text-center text-gray-400">No matching announcements found</td>';
+                tbody.appendChild(newRow);
+            } else if (visibleRows.length > 0 && noResultsRow) {
+                noResultsRow.remove();
+            }
         });
-    };
+    }
     
-    // Setup view buttons
-    document.querySelectorAll('.view-btn').forEach(function(button) {
-        button.onclick = function() {
-            var id = this.getAttribute('data-id');
-            viewAnnouncement(id);
-        };
-    });
+    // Initialize state when modals are opened
+    const app = document.querySelector('[x-data]')?.__x?.$data;
+    if (app) {
+        const originalShowAddModal = app.showAddModal;
+        Object.defineProperty(app, 'showAddModal', {
+            get() { return originalShowAddModal; },
+            set(value) {
+                originalShowAddModal = value;
+                if (value) {
+                    // Reset form when modal is opened
+                    setTimeout(() => {
+                        const form = document.getElementById('announcementForm');
+                        if (form) form.reset();
+                        const schedulingOptions = document.getElementById('schedulingOptions');
+                        if (schedulingOptions) schedulingOptions.classList.add('hidden');
+                    }, 100);
+                }
+            }
+        });
+    }
     
-    // Setup edit buttons
-    document.querySelectorAll('.edit-btn').forEach(function(button) {
-        button.onclick = function() {
-            var id = this.getAttribute('data-id');
-            editAnnouncement(id);
-        };
-    });
+    // Handle form submissions
+    const announcementForm = document.getElementById('announcementForm');
+    if (announcementForm) {
+        announcementForm.addEventListener('submit', function(e) {
+            // Native form submission - no need for preventDefault()
+        });
+    }
     
-    // Setup delete buttons
-    document.querySelectorAll('.delete-btn').forEach(function(button) {
-        button.onclick = function() {
-            var id = this.getAttribute('data-id');
-            deleteAnnouncement(id);
-        };
-    });
+    const editAnnouncementForm = document.getElementById('editAnnouncementForm');
+    if (editAnnouncementForm) {
+        editAnnouncementForm.addEventListener('submit', function(e) {
+            // Native form submission - no need for preventDefault()
+        });
+    }
     
-    // Setup toggle buttons
-    document.querySelectorAll('.toggle-btn').forEach(function(button) {
-        button.onclick = function() {
-            var id = this.getAttribute('data-id');
-            toggleAnnouncementStatus(id);
-        };
-    });
+    // Show success message if it exists in the session
+    @if(session('success'))
+        Swal.fire({
+            title: 'Success!',
+            text: "{{ session('success') }}",
+            icon: 'success',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#DC2626'
+        });
+    @endif
+    
+    @if(session('error'))
+        Swal.fire({
+            title: 'Error!',
+            text: "{{ session('error') }}",
+            icon: 'error',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#DC2626'
+        });
+    @endif
 });
 
-// View announcement
-function viewAnnouncement(id) {
-    fetch('/admin/announcements/' + id)
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            if (data.success) {
-                Swal.fire({
-                    title: data.announcement.title,
-                    html: `
-                        <div class="text-left">
-                            <p class="mb-4">${data.announcement.message}</p>
-                            <p class="text-sm text-gray-400">Target: ${data.announcement.target_audience}</p>
-                            <p class="text-sm text-gray-400">Created: ${new Date(data.announcement.created_at).toLocaleDateString()}</p>
-                        </div>
-                    `,
-                    confirmButtonColor: '#DC2626',
-                    background: '#1F2937',
-                    color: '#FFFFFF'
-                });
-            }
-        })
-        .catch(function(error) {
-            console.error('Error:', error);
-        });
-}
-
-// Edit announcement
-function editAnnouncement(id) {
-    fetch('/admin/announcements/' + id + '/edit')
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            if (data.success) {
-                var modal = document.getElementById('announcementModal');
-                var form = document.getElementById('announcementForm');
-                
-                // Set form values
-                document.getElementById('modalTitle').textContent = 'Edit Announcement';
-                document.getElementById('announcement_id').value = data.announcement.id;
-                document.getElementById('title').value = data.announcement.title;
-                document.getElementById('message').value = data.announcement.message;
-                document.getElementById('target_audience').value = data.announcement.target_audience;
-                
-                // Checkboxes
-                form.querySelector('[name="send_in_app"]').checked = data.announcement.send_in_app;
-                form.querySelector('[name="send_email"]').checked = data.announcement.send_email;
-                
-                // Schedule fields
-                var scheduleLater = document.getElementById('schedule_later');
-                var scheduleFields = document.getElementById('scheduleFields');
-                
-                if (data.announcement.scheduled_at) {
-                    scheduleLater.checked = true;
-                    scheduleFields.classList.remove('hidden');
-                    
-                    var date = new Date(data.announcement.scheduled_at);
-                    var dateString = date.toISOString().split('T')[0];
-                    var timeString = date.toTimeString().slice(0, 5);
-                    
-                    document.getElementById('schedule_date').value = dateString;
-                    document.getElementById('schedule_time').value = timeString;
-                } else {
-                    scheduleLater.checked = false;
-                    scheduleFields.classList.add('hidden');
-                }
-                
-                // Show modal
-                modal.classList.remove('hidden');
-            }
-        })
-        .catch(function(error) {
-            console.error('Error:', error);
-        });
-}
-
-// Delete announcement
-function deleteAnnouncement(id) {
+// Update the confirmDelete function to use direct URL
+function confirmDelete(id, title) {
     Swal.fire({
-        title: 'Are you sure?',
-        text: "This action cannot be undone!",
+        title: 'Delete Announcement?',
+        text: `Are you sure you want to delete "${title}"?`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#DC2626',
-        cancelButtonColor: '#374151',
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#4b5563',
         confirmButtonText: 'Yes, delete it!',
         background: '#1F2937',
         color: '#FFFFFF'
-    }).then(function(result) {
+    }).then((result) => {
         if (result.isConfirmed) {
-            fetch('/admin/announcements/' + id, {
+            fetch(`/admin/announcements/${id}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                    'Accept': 'application/json'
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 }
             })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
+                    // Show success message
                     Swal.fire({
+                        icon: 'success',
                         title: 'Deleted!',
                         text: data.message,
-                        icon: 'success',
-                        confirmButtonColor: '#DC2626',
                         background: '#1F2937',
-                        color: '#FFFFFF'
-                    }).then(function() {
-                        window.location.reload();
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#DC2626'
+                    }).then(() => {
+                        location.reload();
                     });
                 }
             })
-            .catch(function(error) {
+            .catch(error => {
                 console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An error occurred while deleting the announcement.',
+                    background: '#1F2937',
+                    color: '#FFFFFF',
+                    confirmButtonColor: '#DC2626'
+                });
             });
         }
     });
 }
 
-// Toggle announcement status
-function toggleAnnouncementStatus(id) {
-    fetch('/admin/announcements/' + id + '/toggle-active', {
+// Update the toggleStatus function to use direct URL
+function toggleStatus(id) {
+    fetch(`/admin/announcements/${id}/toggle-active`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
     })
-    .then(function(response) {
-        return response.json();
-    })
-    .then(function(data) {
+    .then(response => response.json())
+    .then(data => {
         if (data.success) {
-            window.location.reload();
+            // Show success message
+            Swal.fire({
+                icon: 'success',
+                title: 'Status Updated!',
+                text: data.message,
+                background: '#1F2937',
+                color: '#FFFFFF',
+                confirmButtonColor: '#DC2626'
+            }).then(() => {
+                location.reload();
+            });
         }
     })
-    .catch(function(error) {
+    .catch(error => {
         console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An error occurred while updating the announcement status.',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#DC2626'
+        });
     });
 }
 </script>
-@endpush 
+@endsection 

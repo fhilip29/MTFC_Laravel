@@ -13,6 +13,7 @@
 </div>
 
 <div class="trainer-filters">
+    <button class="filter-btn active" data-filter="all">All</button>
     <button class="filter-btn" data-filter="gym">Gym</button>
     <button class="filter-btn" data-filter="boxing">Boxing</button>
     <button class="filter-btn" data-filter="muay-thai">Muay Thai</button>
@@ -253,21 +254,29 @@
     document.addEventListener('DOMContentLoaded', function() {
         const filterButtons = document.querySelectorAll('.filter-btn');
         const trainerCards = document.querySelectorAll('.trainer-card');
-
+        
+        // Add click event listeners to each filter button
         filterButtons.forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', function() {
                 // Remove active class from all buttons
                 filterButtons.forEach(btn => btn.classList.remove('active'));
+                
                 // Add active class to clicked button
-                button.classList.add('active');
-
-                const filter = button.getAttribute('data-filter');
-
+                this.classList.add('active');
+                
+                // Get filter value
+                const filterValue = this.getAttribute('data-filter');
+                
+                // Show/hide trainer cards based on filter
                 trainerCards.forEach(card => {
-                    if (filter === 'all' || card.getAttribute('data-category').includes(filter)) {
+                    if (filterValue === 'all') {
                         card.style.display = 'block';
                     } else {
-                        card.style.display = 'none';
+                        if (card.getAttribute('data-category').includes(filterValue)) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
                     }
                 });
             });

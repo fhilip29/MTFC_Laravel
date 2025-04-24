@@ -17,8 +17,36 @@ class TrainerController extends Controller
     // Admin Trainer Page
     public function indexAdmin()
     {
-        // Load trainers with their user data and schedules
-        $trainers = Trainer::with(['user', 'schedules'])->get();
+        // Get filter parameter, default to 'all'
+        $filter = request('filter', 'all');
+        
+        // Start with a base query
+        $query = Trainer::with(['user', 'schedules']);
+        
+        // Apply filters based on request
+        if ($filter === 'archived') {
+            $query->whereHas('user', function($q) {
+                $q->where('is_archived', true);
+            });
+        } elseif ($filter === 'active') {
+            $query->whereHas('user', function($q) {
+                $q->where('is_archived', false);
+            });
+        } elseif (in_array($filter, ['gym', 'boxing', 'muay-thai', 'jiu-jitsu'])) {
+            $query->where('instructor_for', 'like', "%$filter%");
+            // Also only show active trainers
+            $query->whereHas('user', function($q) {
+                $q->where('is_archived', false);
+            });
+        } else {
+            // Default behavior - show active trainers only
+            $query->whereHas('user', function($q) {
+                $q->where('is_archived', false);
+            });
+        }
+        
+        // Execute the query
+        $trainers = $query->get();
         
         // Format the trainer data for display
         $trainers->each(function ($trainer) {
@@ -38,12 +66,19 @@ class TrainerController extends Controller
             $trainer->active_clients_count = rand(5, 15); // Placeholder
         });
         
-        return view('admin.trainer.admin_trainer', compact('trainers'));
+        return view('admin.trainer.admin_trainer', compact('trainers', 'filter'));
     }
 
     // Store a new trainer
     public function store(Request $request)
     {
+        // Log the incoming request for debugging
+        \Log::info('Trainer store request received', [
+            'has_file' => $request->hasFile('profile_image'),
+            'all_files' => $request->allFiles(),
+            'all_inputs' => $request->except(['password']), // Don't log password
+        ]);
+
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
@@ -53,10 +88,13 @@ class TrainerController extends Controller
             'hourly_rate' => 'required|numeric|min:0',
             'instructor_for' => 'required|string',
             'short_intro' => 'nullable|string',
-            'profile_image' => 'nullable|string',
+            'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
         ]);
 
         if ($validator->fails()) {
+            \Log::warning('Trainer validation failed', [
+                'errors' => $validator->errors()->toArray()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -86,18 +124,22 @@ class TrainerController extends Controller
             $trainer->short_intro = $request->short_intro;
             
             // Handle profile image upload if provided
-            if ($request->filled('profile_image')) {
+            if ($request->hasFile('profile_image')) {
                 try {
-                    // Get base64 image data from session
-                    $fileUploadController = new FileUploadController();
-                    $trainer->profile_url = $fileUploadController->getBase64FromSession($request->profile_image);
+                    $file = $request->file('profile_image');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    
+                    // Store the file in public/uploads/profiles
+                    $path = $file->storeAs('uploads/profiles', $filename, 'public');
+                    $trainer->profile_url = 'storage/' . $path;
+                    
+                    \Log::info('Saved profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {
                     \Log::error('Error handling profile image: ' . $e->getMessage());
                     \Log::error($e->getTraceAsString());
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error handling profile image: ' . $e->getMessage()
-                    ], 500);
+                    
+                    // Continue with the save, just log the error
+                    // We don't want to block the trainer creation because of an image issue
                 }
             }
             
@@ -138,6 +180,14 @@ class TrainerController extends Controller
     // Update an existing trainer
     public function update(Request $request, $id)
     {
+        // Log the incoming request for debugging
+        \Log::info('Trainer update request received', [
+            'id' => $id,
+            'has_file' => $request->hasFile('profile_image'),
+            'all_files' => $request->allFiles(),
+            'all_inputs' => $request->except(['password']), // Don't log password
+        ]);
+
         $trainer = Trainer::findOrFail($id);
         
         $validator = Validator::make($request->all(), [
@@ -148,10 +198,13 @@ class TrainerController extends Controller
             'hourly_rate' => 'required|numeric|min:0',
             'instructor_for' => 'required|string',
             'short_intro' => 'nullable|string',
-            'profile_image' => 'nullable|string',
+            'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
         ]);
 
         if ($validator->fails()) {
+            \Log::warning('Trainer update validation failed', [
+                'errors' => $validator->errors()->toArray()
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
@@ -181,18 +234,22 @@ class TrainerController extends Controller
             $trainer->short_intro = $request->short_intro;
             
             // Handle profile image upload if provided
-            if ($request->filled('profile_image')) {
+            if ($request->hasFile('profile_image')) {
                 try {
-                    // Get base64 image data from session
-                    $fileUploadController = new FileUploadController();
-                    $trainer->profile_url = $fileUploadController->getBase64FromSession($request->profile_image);
+                    $file = $request->file('profile_image');
+                    $filename = time() . '_' . $file->getClientOriginalName();
+                    
+                    // Store the file in public/uploads/profiles
+                    $path = $file->storeAs('uploads/profiles', $filename, 'public');
+                    $trainer->profile_url = 'storage/' . $path;
+                    
+                    \Log::info('Saved profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {
                     \Log::error('Error handling profile image: ' . $e->getMessage());
                     \Log::error($e->getTraceAsString());
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error handling profile image: ' . $e->getMessage()
-                    ], 500);
+                    
+                    // Continue with the save, just log the error
+                    // We don't want to block the trainer creation because of an image issue
                 }
             }
             
@@ -268,7 +325,11 @@ class TrainerController extends Controller
     // User View Trainers Page
     public function indexUser()
     {
-        $trainers = Trainer::with(['user', 'schedules'])->get();
+        // Only get active (non-archived) trainers
+        $trainers = Trainer::with(['user', 'schedules'])
+            ->whereHas('user', function($query) {
+                $query->where('is_archived', false);
+            })->get();
         
         // Format the trainer data for display
         $trainers->each(function ($trainer) {

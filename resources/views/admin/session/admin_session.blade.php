@@ -40,33 +40,22 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#374151]">
-                            @php
-                                $sessions = [
-                                    ['id' => '67dfbb6ea96c19be54fae25b', 'name' => 'King Dranreb Languido', 'time' => '2025-04-05T15:30:15.000Z', 'status' => 'OUT'],
-                                    ['id' => '67dfbb6ea96c19be54fae25b', 'name' => 'King Dranreb Languido', 'time' => '2025-04-05T15:29:58.195Z', 'status' => 'IN'],
-                                    ['id' => '67dfbb6ea96c19be54fae25b', 'name' => 'King Dranreb Languido', 'time' => '2025-04-04T06:11:14.000Z', 'status' => 'OUT'],
-                                    ['id' => '67ed927ddd2e9713ad201512', 'name' => 'Tester Tester', 'time' => '2025-04-02T20:00:35.000Z', 'status' => 'OUT'],
-                                    ['id' => '67ed927ddd2e9713ad201512', 'name' => 'Tester Tester', 'time' => '2025-04-02T19:59:51.889Z', 'status' => 'IN'],
-                                    ['id' => '67dfbb6ea96c19be54fae25b', 'name' => 'King Dranreb Languido', 'time' => '2025-03-31T15:24:06.000Z', 'status' => 'OUT'],
-                                ];
-                            @endphp
-
                             @foreach ($sessions as $session)
                                 <tr class="hover:bg-[#374151] transition-colors">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center">
                                             <div class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
-                                                {{ strtoupper(substr($session['name'], 0, 2)) }}
+                                                {{ strtoupper(substr($session->user->full_name, 0, 2)) }}
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 font-medium text-white">{{ $session['name'] }}</td>
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session['time'])->format('M d, Y') }}</td>
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session['time'])->format('h:i A') }}</td>
+                                    <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('M d, Y') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                            {{ $session['status'] === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white' }}">
-                                            {{ $session['status'] }}
+                                            {{ $session->status === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white' }}">
+                                            {{ $session->status }}
                                         </span>
                                     </td>
                                 </tr>
@@ -95,6 +84,25 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </h3>
+                        
+                        <!-- Time In/Out Selection - Moved to top with improved design -->
+                        <div class="mt-4 mb-6">
+                            <p class="text-white mb-3 text-center">Select action before scanning:</p>
+                            <div class="flex gap-4 justify-center">
+                                <button id="timeInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow active:bg-green-800 flex items-center gap-2 transition-colors flex-1 justify-center">
+                                    <i class="fas fa-sign-in-alt text-lg"></i> 
+                                    <span class="text-md font-bold">Check In</span>
+                                </button>
+                                <button id="timeOutBtn" class="py-3 px-5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow active:bg-red-800 flex items-center gap-2 transition-colors flex-1 justify-center">
+                                    <i class="fas fa-sign-out-alt text-lg"></i> 
+                                    <span class="text-md font-bold">Check Out</span>
+                                </button>
+                            </div>
+                            <div class="text-center mt-2 text-white text-sm">
+                                <span class="font-medium" id="selected-mode-label">Current mode: Check In</span>
+                            </div>
+                        </div>
+                        
                         <div class="mt-4">
                             <div id="scanner-container" class="relative overflow-hidden rounded-lg bg-black aspect-square w-full max-w-md mx-auto">
                                 <video id="scanner-video" class="w-full h-full object-cover"></video>
@@ -111,15 +119,7 @@
                             </div>
                             <div id="scanner-message" class="mt-4 text-center text-white">Position the QR code within the frame</div>
                             
-                            <!-- Time In/Out Selection -->
-                            <div class="flex gap-3 mt-4 justify-center">
-                                <button id="timeInBtn" class="py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow active:bg-green-800 flex items-center gap-2 transition-colors">
-                                    <i class="fas fa-sign-in-alt"></i> Time In
-                                </button>
-                                <button id="timeOutBtn" class="py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow active:bg-red-800 flex items-center gap-2 transition-colors">
-                                    <i class="fas fa-sign-out-alt"></i> Time Out
-                                </button>
-                            </div>
+                            <!-- Removed the buttons from here since they're now above the scanner -->
                         </div>
                     </div>
                 </div>
@@ -138,6 +138,8 @@
 
 <!-- Import jsQR library -->
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<!-- Import SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
     // Simple search filter
@@ -170,19 +172,43 @@
         let scanMode = 'IN'; // Default scan mode
         let canvasContext = canvas.getContext('2d');
         
+        // Initialize SweetAlert Toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+        
         // Set active scan mode
         function setActiveScanMode(mode) {
             scanMode = mode;
             
+            // Remove active class from both buttons
+            timeInBtn.classList.remove('ring-2', 'ring-white');
+            timeOutBtn.classList.remove('ring-2', 'ring-white');
+            
+            // Add active class to selected button
             if (mode === 'IN') {
                 timeInBtn.classList.add('ring-2', 'ring-white');
-                timeOutBtn.classList.remove('ring-2', 'ring-white');
+                document.getElementById('selected-mode-label').textContent = 'Current mode: Check In';
             } else {
                 timeOutBtn.classList.add('ring-2', 'ring-white');
-                timeInBtn.classList.remove('ring-2', 'ring-white');
+                document.getElementById('selected-mode-label').textContent = 'Current mode: Check Out';
             }
             
             scannerMessage.textContent = `Ready to scan for Time ${mode}`;
+            
+            // Show notification
+            Toast.fire({
+                icon: 'info',
+                title: `Switched to ${mode === 'IN' ? 'Check-in' : 'Check-out'} mode`
+            });
         }
         
         // Set initial active mode
@@ -201,6 +227,13 @@
         // Show scanner modal
         scanButton.addEventListener('click', function() {
             scannerModal.classList.remove('hidden');
+            // Automatically start scanner when modal opens
+            if (!scanning) {
+                startScanner();
+                startScannerBtn.textContent = 'Stop Scanner';
+                startScannerBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                startScannerBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            }
         });
         
         // Close scanner modal
@@ -229,29 +262,87 @@
         
         // Start scanner function
         function startScanner() {
+            scannerMessage.textContent = 'Attempting to access camera...';
+            
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                // Try to get a list of available cameras first
+                navigator.mediaDevices.enumerateDevices()
+                    .then(devices => {
+                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                        console.log('Available cameras:', videoDevices);
+                        
+                        if (videoDevices.length === 0) {
+                            scannerMessage.textContent = 'No camera detected on this device.';
+                            scannerMessage.classList.add('text-red-500');
+                            return;
+                        }
+                        
+                        // Proceed with camera access
+                        return navigator.mediaDevices.getUserMedia({ 
+                            video: { 
+                                // Try to use any available camera
+                                deviceId: videoDevices.length > 0 ? {exact: videoDevices[0].deviceId} : undefined,
+                                width: { ideal: 640 },
+                                height: { ideal: 480 }
+                            },
+                            audio: false
+                        });
+                    })
                     .then(function(mediaStream) {
+                        if (!mediaStream) return; // Handle case where we didn't get a stream
+                        
                         stream = mediaStream;
                         video.srcObject = mediaStream;
                         video.setAttribute('playsinline', true);
-                        video.play();
-                        scanning = true;
-                        startScanAnimation();
-                        scannerMessage.textContent = `Scanning for Time ${scanMode}...`;
                         
-                        // Set canvas size to match video
-                        video.addEventListener('loadedmetadata', function() {
-                            canvas.width = video.videoWidth;
-                            canvas.height = video.videoHeight;
+                        // Ensure video starts playing
+                        video.onloadedmetadata = function(e) {
+                            console.log('Video metadata loaded, attempting to play');
+                            video.play()
+                                .then(() => {
+                                    console.log('Video playback started');
+                                    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                                    scanning = true;
+                                    startScanAnimation();
+                                    scannerMessage.textContent = `Scanning for Time ${scanMode}...`;
+                                    
+                                    // Set canvas size to match video
+                                    canvas.width = video.videoWidth;
+                                    canvas.height = video.videoHeight;
+                                    
+                                    // Start QR code detection loop
+                                    requestAnimationFrame(scanQRCode);
+                                })
+                                .catch(err => {
+                                    console.error('Error playing video:', err);
+                                    scannerMessage.textContent = 'Error starting video: ' + err.message;
+                                    scannerMessage.classList.add('text-red-500');
+                                });
+                        };
+                        
+                        // Add additional event listeners for debugging
+                        video.addEventListener('play', () => console.log('Video play event fired'));
+                        video.addEventListener('error', (e) => {
+                            console.error('Video error:', e);
+                            scannerMessage.textContent = 'Video error: ' + (video.error ? video.error.message : 'Unknown error');
+                            scannerMessage.classList.add('text-red-500');
                         });
-                        
-                        // Start QR code detection loop
-                        requestAnimationFrame(scanQRCode);
                     })
                     .catch(function(error) {
                         console.error('Error accessing camera:', error);
-                        scannerMessage.textContent = 'Error accessing camera. Please check permissions.';
+                        let errorMessage = 'Error accessing camera. ';
+                        
+                        if (error.name === 'NotAllowedError') {
+                            errorMessage += 'Camera permission denied. Please allow camera access in your browser settings.';
+                        } else if (error.name === 'NotFoundError') {
+                            errorMessage += 'No camera found on this device.';
+                        } else if (error.name === 'NotReadableError') {
+                            errorMessage += 'Camera is already in use by another application.';
+                        } else {
+                            errorMessage += error.message || 'Unknown error.';
+                        }
+                        
+                        scannerMessage.textContent = errorMessage;
                         scannerMessage.classList.add('text-red-500');
                     });
             } else {
@@ -279,6 +370,23 @@
                 if (code) {
                     // QR code detected
                     console.log("QR Code detected:", code.data);
+                    
+                    // Vibrate if supported
+                    if (navigator.vibrate) {
+                        navigator.vibrate(100);
+                    }
+                    
+                    // Play a beep sound
+                    const beep = new Audio('data:audio/wav;base64,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');
+                    beep.play().catch(e => console.log('Audio play error:', e));
+                    
+                    // Flash overlay
+                    const overlay = document.querySelector('#scanner-overlay');
+                    overlay.style.borderColor = 'rgba(34, 197, 94, 0.8)'; // Green highlight
+                    setTimeout(() => {
+                        overlay.style.borderColor = 'transparent';
+                    }, 300);
+                    
                     processScannedQRCode(code.data);
                     return;
                 }
@@ -306,6 +414,18 @@
             stopScanAnimation();
             scannerMessage.textContent = `Processing QR code...`;
             
+            // Show processing alert
+            Swal.fire({
+                title: 'Processing...',
+                text: `Processing QR code for Time ${scanMode}`,
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
             // Send the QR code to the server
             fetch('{{ route("admin.session.store") }}', {
                 method: 'POST',
@@ -320,17 +440,32 @@
             })
             .then(response => response.json())
             .then(data => {
+                Swal.close();
+                
                 if (data.success) {
                     handleSuccessfulScan(data.data);
                 } else {
                     scannerMessage.textContent = data.error || 'Error processing QR code';
                     scannerMessage.classList.add('text-red-500');
+                    
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'Error processing QR code',
+                        icon: 'error'
+                    });
                 }
             })
             .catch(error => {
+                Swal.close();
                 console.error('Error:', error);
                 scannerMessage.textContent = 'Error processing scan. Please try again.';
                 scannerMessage.classList.add('text-red-500');
+                
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Network error. Please check your connection and try again.',
+                    icon: 'error'
+                });
             });
             
             scanning = false;
@@ -343,6 +478,15 @@
         function handleSuccessfulScan(data) {
             scannerMessage.textContent = `Member: ${data.full_name} - Successfully scanned for Time ${data.status}!`;
             scannerMessage.classList.add('text-green-500');
+            
+            // Show success notification
+            Swal.fire({
+                title: 'Success!',
+                text: `${data.full_name} has been checked ${data.status === 'IN' ? 'in' : 'out'} successfully!`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
             
             // Add the new session to the table
             const tbody = document.querySelector('#sessionTable tbody');
@@ -400,6 +544,62 @@
         100% {
             transform: translateY(1000%);
         }
+    }
+    
+    /* Scanner video and container styles */
+    #scanner-container {
+        min-height: 300px;
+        background-color: #000;
+        position: relative;
+    }
+    
+    #scanner-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+    
+    #scanner-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    
+    /* Mode selection button styles */
+    #timeInBtn, #timeOutBtn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    #timeInBtn.ring-2, #timeOutBtn.ring-2 {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+    
+    #timeInBtn.ring-2::after, #timeOutBtn.ring-2::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 10%;
+        width: 80%;
+        height: 3px;
+        background-color: white;
+        border-radius: 3px;
+    }
+    
+    /* Pulse animation for active button */
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+    }
+    
+    #timeInBtn.ring-2, #timeOutBtn.ring-2 {
+        animation: pulse 2s infinite;
     }
 </style>
 @endsection

@@ -4,10 +4,8 @@
 
 @section('content')
 <meta name="csrf-token" content="{{ csrf_token() }}">
-
-<!-- FilePond CSS -->
-<link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
-<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet">
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container mx-auto px-4 py-4">
     <div class="bg-[#111827] p-6 rounded-xl shadow-md mb-8 border border-[#374151]">
@@ -19,12 +17,29 @@
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full md:w-auto">
                 <div class="relative flex-grow md:flex-grow-0 md:w-64">
                     <input 
+                        id="trainerSearch"
                         type="text" 
                         placeholder="Search trainers..." 
                         class="w-full pl-10 pr-4 py-3 bg-[#374151] border-2 border-[#4B5563] text-white rounded-lg focus:outline-none focus:border-[#9CA3AF] focus:ring-1 focus:ring-[#9CA3AF] transition-all duration-200 placeholder-gray-400"
                     >
                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-[#9CA3AF]"></i>
                 </div>
+                
+                <!-- Filter Dropdown -->
+                <div class="relative flex-grow md:flex-grow-0 md:w-48">
+                    <select id="filterDropdown" onchange="applyFilter(this.value)" class="w-full pl-4 pr-8 py-3 bg-[#374151] border-2 border-[#4B5563] text-white rounded-lg focus:outline-none focus:border-[#9CA3AF] focus:ring-1 focus:ring-[#9CA3AF] transition-all duration-200 appearance-none">
+                        <option value="all" {{ $filter == 'all' || !$filter ? 'selected' : '' }}>All Active</option>
+                        <option value="gym" {{ $filter == 'gym' ? 'selected' : '' }}>Gym</option>
+                        <option value="boxing" {{ $filter == 'boxing' ? 'selected' : '' }}>Boxing</option>
+                        <option value="muay-thai" {{ $filter == 'muay-thai' ? 'selected' : '' }}>Muay Thai</option>
+                        <option value="jiu-jitsu" {{ $filter == 'jiu-jitsu' ? 'selected' : '' }}>Jiu Jitsu</option>
+                        <option value="archived" {{ $filter == 'archived' ? 'selected' : '' }}>Archived</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                
                 <button id="addTrainerBtn" class="bg-[#374151] hover:bg-[#4B5563] text-white py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i>
                     Add Trainer
@@ -116,7 +131,7 @@
                     </button>
                 </div>
             </div>
-            <form id="addTrainerForm" class="p-6">
+            <form id="addTrainerForm" enctype="multipart/form-data" class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Basic Info -->
                     <div class="col-span-1">
@@ -204,8 +219,22 @@
                         
                         <div class="mb-4">
                             <label for="profile_image" class="block text-[#9CA3AF] text-sm font-medium mb-2">Profile Image</label>
-                            <input type="file" class="filepond" name="filepond" id="profile_image" accept="image/png, image/jpeg, image/gif">
-                            <input type="hidden" name="profile_image" id="profile_image_hidden">
+                            <div class="flex flex-col space-y-2">
+                                <div class="flex items-center justify-center w-full">
+                                    <label for="profile_image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#374151] border-[#4B5563] hover:bg-[#424B5D]">
+                                        <div class="flex flex-col items-center justify-center pt-5 pb-6" id="uploadPlaceholder">
+                                            <i class="fas fa-cloud-upload-alt text-2xl text-[#9CA3AF] mb-2"></i>
+                                            <p class="mb-2 text-sm text-[#9CA3AF]">Click to upload or drag and drop</p>
+                                            <p class="text-xs text-[#9CA3AF]">PNG, JPG or JPEG (MAX. 5MB)</p>
+                                        </div>
+                                        <div id="imagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
+                                            <img id="imagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
+                                        </div>
+                                        <input id="profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/gif" class="hidden" />
+                                    </label>
+                                </div>
+                                <span id="selectedFileName" class="text-xs text-[#9CA3AF]"></span>
+                            </div>
                         </div>
                     </div>
                     
@@ -262,7 +291,7 @@
                     </button>
                 </div>
             </div>
-            <form id="editTrainerForm" class="p-6">
+            <form id="editTrainerForm" enctype="multipart/form-data" class="p-6">
                 <input type="hidden" id="edit_trainer_id" name="trainer_id">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -352,8 +381,30 @@
                         
                         <div class="mb-4">
                             <label for="edit_profile_image" class="block text-[#9CA3AF] text-sm font-medium mb-2">Profile Image (leave blank to keep current)</label>
-                            <input type="file" class="filepond" name="filepond" id="edit_profile_image" accept="image/png, image/jpeg, image/gif">
-                            <input type="hidden" name="profile_image" id="edit_profile_image_hidden">
+                            <div class="mb-2">
+                                <div id="currentImageContainer" class="w-full h-40 border border-[#4B5563] rounded-md flex items-center justify-center mb-2">
+                                    <img id="currentImage" class="max-h-full max-w-full object-contain rounded-md" src="" alt="Current profile image">
+                                    <div id="noImagePlaceholder" class="flex items-center justify-center w-40 h-40 bg-[#374151] rounded-md hidden">
+                                        <i class="fas fa-user text-[#9CA3AF] text-4xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col space-y-2">
+                                <div class="flex items-center justify-center w-full">
+                                    <label for="edit_profile_image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#374151] border-[#4B5563] hover:bg-[#424B5D]">
+                                        <div class="flex flex-col items-center justify-center pt-5 pb-6" id="editUploadPlaceholder">
+                                            <i class="fas fa-cloud-upload-alt text-2xl text-[#9CA3AF] mb-2"></i>
+                                            <p class="mb-2 text-sm text-[#9CA3AF]">Click to upload or drag and drop</p>
+                                            <p class="text-xs text-[#9CA3AF]">PNG, JPG or JPEG (MAX. 5MB)</p>
+                                        </div>
+                                        <div id="editImagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
+                                            <img id="editImagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
+                                        </div>
+                                        <input id="edit_profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" />
+                                    </label>
+                                </div>
+                                <span id="editSelectedFileName" class="text-xs text-[#9CA3AF]"></span>
+                            </div>
                         </div>
                     </div>
                     
@@ -400,27 +451,11 @@
     </div>
 </div>
 
-<!-- FilePond JS -->
-<script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
-<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
-<script src="https://unpkg.com/filepond-plugin-image-exif-orientation/dist/filepond-plugin-image-exif-orientation.js"></script>
-<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
-
 <script>
-// Register FilePond plugins
-FilePond.registerPlugin(
-    FilePondPluginFileValidateType,
-    FilePondPluginImagePreview,
-    FilePondPluginImageExifOrientation
-);
-
 // Modal controls
 function openAddTrainerModal() {
     document.getElementById('addTrainerModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    
-    // Initialize FilePond
-    initFilePond('profile_image', 'profile_image_hidden');
 }
 
 function closeAddTrainerModal() {
@@ -431,9 +466,6 @@ function closeAddTrainerModal() {
 function openEditTrainerModal() {
     document.getElementById('editTrainerModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
-    
-    // Initialize FilePond for edit
-    initFilePond('edit_profile_image', 'edit_profile_image_hidden');
 }
 
 function closeEditTrainerModal() {
@@ -441,62 +473,32 @@ function closeEditTrainerModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Initialize FilePond
-function initFilePond(inputId, hiddenInputId) {
-    const inputElement = document.getElementById(inputId);
-    const pond = FilePond.create(inputElement, {
-        acceptedFileTypes: ['image/png', 'image/jpeg', 'image/gif'],
-        server: {
-            process: {
-                url: '/upload',
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                onload: (response) => {
-                    console.log('File uploaded successfully:', response);
-                    // Set the serverID as the value of the hidden input
-                    document.getElementById(hiddenInputId).value = response;
-                    return response;
-                },
-                onerror: (response) => {
-                    console.error('FilePond error:', response);
-                    return response.data;
-                }
-            },
-            revert: {
-                url: '/upload',
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                onload: (response) => {
-                    console.log('File removed successfully:', response);
-                    // Clear the hidden input value
-                    document.getElementById(hiddenInputId).value = '';
-                    return response;
-                }
-            },
-            load: '/upload/'
-        },
-        labelIdle: 'Drag & Drop your image or <span class="filepond--label-action">Browse</span>',
-        imagePreviewHeight: 170,
-        stylePanelLayout: 'compact',
-        credits: false,
-        // This prevents FilePond from removing the file when the form is submitted
-        instantUpload: true,
-        allowRevert: true
-    });
-    
-    return pond;
+// Function to handle filter changes
+function applyFilter(filterValue) {
+    window.location.href = "{{ route('admin.trainer.admin_trainer') }}" + "?filter=" + filterValue;
 }
 
-// Frontend-only confirmation dialog
+// Confirmation dialog using SweetAlert
 function confirmArchiveTrainer(trainerId, trainerName, isArchived) {
     const action = isArchived ? 'unarchive' : 'archive';
-    if (confirm(`Are you sure you want to ${action} ${trainerName}?`)) {
-        archiveTrainer(trainerId);
-    }
+    
+    Swal.fire({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Trainer?`,
+        html: `Are you sure you want to ${action} <strong>${trainerName}</strong>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: isArchived ? '#3085d6' : '#d33',
+        cancelButtonColor: '#6B7280',
+        confirmButtonText: `Yes, ${action} trainer!`,
+        cancelButtonText: 'Cancel',
+        background: '#1F2937',
+        color: '#ffffff',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            archiveTrainer(trainerId);
+        }
+    });
 }
 
 // Archive/Unarchive a trainer
@@ -511,16 +513,37 @@ function archiveTrainer(trainerId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            // Reload the page to show the updated status
-            window.location.reload();
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                background: '#1F2937',
+                color: '#ffffff',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                // Reload the page to show the updated status
+                window.location.reload();
+            });
         } else {
-            alert('Error: ' + (data.message || 'Failed to update trainer status.'));
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to update trainer status.',
+                icon: 'error',
+                background: '#1F2937',
+                color: '#ffffff'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An unexpected error occurred. Please try again.');
+        Swal.fire({
+            title: 'Error!',
+            text: 'An unexpected error occurred. Please try again.',
+            icon: 'error',
+            background: '#1F2937',
+            color: '#ffffff'
+        });
     });
 }
 
@@ -547,6 +570,25 @@ function editTrainer(trainerId) {
             document.getElementById('edit_specialization').value = data.specialization || '';
             document.getElementById('edit_hourly_rate').value = data.hourly_rate || '';
             document.getElementById('edit_short_intro').value = data.short_intro || '';
+            
+            // Set profile image if available
+            const currentImage = document.getElementById('currentImage');
+            const noImagePlaceholder = document.getElementById('noImagePlaceholder');
+            
+            if (data.profile_url) {
+                // If it's already a base64 image or a URL
+                if (data.profile_url.startsWith('data:image')) {
+                    currentImage.src = data.profile_url;
+                } else {
+                    // It's a file path
+                    currentImage.src = data.profile_url;
+                }
+                currentImage.classList.remove('hidden');
+                noImagePlaceholder.classList.add('hidden');
+            } else {
+                currentImage.classList.add('hidden');
+                noImagePlaceholder.classList.remove('hidden');
+            }
             
             // Instructor for checkboxes
             const instructorFor = data.instructor_for ? data.instructor_for.split(',') : [];
@@ -589,12 +631,129 @@ function editTrainer(trainerId) {
         })
         .catch(error => {
             console.error('Error fetching trainer data:', error);
-            alert('Failed to load trainer data. Please try again.');
+            Swal.fire({
+                title: 'Error!',
+                text: 'Failed to load trainer data. Please try again.',
+                icon: 'error',
+                background: '#1F2937',
+                color: '#ffffff'
+            });
         });
 }
 
-// Document ready event handler
+// Handle search functionality
 document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('trainerSearch');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const trainerCards = document.querySelectorAll('.grid > div.bg-[#1F2937]');
+            
+            trainerCards.forEach(card => {
+                const trainerName = card.querySelector('h3').innerText.toLowerCase();
+                const specialization = card.querySelector('p.text-[#9CA3AF]').innerText.toLowerCase();
+                
+                if (trainerName.includes(searchTerm) || specialization.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Image upload elements for add form
+    const profileImageInput = document.getElementById('profile_image');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const selectedFileName = document.getElementById('selectedFileName');
+    
+    // Image upload elements for edit form
+    const editProfileImageInput = document.getElementById('edit_profile_image');
+    const editImagePreview = document.getElementById('editImagePreview');
+    const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
+    const editUploadPlaceholder = document.getElementById('editUploadPlaceholder');
+    const editSelectedFileName = document.getElementById('editSelectedFileName');
+    
+    // Handle image upload for add form
+    if (profileImageInput) {
+        profileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // File size validation (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        title: 'File Too Large',
+                        text: 'File size should not exceed 5MB',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                    profileImageInput.value = '';
+                    return;
+                }
+                
+                // Show file name
+                selectedFileName.textContent = file.name;
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    uploadPlaceholder.classList.add('hidden');
+                    imagePreviewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // Reset preview
+                selectedFileName.textContent = '';
+                uploadPlaceholder.classList.remove('hidden');
+                imagePreviewContainer.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Handle image upload for edit form
+    if (editProfileImageInput) {
+        editProfileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // File size validation (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    Swal.fire({
+                        title: 'File Too Large',
+                        text: 'File size should not exceed 5MB',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                    editProfileImageInput.value = '';
+                    return;
+                }
+                
+                // Show file name
+                editSelectedFileName.textContent = file.name;
+                
+                // Show image preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editImagePreview.src = e.target.result;
+                    editUploadPlaceholder.classList.add('hidden');
+                    editImagePreviewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                // Reset preview
+                editSelectedFileName.textContent = '';
+                editUploadPlaceholder.classList.remove('hidden');
+                editImagePreviewContainer.classList.add('hidden');
+            }
+        });
+    }
+    
     // Add Trainer button event
     document.getElementById('addTrainerBtn').addEventListener('click', openAddTrainerModal);
     
@@ -604,6 +763,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const form = this;
         const formData = new FormData(form);
+        
+        // Debug logging for the file
+        const fileInput = document.getElementById('profile_image');
+        if (fileInput.files.length > 0) {
+            console.log('File selected:', fileInput.files[0].name);
+            console.log('File size:', fileInput.files[0].size);
+        } else {
+            console.log('No file selected');
+        }
         
         // Handle instructor_for checkboxes
         const instructorCheckboxes = form.querySelectorAll('input[name="instructor_for[]"]:checked');
@@ -625,6 +793,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Show loading state
+        Swal.fire({
+            title: 'Adding trainer...',
+            text: 'Please wait while we process your request.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            background: '#1F2937',
+            color: '#ffffff'
+        });
+        
         fetch('/admin/trainers', {
             method: 'POST',
             headers: {
@@ -635,22 +815,50 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                window.location.reload();
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
                 let errorMsg = data.message || 'Failed to add trainer';
                 if (data.errors) {
-                    errorMsg += ':\n';
-                    Object.keys(data.errors).forEach(key => {
-                        errorMsg += `- ${data.errors[key].join('\n- ')}\n`;
+                    const errorList = Object.keys(data.errors).map(key => 
+                        `<li>${data.errors[key].join('</li><li>')}</li>`
+                    ).join('');
+                    
+                    Swal.fire({
+                        title: 'Error!',
+                        html: `<p>${errorMsg}</p><ul class="text-left mt-3">${errorList}</ul>`,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: errorMsg,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
                     });
                 }
-                alert('Error: ' + errorMsg);
+                console.error('Form submission errors:', data.errors);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An unexpected error occurred. Please check console for details.');
+            Swal.fire({
+                title: 'Error!',
+                text: 'An unexpected error occurred. Please check console for details.',
+                icon: 'error',
+                background: '#1F2937',
+                color: '#ffffff'
+            });
         });
     });
     
@@ -684,6 +892,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add method spoofing for PUT
         formData.append('_method', 'PUT');
         
+        // Show loading state
+        Swal.fire({
+            title: 'Updating trainer...',
+            text: 'Please wait while we process your request.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            },
+            background: '#1F2937',
+            color: '#ffffff'
+        });
+        
         fetch(`/admin/trainers/${trainerId}`, {
             method: 'POST',
             headers: {
@@ -694,22 +914,50 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
-                window.location.reload();
+                Swal.fire({
+                    title: 'Success!',
+                    text: data.message,
+                    icon: 'success',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
                 let errorMsg = data.message || 'Failed to update trainer';
                 if (data.errors) {
-                    errorMsg += ':\n';
-                    Object.keys(data.errors).forEach(key => {
-                        errorMsg += `- ${data.errors[key].join('\n- ')}\n`;
+                    const errorList = Object.keys(data.errors).map(key => 
+                        `<li>${data.errors[key].join('</li><li>')}</li>`
+                    ).join('');
+                    
+                    Swal.fire({
+                        title: 'Error!',
+                        html: `<p>${errorMsg}</p><ul class="text-left mt-3">${errorList}</ul>`,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: errorMsg,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
                     });
                 }
-                alert('Error: ' + errorMsg);
+                console.error('Edit form - Submission errors:', data.errors);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('An unexpected error occurred. Please check console for details.');
+            Swal.fire({
+                title: 'Error!',
+                text: 'An unexpected error occurred. Please check console for details.',
+                icon: 'error',
+                background: '#1F2937',
+                color: '#ffffff'
+            });
         });
     });
     

@@ -228,6 +228,11 @@ Route::view('/admin/announcement', 'admin.announcement.admin_announcement')->nam
 // File Upload Routes for FilePond
 Route::post('/upload', [FileUploadController::class, 'process'])->name('upload.process');
 Route::delete('/upload', [FileUploadController::class, 'revert'])->name('upload.revert');
-Route::get('/upload/{filename}', [FileUploadController::class, 'load'])->name('upload.load');
+Route::get('/upload/{uniqueId}', [FileUploadController::class, 'load'])->name('upload.load');
+
+// QR Scanner Test Route
+Route::get('/test-scanner', function () {
+    return view('test-scanner');
+});
 
 

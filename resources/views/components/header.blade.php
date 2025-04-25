@@ -72,6 +72,7 @@
                                 <a href="{{ Auth::user()->role === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
                                 <a href="{{ route('community') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Community</a>
                                 <a href="{{ route('orders') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Orders</a>
+                                <a href="{{ route('subscription.history') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Subscriptions</a>
                             @endif
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf

@@ -16,6 +16,8 @@ use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\PricingController;
+use App\Http\Controllers\SubscriptionController;
 
 
 //Role Middleware
@@ -76,10 +78,10 @@ Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers
 // PRICING ROUTES
 // ===================
 Route::view('/pricing', 'pricing')->name('pricing');
-Route::view('/pricing/gym', 'pricing.gym')->name('pricing.gym');
-Route::view('/pricing/boxing', 'pricing.boxing')->name('pricing.boxing');
-Route::view('/pricing/muay', 'pricing.muay')->name('pricing.muay');
-Route::view('/pricing/jiu', 'pricing.jiu')->name('pricing.jiu');
+Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym');
+Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
+Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
+Route::get('/pricing/jiu', [PricingController::class, 'jiu'])->name('pricing.jiu');
 // ===================
 // TERMS / POLICIES
 // ===================
@@ -233,6 +235,13 @@ Route::get('/upload/{uniqueId}', [FileUploadController::class, 'load'])->name('u
 // QR Scanner Test Route
 Route::get('/test-scanner', function () {
     return view('test-scanner');
+});
+
+// Subscription Routes (protected by auth)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/subscription', [SubscriptionController::class, 'store'])->name('subscription.store');
+    Route::get('/subscription/history', [SubscriptionController::class, 'history'])->name('subscription.history');
+    Route::post('/subscription/{id}/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
 });
 
 

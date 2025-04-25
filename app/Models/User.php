@@ -47,15 +47,12 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_agreed_to_terms' => 'boolean',
-            'is_archived' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_agreed_to_terms' => 'boolean',
+        'is_archived' => 'boolean',
+    ];
     
     /**
      * Check if user is an admin
@@ -88,15 +85,30 @@ class User extends Authenticatable
     }
 
      //subscriptions
-      public function subscriptions()
+     public function subscriptions()
      {
-      return $this->hasMany(Subscription::class);
+         return $this->hasMany(Subscription::class);
      }
 
      public function activeSubscriptions()
-    {
-      return $this->subscriptions()->where('is_active', true);
-    }
+     {
+         return $this->subscriptions()->where('is_active', true)
+             ->where(function($query) {
+                 // Either end_date is null (per-session) or end_date is in the future
+                 $query->whereNull('end_date')
+                       ->orWhere('end_date', '>', now());
+             });
+     }
+
+     /**
+      * Check if user has active subscription for a specific type
+      */
+     public function hasActiveSubscription($type)
+     {
+         return $this->activeSubscriptions()
+             ->where('type', $type)
+             ->exists();
+     }
 
 /**
  * Scope a query to only include non-archived users.
@@ -136,6 +148,5 @@ public function trainer()
 {
     return $this->hasOne(Trainer::class);
 }
-
 
 }

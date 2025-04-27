@@ -250,7 +250,7 @@
 
     // Buttons
     document.querySelector('.community-button').addEventListener('click', () => {
-        window.location.href = '{{ url("community_dashboard") }}';
+        window.location.href = '{{ url("community") }}';
     });
 
     document.querySelector('.about-button').addEventListener('click', () => {

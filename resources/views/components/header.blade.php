@@ -37,7 +37,7 @@
         <!-- Right: User/Profile Area -->
         <div class="absolute right-5 flex justify-end items-center space-x-4 w-1/3 min-w-[200px]">
             @auth
-            <a href="{{ route('notifications') }}" class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
+            <a href="{{ route('announcements') }}" class="right-1 relative text-gray-600 hover:text-black focus:outline-none">
                 <i class="fas fa-bell text-xl"></i>
                 <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             </a>

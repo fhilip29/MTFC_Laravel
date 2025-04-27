@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('message');
             $table->timestamp('scheduled_at')->nullable();
             $table->timestamp('sent_at')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->string('is_active')->default('active'); // 🔥 changed from boolean to string
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
             $table->softDeletes();

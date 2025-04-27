@@ -68,21 +68,20 @@ class Announcement extends Model
         ]);
     }
 
+    // Get the status of the announcement
     public function getStatusAttribute()
     {
-        if (!$this->is_active) return 'Inactive';
-        if ($this->sent_at) return 'Sent';
-        if ($this->scheduled_at && $this->scheduled_at->isFuture()) return 'Scheduled';
-        return 'Pending';
+        if ($this->scheduled_at) {
+            return 'Pending';
+        }
+        return $this->is_active ? 'Active' : 'Inactive';
     }
-
+    
     public function getStatusClassAttribute()
     {
-        return [
-            'Sent' => 'bg-green-500',
-            'Scheduled' => 'bg-blue-500',
-            'Pending' => 'bg-yellow-500',
-            'Inactive' => 'bg-gray-500',
-        ][$this->status] ?? 'bg-gray-500';
+        if ($this->scheduled_at) {
+            return 'bg-yellow-600 text-white';
+        }
+        return $this->is_active ? 'bg-green-600 text-white' : 'bg-gray-600 text-white';
     }
 }

@@ -18,49 +18,8 @@
         transform: scale(1.1);
     }
     .modal-backdrop {
-        background-color: rgba(0, 0, 0, 0.3); /* Reduced opacity */
-        backdrop-filter: blur(2px); /* Reduced blur */
-    }
-    /* Improved file input styling */
-    .file-input-button {
-        background-color: #4285F4;
-        color: white;
-        border-radius: 4px;
-        padding: 8px 16px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    .file-input-button:hover {
-        background-color: #3367D6;
-    }
-    /* Create button styling */
-    .create-button {
-        background-color: #f0f0f0;
-        color: #1a73e8;
-        border-radius: 4px;
-        padding: 8px 20px;
-        font-size: 14px;
-        font-weight: 500;
-        transition: background-color 0.2s;
-    }
-    .create-button:hover {
-        background-color: #e0e0e0;
-    }
-    /* Modal visibility animation */
-    .modal-enter {
-        opacity: 0;
-    }
-    .modal-enter-active {
-        opacity: 1;
-        transition: opacity 200ms;
-    }
-    .modal-exit {
-        opacity: 1;
-    }
-    .modal-exit-active {
-        opacity: 0;
-        transition: opacity 200ms;
+        background-color: rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(2px);
     }
 </style>
 @endsection
@@ -74,152 +33,113 @@
                 <i class="fas fa-home text-xl"></i>
                 <span class="font-medium">Home</span>
             </a>
-            <a href="#" class="flex items-center space-x-3 text-white hover:text-red-500 transition-colors">
-                <i class="fas fa-fire text-xl"></i>
-                <span class="font-medium">Popular</span>
-            </a>
-            <a href="#" class="flex items-center space-x-3 text-white hover:text-red-500 transition-colors">
-                <i class="fas fa-compass text-xl"></i>
-                <span class="font-medium">Explore</span>
-            </a>
-            <a href="#" class="flex items-center space-x-3 text-white hover:text-red-500 transition-colors">
-                <i class="fas fa-list text-xl"></i>
-                <span class="font-medium">All</span>
-            </a>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 p-6">
-        <!-- Top Bar with Search and Create Post -->
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-            <!-- Search Bar -->
-            <div class="relative w-full md:w-2/3">
-                <input type="text" placeholder="Search posts..." class="w-full bg-[#2d2d2d] text-white rounded-lg py-3 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-red-500">
-                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            </div>
-            
-            <!-- Create Post Button -->
-            <div class="w-full md:w-auto" x-data="{ isOpen: false }">
-                <button @click="isOpen = true" class="w-full md:w-auto bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center md:justify-start space-x-2">
-                    <i class="fas fa-plus"></i>
-                    <span>Create Post</span>
-                </button>
+        <!-- Top Bar with Search -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Community</h1>
+            <form action="{{ route('community.search') }}" method="GET" class="flex items-center">
+                <input type="text" name="search" placeholder="Search posts..." class="p-2 rounded-lg bg-gray-700 text-white" required>
+                <button type="submit" class="ml-2 p-2 rounded-lg bg-blue-600 text-white">Search</button>
+            </form>
+        </div>
 
-                <!-- Updated Create Post Modal with Close Button -->
-                <div 
-                    x-show="isOpen" 
-                    x-transition:enter="modal-enter"
-                    x-transition:enter-start="modal-enter"
-                    x-transition:enter-end="modal-enter-active"
-                    x-transition:leave="modal-exit"
-                    x-transition:leave-start="modal-exit"
-                    x-transition:leave-end="modal-exit-active"
-                    class="fixed inset-0 z-50 overflow-y-auto" 
-                    style="display: none;"
-                >
-                    <div class="modal-backdrop fixed inset-0" @click="isOpen = false"></div>
-                    <div class="flex items-center justify-center min-h-screen p-4">
-                        <div class="bg-white w-full max-w-md rounded-lg shadow-lg z-50 relative" @click.stop>
-                            <div class="p-6">
-                                <div class="flex justify-between items-center mb-4">
-                                    <h2 class="text-xl font-semibold text-gray-800">Create Post</h2>
-                                    <button @click="isOpen = false" class="text-gray-500 hover:text-gray-700">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
-                                <form class="space-y-6">
-                                    <!-- Post content textarea -->
-                                    <textarea 
-                                        placeholder="What's on your mind..." 
-                                        class="w-full h-40 bg-white text-gray-800 border border-gray-300 rounded-lg p-4 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
-                                    ></textarea>
-                                    
-                                    <!-- Attach image section -->
-                                    <div class="flex flex-col space-y-2">
-                                        <label class="text-gray-800 font-medium text-sm">Attach Image</label>
-                                        <div class="flex justify-end">
-                                            <input type="file" id="image-upload" class="hidden" accept="image/*">
-                                            <label for="image-upload" class="file-input-button inline-flex items-center justify-center">
-                                                Choose File
-                                            </label>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Create button -->
-                                    <div class="flex justify-end pt-2">
-                                        <button type="button" @click="isOpen = false" class="mr-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
-                                            Cancel
-                                        </button>
-                                        <button type="submit" class="create-button">
-                                            Create
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+        <!-- Create Post Dropdown -->
+        <div x-data="{ open: false }">
+            <button @click="open = !open" class="bg-blue-600 text-white px-4 py-2 rounded mb-6">
+                Create Post
+            </button>
+            <div x-show="open" x-transition class="bg-white text-black p-4 rounded-lg shadow-lg max-w-xl w-full">
+                <form action="{{ route('posts.store') }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    <textarea name="content" rows="4" class="w-full p-2 border rounded focus:outline-none" placeholder="What's on your mind?" required></textarea>
+                    <input type="file" name="images[]" multiple class="mt-2">
+                    <div class="mt-3 text-right">
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            Post
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
         <!-- Posts -->
         <div class="space-y-6">
-            <!-- Post 1 -->
-            <div class="bg-[#2d2d2d] rounded-xl p-6 post-card">
-                <div class="flex items-start space-x-4">
-                    <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="User" class="w-10 h-10 rounded-full">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold">Mike</h3>
-                            <span class="text-gray-400 text-sm">2 hours ago</span>
-                        </div>
-                        <p class="mt-2">Hi everyone! Just joined ActiveGym today. Super excited to get started! Any tips for a newbie?</p>
-                        <div class="mt-4 flex items-center space-x-4">
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>6.2k</span>
-                            </button>
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-comment"></i>
-                                <span>584</span>
-                            </button>
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-share"></i>
-                                <span>Share</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @foreach ($posts as $post)
+                <div class="bg-[#2d2d2d] p-4 rounded-lg post-card">
+                    <div class="flex items-start space-x-4">
+                        <img src="{{ $post->user->profile_image ? asset('storage/' . $post->user->profile_image) : asset('assets/default-user.png') }}" alt="User" class="w-10 h-10 rounded-full">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h3 class="font-semibold">{{ $post->user->full_name }}</h3>
+                                <span class="text-sm text-gray-400">{{ $post->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="mt-2 text-white">{{ $post->content }}</p>
 
-            <!-- Post 2 -->
-            <div class="bg-[#2d2d2d] rounded-xl p-6 post-card">
-                <div class="flex items-start space-x-4">
-                    <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="User" class="w-10 h-10 rounded-full">
-                    <div class="flex-1">
-                        <div class="flex items-center space-x-2">
-                            <h3 class="font-semibold">Sarah</h3>
-                            <span class="text-gray-400 text-sm">5 hours ago</span>
-                        </div>
-                        <p class="mt-2">Welcome, Mike! I'd recommend checking out the personalized plans feature - it helped me a lot when I was starting out. Also, don't miss the Zumba classes on Tuesdays, they're a blast!</p>
-                        <div class="mt-4 flex items-center space-x-4">
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>538</span>
-                            </button>
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-comment"></i>
-                                <span>42</span>
-                            </button>
-                            <button class="vote-button flex items-center space-x-1 text-gray-400 hover:text-red-500">
-                                <i class="fas fa-share"></i>
-                                <span>Share</span>
-                            </button>
+                            @if ($post->images && $post->images->count())
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+                                    @foreach ($post->images as $image)
+                                        <img src="{{ asset('storage/' . $image->path) }}" class="rounded w-full h-40 object-cover">
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <div class="mt-4 flex space-x-4 text-gray-400">
+                                <form method="POST" action="{{ route('posts.like', $post->id) }}">
+                                    @csrf
+                                    <button type="submit" class="vote-button hover:text-red-500">
+                                        <i class="fas fa-heart"></i> {{ $post->likes->count() }}
+                                    </button>
+                                </form>
+
+                                <a href="{{ route('posts.show', $post->id) }}" class="vote-button hover:text-red-500">
+                                    <i class="fas fa-comment"></i> {{ $post->comments->count() }}
+                                </a>
+                            </div>
+
+                            <!-- Comments Section -->
+                            <div class="mt-4 space-y-2">
+                                @foreach ($post->comments as $comment)
+                                    <div class="bg-[#1e1e1e] p-3 rounded">
+                                        <div class="flex justify-between">
+                                            <span class="text-sm font-semibold">{{ $comment->user->full_name }}</span>
+                                            <span class="text-xs text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <p class="text-sm mt-1">{{ $comment->content }}</p>
+
+                                        @if (auth()->check() && auth()->id() === $comment->user_id)
+                                            <div class="flex space-x-2 mt-2">
+                                                <!-- Delete Comment -->
+                                                <form action="{{ route('comments.destroy', $comment->id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="text-red-400 text-xs">Delete</button>
+                                                </form>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- Comment Form -->
+                            @auth
+                                <form action="{{ route('comments.store', $post->id) }}" method="POST" class="mt-4">
+                                    @csrf
+                                    <textarea name="content" rows="2" class="w-full p-2 border rounded text-black" placeholder="Add a comment..." required></textarea>
+                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 mt-2 rounded hover:bg-blue-700">
+                                        Comment
+                                    </button>
+                                </form>
+                            @else
+                                <p class="text-sm text-gray-400 mt-2">You need to log in to comment.</p>
+                            @endauth
                         </div>
                     </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </div>

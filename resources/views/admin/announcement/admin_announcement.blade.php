@@ -208,15 +208,17 @@ $(document).ready(function() {
         const method = isUpdate ? 'PUT' : 'POST';
         
         const formData = {
-            title: $('#title').val(),
-            message: $('#message').val(),
-            is_active: $('#is_active').is(':checked') ? 1 : 0
-        };
+    title: $('#title').val(),
+    message: $('#message').val(),
+};
         
-        if($('#schedule_later').is(':checked')) {
-            formData.schedule_date = $('#schedule_date').val();
-            formData.schedule_time = $('#schedule_time').val();
-        }
+if ($('#schedule_later').is(':checked')) {
+    formData.is_active = 0; // Force inactive if scheduled later
+    formData.schedule_date = $('#schedule_date').val();
+    formData.schedule_time = $('#schedule_time').val();
+} else {
+    formData.is_active = $('#is_active').is(':checked') ? 1 : 0;
+}
         
         $.ajax({
             url: url,

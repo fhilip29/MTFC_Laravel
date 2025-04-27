@@ -9,76 +9,32 @@
     <h1 class="text-3xl font-bold mb-8 text-gray-800">Notifications</h1>
     
     <div class="space-y-4">
-        <!-- Muay Thai Notification -->
-        <div @click="modalOpen = true; currentNotification = { title: 'Muay Thai', time: '2 hours ago', icon: 'bell', color: 'red', content: 'New Muay Thai class schedule available. Check out the updated timings and book your spot!', details: 'Join our exciting Muay Thai classes! We\'ve updated our schedule to accommodate more students. Classes are now available in the morning (6 AM - 8 AM), afternoon (2 PM - 4 PM), and evening (7 PM - 9 PM) slots. Book your preferred timing through the member portal or contact the front desk. Don\'t forget to bring your gear!' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
-            <div class="flex-shrink-0">
-                <i class="fas fa-bell text-red-500 text-xl"></i>
-            </div>
-            <div class="flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">Muay Thai</h3>
-                    <span class="text-sm text-gray-500">2 hours ago</span>
-                </div>
-                <p class="text-gray-600 mt-1">New Muay Thai class schedule available. Check out the updated timings and book your spot!</p>
-            </div>
+        <!-- Loop through the announcements -->
+        @foreach($announcements as $announcement)
+    <div 
+        @click="modalOpen = true; currentNotification = { 
+            title: '{{ addslashes($announcement->title) }}', 
+            time: '{{ $announcement->created_at->diffForHumans() }}', 
+            icon: 'bell', 
+            color: 'red', 
+            content: '{{ addslashes(Str::limit($announcement->message, 100)) }}', 
+            details: '{{ addslashes($announcement->message) }}' 
+        }" 
+        class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+    >
+        <div class="flex-shrink-0">
+            <i class="fas fa-bell text-red-500 text-xl"></i>
         </div>
-
-        <!-- Boxing Tournament Notification -->
-        <div @click="modalOpen = true; currentNotification = { title: 'Boxing Tournament', time: '1 day ago', icon: 'bell', color: 'red', content: 'Upcoming boxing tournament registration is now open. Don\'t miss out on this exciting opportunity!', details: 'We are thrilled to announce our upcoming boxing tournament! Registration is now open for all skill levels. The tournament will be held on July 15th at the main gym. Entry fee is ₱500 which includes a tournament t-shirt and participation certificate. Winners will receive trophies and special prizes from our sponsors. Register before July 1st to secure your spot. Limited slots available!' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
-            <div class="flex-shrink-0">
-                <i class="fas fa-bell text-red-500 text-xl"></i>
+        <div class="flex-1">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">{{ $announcement->title }}</h3>
+                <span class="text-sm text-gray-500">{{ $announcement->created_at->diffForHumans() }}</span>
             </div>
-            <div class="flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">Boxing Tournament</h3>
-                    <span class="text-sm text-gray-500">1 day ago</span>
-                </div>
-                <p class="text-gray-600 mt-1">Upcoming boxing tournament registration is now open. Don't miss out on this exciting opportunity!</p>
-            </div>
-        </div>
-
-        <!-- SOntukan Event Notification -->
-        <div @click="modalOpen = true; currentNotification = { title: 'SOntukan Event', time: '2 days ago', icon: 'bell', color: 'red', content: 'Special SOntukan training session this weekend. Limited spots available!', details: 'We\'re hosting an exclusive SOntukan training session this weekend led by Master Juan Santos. This specialized Filipino martial arts training will focus on traditional techniques and their modern applications. The session will run from 9 AM to 3 PM on Saturday with a lunch break. Only 20 slots available to ensure personalized instruction. Secure your spot today by registering at the front desk. Fee: ₱1,200 including lunch and training materials.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
-            <div class="flex-shrink-0">
-                <i class="fas fa-bell text-red-500 text-xl"></i>
-            </div>
-            <div class="flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">SOntukan Event</h3>
-                    <span class="text-sm text-gray-500">2 days ago</span>
-                </div>
-                <p class="text-gray-600 mt-1">Special SOntukan training session this weekend. Limited spots available!</p>
-            </div>
-        </div>
-
-        <!-- Tournament Update Notification -->
-        <div @click="modalOpen = true; currentNotification = { title: 'Tournament Update', time: '3 days ago', icon: 'bell', color: 'red', content: 'Important updates regarding the upcoming tournament schedule and rules.', details: 'Attention all tournament participants! There have been some important changes to the tournament schedule and rules. The event will now start at 10 AM instead of 8 AM. Weight-ins will be conducted the day before. Additionally, we\'ve updated the scoring system and protective gear requirements. Please review the complete rules on our website or pick up a printed copy at the front desk. If you have any questions, please contact our tournament coordinator at tournament@mtfc.ph.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
-            <div class="flex-shrink-0">
-                <i class="fas fa-bell text-red-500 text-xl"></i>
-            </div>
-            <div class="flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">Tournament Update</h3>
-                    <span class="text-sm text-gray-500">3 days ago</span>
-                </div>
-                <p class="text-gray-600 mt-1">Important updates regarding the upcoming tournament schedule and rules.</p>
-            </div>
-        </div>
-
-        <!-- Test Notification -->
-        <div @click="modalOpen = true; currentNotification = { title: 'Skill Assessment Test', time: '4 days ago', icon: 'bell', color: 'red', content: 'Monthly skill assessment test results are now available. Check your progress!', details: 'The results of your monthly skill assessment are now available for review. You can check your scores and progress via your member dashboard or request a printed copy at the front desk. Your instructor has added personalized feedback and recommendations for improvement. Overall, there has been a 15% improvement in technique and 8% in strength compared to last month\'s assessment. Schedule a one-on-one session with your trainer to discuss your results in detail and create a targeted improvement plan.' }" class="bg-white rounded-lg shadow p-4 flex items-start space-x-4 hover:bg-gray-50 transition-colors duration-200 cursor-pointer">
-            <div class="flex-shrink-0">
-                <i class="fas fa-bell text-red-500 text-xl"></i>
-            </div>
-            <div class="flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-800">Skill Assessment Test</h3>
-                    <span class="text-sm text-gray-500">4 days ago</span>
-                </div>
-                <p class="text-gray-600 mt-1">Monthly skill assessment test results are now available. Check your progress!</p>
-            </div>
+            <p class="text-gray-600 mt-1">{{ Str::limit($announcement->message, 100) }}</p>
         </div>
     </div>
+@endforeach
+
 
     <!-- Notification Modal -->
     <div x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">

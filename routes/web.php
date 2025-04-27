@@ -16,6 +16,24 @@ use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\FileUploadController;
 use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\CommentController;
+
+
+
+// Community routes
+Route::get('/community', [PostController::class, 'index'])->name('community'); // View all posts
+Route::get('/community/search', [PostController::class, 'search'])->name('community.search'); // Search posts
+
+// Post-related routes
+Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create'); // Form for creating post
+Route::post('/posts', [PostController::class, 'store'])->name('posts.store'); // Store new post
+Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like'); // Like a post
+Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show'); // View a single post with comments
+
+// Comment-related routes
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store'); // Add a comment to a post
+Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy'); // Delete a comment
 
 
 //Role Middleware
@@ -101,7 +119,7 @@ Route::view('/account-settings', 'account-settings')->name('account-settings');
     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 
 
-Route::view('/community', 'community')->name('community');
+
 Route::view('/payment-method', 'payment-method')->name('payment-method');
 Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
 
@@ -155,14 +173,13 @@ Route::delete('/admin/products/{id}', [ProductController::class, 'destroy'])->na
 
 
 
-Route::view('/announcements', 'announcements')->name('announcements');
+
 Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
 Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 
 
 
-// Change announcement routes to use controller
-Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+
 
 
 
@@ -205,25 +222,30 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
     Route::delete('/vendors/{vendor}', [VendorController::class, 'destroy'])->name('admin.gym.vendors.destroy');
 });
 
-// Admin Announcement Routes
-Route::middleware(['auth'])->group(function () {
-    // Direct route for admin_promo page 
-    Route::get('/admin/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
+// Public user announcements
+Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+
+// Admin routes (only for authenticated users)
+Route::middleware(['auth'])->prefix('admin')->group(function () {
     
-    Route::get('/admin/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
-    Route::post('/admin/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
-    Route::get('/admin/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
-    Route::get('/admin/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('admin.announcements.edit');
-    Route::put('/admin/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
-    Route::delete('/admin/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
-    Route::patch('/admin/announcements/{announcement}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggle-active');
+    // Admin promotion page (management view)
+    Route::get('/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
+
+    // Admin full announcement CRUD
+    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
+    Route::post('/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
+    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
+    Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('admin.announcements.edit');
+    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
+    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
+    Route::patch('/announcements/{announcement}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggle-active');
+
+    // Temporary view (optional)
+    Route::view('/announcement', 'admin.announcement.admin_announcement')->name('admin.announcement');
 });
 
-
-// API route for fetching announcement details
+// API route
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
-
-Route::view('/admin/announcement', 'admin.announcement.admin_announcement')->name('admin.announcement');
 
 // File Upload Routes for FilePond
 Route::post('/upload', [FileUploadController::class, 'process'])->name('upload.process');

@@ -259,8 +259,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                     <div>
                         <p class="text-sm"><span class="font-medium">Status:</span> 
-                            <span x-show="currentAnnouncement?.is_active" class="px-2 py-1 text-xs rounded-full bg-green-600 text-white">Active</span>
+                            <span x-show="currentAnnouncement?.is_active && !currentAnnouncement?.scheduled_at" class="px-2 py-1 text-xs rounded-full bg-green-600 text-white">Active</span>
                             <span x-show="!currentAnnouncement?.is_active" class="px-2 py-1 text-xs rounded-full bg-gray-600 text-white">Inactive</span>
+                            <span x-show="currentAnnouncement?.scheduled_at" class="px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">Pending</span>
                         </p>
                     </div>
                     <div>
@@ -336,7 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Initialize state when modals are opened
     const app = document.querySelector('[x-data]')?.__x?.$data;
     if (app) {
@@ -485,4 +486,4 @@ function toggleStatus(id) {
     });
 }
 </script>
-@endsection 
+@endsection

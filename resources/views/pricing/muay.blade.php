@@ -1,71 +1,127 @@
-@extends('layouts.app')
+@extends('layouts.base')
 
 @section('content')
-<section class="relative w-full min-h-screen text-gray-800">
-    <!-- Background image -->
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('/assets/gym-bg.jpg');"></div>
-
-    <!-- Overlay to darken -->
-    <div class="absolute inset-0 bg-black opacity-50"></div>
-
-    <!-- Main content -->
-    <div class="relative z-10 max-w-7xl mx-auto px-6 py-16 pb-24">
-        <!-- Title -->
-        <h1 class="text-3xl md:text-5xl font-bold text-white text-center mb-10">Muay Thai Pricing Table</h1>
-
-        <!-- Tabs -->
-        <div class="flex justify-center space-x-4 mb-10 overflow-x-auto">
-            <a href="{{ route('pricing.gym') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                GYM
-            </a>
-            <a href="{{ route('pricing.boxing') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                Boxing
-            </a>
-            <a href="{{ route('pricing.muay') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-300 text-black">
-                Muay Thai
-            </a>
-            <a href="{{ route('pricing.jiu') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                Jiu-Jitsu
-            </a>
-        </div>
-
-        <!-- Pricing Cards -->
-        <div class="flex flex-wrap justify-center gap-8">
-            <!-- Card 1: Daily -->
-            <div class="w-80 bg-white rounded-2xl shadow-lg p-6">
-                <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
-                <h2 class="text-xl font-bold mb-3">Daily</h2>
-                <ul class="text-sm text-gray-700 space-y-2 mb-6">
-                    <li class="flex items-start gap-2"><x-check-icon /> Access to Muay Thai training area and equipment</li>
-                    <li class="flex items-start gap-2"><x-check-icon /> Guidance from certified Muay Thai trainers</li>
-                    <li class="flex items-start gap-2"><x-check-icon /> Use of locker room facilities</li>
-                </ul>
-                <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">₱300 / day</span>
-                    <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Subscribed</span>
-                </div>
-            </div>
-
-            
-
-            <!-- Card 2: Monthly -->
-          <div class="w-80 bg-white rounded-2xl shadow-lg p-6">
-            <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
-            <h2 class="text-xl font-bold mb-3">Monthly</h2>
-            <ul class="text-sm text-gray-700 space-y-2 mb-6">
-                <li class="flex items-start gap-2"><x-check-icon /> Access to Muay Thai training area and equipment</li>
-                <li class="flex items-start gap-2"><x-check-icon /> Personalized training plan</li>
-                <li class="flex items-start gap-2"><x-check-icon /> Use of locker room facilities</li>
-                <li class="flex items-start gap-2"><x-check-icon /> Complimentary hand wraps and shin guards</li>
-            </ul>
-            <div class="flex justify-between items-center mt-auto">
-                <span class="text-lg font-semibold text-gray-800">₱3200 / month</span>
-                <a href="#" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-                    Join Now
-                </a>
-            </div>
-        </div>
+<div class="container my-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="display-4">Muay Thai Membership Plans</h1>
+            <p class="lead">Train in the art of eight limbs with experienced Muay Thai instructors</p>
         </div>
     </div>
-</section>
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h4 class="my-0 fw-normal">Daily Pass</h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title text-center">$25<small class="text-muted fw-light">/day</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Single day Muay Thai class</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Equipment rental available</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Gym access included</li>
+                    </ul>
+                    <div class="mt-auto">
+                        @if(Auth::check())
+                            @if($userHasActive)
+                                <button class="w-100 btn btn-success" disabled>Currently Active</button>
+                            @else
+                                <form action="{{ route('subscription.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="type" value="muay">
+                                    <input type="hidden" name="plan" value="daily">
+                                    <input type="hidden" name="price" value="25.00">
+                                    <button type="submit" class="w-100 btn btn-primary">Subscribe Now</button>
+                                </form>
+                            @endif
+                        @else
+                            <a href="{{ route('login') }}" class="w-100 btn btn-outline-primary">Login to Subscribe</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm border-primary">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="my-0 fw-normal">Monthly Membership</h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title text-center">$150<small class="text-muted fw-light">/month</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unlimited Muay Thai classes</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Pad work and clinching training</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Sparring opportunities</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Full gym access included</li>
+                    </ul>
+                    <div class="mt-auto">
+                        @if(Auth::check())
+                            @if($userHasActive)
+                                <button class="w-100 btn btn-success" disabled>Currently Active</button>
+                            @else
+                                <form action="{{ route('subscription.store') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="type" value="muay">
+                                    <input type="hidden" name="plan" value="monthly">
+                                    <input type="hidden" name="price" value="150.00">
+                                    <button type="submit" class="w-100 btn btn-primary">Subscribe Now</button>
+                                </form>
+                            @endif
+                        @else
+                            <a href="{{ route('login') }}" class="w-100 btn btn-outline-primary">Login to Subscribe</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white text-center py-3">
+                    <h4 class="my-0 fw-normal">Per-Session Pass</h4>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h1 class="card-title pricing-card-title text-center">$20<small class="text-muted fw-light">/session</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Single Muay Thai session</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Equipment rental available</li>
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Perfect for trying it out</li>
+                    </ul>
+                    <div class="mt-auto">
+                        @if(Auth::check())
+                            <form action="{{ route('subscription.store') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="type" value="muay">
+                                <input type="hidden" name="plan" value="per-session">
+                                <input type="hidden" name="price" value="20.00">
+                                <button type="submit" class="w-100 btn btn-primary">Buy Now</button>
+                            </form>
+                        @else
+                            <a href="{{ route('login') }}" class="w-100 btn btn-outline-primary">Login to Subscribe</a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <p>Looking for other memberships?</p>
+            <div class="btn-group">
+                <a href="{{ route('pricing.gym') }}" class="btn btn-outline-primary">Gym</a>
+                <a href="{{ route('pricing.boxing') }}" class="btn btn-outline-primary">Boxing</a>
+                <a href="{{ route('pricing.jiu') }}" class="btn btn-outline-primary">Jiu Jitsu</a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

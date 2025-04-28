@@ -20,6 +20,7 @@ use App\Http\Controllers\PricingController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\PasswordResetController;
 
 
 
@@ -81,7 +82,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Fallback for logout if POST request fails
 Route::get('/logout', [AuthController::class, 'logout']);
 
-Route::view('/forgot', 'auth.forgot_password')->name('forgot_password');
+// Password Reset Routes
+Route::view('/forgot-password', 'auth.forgot_password')->name('forgot_password');
+Route::post('/password/email', [PasswordResetController::class, 'sendResetCode'])->name('password.email');
+Route::post('/password/verify-code', [PasswordResetController::class, 'verifyCode'])->name('password.verify');
+Route::post('/password/reset', [PasswordResetController::class, 'resetPassword'])->name('password.reset');
+Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset.form');
+
+// Google Login Routes
+Route::get('/auth/google', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);
 
 
 // ===================

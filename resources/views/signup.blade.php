@@ -56,6 +56,23 @@
                     });
                 </script>
             @endif
+            
+            <!-- Google Sign Up Button -->
+            <a href="{{ route('auth.google') }}" 
+               class="flex items-center justify-center w-full py-3 mb-6 bg-white text-gray-700 rounded hover:bg-gray-200 transition">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="h-5 mr-2">
+                <span class="font-medium">Continue with Google</span>
+            </a>
+            
+            <!-- Divider -->
+            <div class="relative mb-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-600"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-[#1D1B20] text-gray-400">OR</span>
+                </div>
+            </div>
 
             <form method="POST" action="{{ route('signup') }}">
                 @csrf

@@ -75,7 +75,7 @@
                 >
 
                 <div class="text-right text-sm mb-4">
-                    <a href="#" class="text-stone-900 hover:underline">Forgot password?</a>
+                    <a href="{{ route('forgot_password') }}" class="text-stone-900 hover:underline">Forgot password?</a>
                 </div>
 
                 <button 
@@ -85,6 +85,22 @@
                     Log In
                 </button>
             </form>
+            
+            <!-- Google Sign In Button -->
+            <div class="relative my-4">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-400"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-zinc-200 text-stone-700">OR</span>
+                </div>
+            </div>
+            
+            <a href="{{ route('auth.google') }}" 
+               class="flex items-center justify-center w-full py-3 mb-4 bg-white text-gray-700 rounded border border-gray-300 shadow hover:shadow-md transition">
+                <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="h-5 mr-2">
+                <span class="font-medium">Continue with Google</span>
+            </a>
 
             <p class="text-center text-sm text-stone-900">
                 New to ActiveGym?

@@ -13,7 +13,7 @@
                 <button id="scanButton" class="w-full sm:w-auto bg-[#374151] hover:bg-[#4B5563] text-white px-4 py-2 rounded-md shadow-md flex items-center justify-center gap-2 transition-colors">
                     <i class="fas fa-qrcode"></i> Scan
                 </button>
-                <button class="w-full sm:w-auto bg-[#374151] hover:bg-[#4B5563] text-white px-4 py-2 rounded-md shadow-md flex items-center justify-center gap-2 transition-colors">
+                <button id="guestButton" class="w-full sm:w-auto bg-[#374151] hover:bg-[#4B5563] text-white px-4 py-2 rounded-md shadow-md flex items-center justify-center gap-2 transition-colors">
                     <i class="fas fa-user-plus"></i> Guest
                 </button>
             </div>
@@ -34,6 +34,7 @@
                             <tr>
                                 <th class="px-4 py-3">Profile</th>
                                 <th class="px-4 py-3">Name</th>
+                                <th class="px-4 py-3">Role</th>
                                 <th class="px-4 py-3">Date</th>
                                 <th class="px-4 py-3">Time</th>
                                 <th class="px-4 py-3">Status</th>
@@ -41,20 +42,43 @@
                         </thead>
                         <tbody class="divide-y divide-[#374151]">
                             @foreach ($sessions as $session)
+                                @php
+                                    // Determine avatar background color based on role
+                                    $roleBgColor = 'bg-gray-600'; // Default for Guest or unknown
+                                    if ($session->user) {
+                                        switch ($session->user->role) {
+                                            case 'member':
+                                                $roleBgColor = 'bg-blue-600';
+                                                break;
+                                            case 'trainer':
+                                                $roleBgColor = 'bg-purple-600';
+                                                break;
+                                            case 'admin': // Assuming an admin role might exist
+                                                $roleBgColor = 'bg-yellow-600';
+                                                break;
+                                        }
+                                    }
+                                @endphp
                                 <tr class="hover:bg-[#374151] transition-colors">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center">
-                                            <div class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
-                                                {{ strtoupper(substr($session->user->full_name, 0, 2)) }}
+                                            <div class="h-9 w-9 rounded-full {{ $roleBgColor }} flex items-center justify-center text-white font-bold text-xs">
+                                                {{ $session->user ? strtoupper(substr($session->user->full_name, 0, 2)) : 'G' }} 
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name }}</td>
+                                    <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? 'Guest User' }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF] capitalize">{{ $session->user->role ?? 'guest' }}</td> 
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('M d, Y') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
-                                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full 
                                             {{ $session->status === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white' }}">
+                                            @if($session->status === 'IN')
+                                                <i class="fas fa-arrow-right text-xs"></i>
+                                            @else
+                                                <i class="fas fa-arrow-left text-xs"></i>
+                                            @endif
                                             {{ $session->status }}
                                         </span>
                                     </td>
@@ -71,14 +95,14 @@
 <!-- QR Code Scanner Modal -->
 <div id="scannerModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+        <div id="scannerModalOverlay" class="fixed inset-0 transition-opacity" aria-hidden="true">
             <div class="absolute inset-0 bg-black opacity-75"></div>
         </div>
         <div class="inline-block align-bottom bg-[#1F2937] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-[#374151]">
             <div class="bg-[#1F2937] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between">
+                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between relative z-10">
                             <span>QR Code Scanner</span>
                             <button id="closeScanner" class="text-[#9CA3AF] hover:text-white transition-colors">
                                 <i class="fas fa-times"></i>
@@ -86,7 +110,7 @@
                         </h3>
                         
                         <!-- Time In/Out Selection - Moved to top with improved design -->
-                        <div class="mt-4 mb-6">
+                        <div class="mt-4 mb-6 relative z-10">
                             <p class="text-white mb-3 text-center">Select action before scanning:</p>
                             <div class="flex gap-4 justify-center">
                                 <button id="timeInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow active:bg-green-800 flex items-center gap-2 transition-colors flex-1 justify-center">
@@ -117,18 +141,61 @@
                                 </div>
                                 <div id="scan-animation" class="absolute top-0 left-0 w-full h-1 bg-green-500 opacity-75 transform -translate-y-full"></div>
                             </div>
-                            <div id="scanner-message" class="mt-4 text-center text-white">Position the QR code within the frame</div>
+                            <div id="scanner-message" class="mt-4 text-center text-white relative z-10">Position the QR code within the frame</div>
                             
                             <!-- Removed the buttons from here since they're now above the scanner -->
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-10">
                 <button id="startScanner" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
                     Start Scanner
                 </button>
                 <button id="cancelScanner" class="mt-3 w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Guest Check-in/out Modal -->
+<div id="guestModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div id="guestModalOverlay" class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-black opacity-75"></div>
+        </div>
+        <div class="inline-block align-bottom bg-[#1F2937] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-[#374151]">
+            <div class="bg-[#1F2937] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between relative z-10">
+                            <span>Guest Check-in/out</span>
+                            <button id="closeGuestModal" class="text-[#9CA3AF] hover:text-white transition-colors">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </h3>
+                        <div class="mt-4 relative z-10">
+                            <label for="guestNameInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Guest Name</label>
+                            <input type="text" id="guestNameInput" placeholder="Enter guest's full name" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
+                            <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required.</p>
+                        </div>
+                        <div class="mt-4 mb-6 flex gap-4 justify-center relative z-10">
+                            <button id="guestCheckInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors flex-1 justify-center">
+                                <i class="fas fa-sign-in-alt text-lg"></i>
+                                <span class="text-md font-bold">Check In Guest</span>
+                            </button>
+                            <button id="guestCheckOutBtn" class="py-3 px-5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors flex-1 justify-center">
+                                <i class="fas fa-sign-out-alt text-lg"></i>
+                                <span class="text-md font-bold">Check Out Guest</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-10">
+                <button id="cancelGuestModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     Cancel
                 </button>
             </div>
@@ -148,7 +215,11 @@
         let rows = document.querySelectorAll('#sessionTable tbody tr');
 
         rows.forEach(row => {
-            let text = row.innerText.toLowerCase();
+            // Improved search: Check Name and Role columns
+            let nameCell = row.cells[1];
+            let roleCell = row.cells[2];
+            let text = (nameCell ? nameCell.innerText.toLowerCase() : '') + ' ' + 
+                       (roleCell ? roleCell.innerText.toLowerCase() : '');
             row.style.display = text.includes(filter) ? '' : 'none';
         });
     });
@@ -166,6 +237,18 @@
         const canvas = document.getElementById('scanner-canvas');
         const scanAnimation = document.getElementById('scan-animation');
         const scannerMessage = document.getElementById('scanner-message');
+        const scannerModalOverlay = document.getElementById('scannerModalOverlay');
+        
+        // Guest Modal Elements
+        const guestButton = document.getElementById('guestButton');
+        const guestModal = document.getElementById('guestModal');
+        const guestModalOverlay = document.getElementById('guestModalOverlay');
+        const closeGuestModal = document.getElementById('closeGuestModal');
+        const cancelGuestModal = document.getElementById('cancelGuestModal');
+        const guestNameInput = document.getElementById('guestNameInput');
+        const guestNameError = document.getElementById('guestNameError');
+        const guestCheckInBtn = document.getElementById('guestCheckInBtn');
+        const guestCheckOutBtn = document.getElementById('guestCheckOutBtn');
         
         let scanning = false;
         let stream = null;
@@ -244,6 +327,14 @@
         
         closeScanner.addEventListener('click', closeModal);
         cancelScanner.addEventListener('click', closeModal);
+        
+        // Add click listener to overlay to close modal
+        scannerModalOverlay.addEventListener('click', function(event) {
+            // Check if the click is directly on the overlay
+            if (event.target === scannerModalOverlay) {
+                closeModal();
+            }
+        });
         
         // Start scanner
         startScannerBtn.addEventListener('click', function() {
@@ -496,21 +587,34 @@
             const date = new Date(data.time);
             const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const formattedTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-            const initials = data.full_name.substring(0, 2).toUpperCase();
+            const initials = data.full_name ? data.full_name.substring(0, 2).toUpperCase() : 'G';
+            const userRole = data.role || 'guest'; // Get role from response
             
+            // Determine avatar color for new row
+            let newRowRoleBgColor = 'bg-gray-600';
+            switch (userRole) {
+                case 'member': newRowRoleBgColor = 'bg-blue-600'; break;
+                case 'trainer': newRowRoleBgColor = 'bg-purple-600'; break;
+                case 'admin': newRowRoleBgColor = 'bg-yellow-600'; break;
+            }
+
             newRow.innerHTML = `
                 <td class="px-4 py-3">
                     <div class="flex items-center">
-                        <div class="h-9 w-9 rounded-full bg-red-600 flex items-center justify-center text-white font-bold text-xs">
+                        <div class="h-9 w-9 rounded-full ${newRowRoleBgColor} flex items-center justify-center text-white font-bold text-xs">
                             ${initials}
                         </div>
                     </div>
                 </td>
-                <td class="px-4 py-3 font-medium text-white">${data.full_name}</td>
+                <td class="px-4 py-3 font-medium text-white">${data.full_name || 'Guest User'}</td>
+                <td class="px-4 py-3 text-[#9CA3AF] capitalize">${userRole}</td>
                 <td class="px-4 py-3 text-[#9CA3AF]">${formattedDate}</td>
                 <td class="px-4 py-3 text-[#9CA3AF]">${formattedTime}</td>
                 <td class="px-4 py-3">
-                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${data.status === 'IN' ? 'bg-green-500' : 'bg-red-500'} text-white">${data.status}</span>
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${data.status === 'IN' ? 'bg-green-500' : 'bg-red-500'} text-white">
+                        ${data.status === 'IN' ? '<i class="fas fa-arrow-right text-xs"></i>' : '<i class="fas fa-arrow-left text-xs"></i>'}
+                        ${data.status}
+                    </span>
                 </td>
             `;
             
@@ -521,8 +625,20 @@
                 tbody.appendChild(newRow);
             }
             
-            // Close the modal after a brief delay
-            setTimeout(closeModal, 1500);
+            // Reset guest modal input if it was used
+            if (guestNameInput) {
+                 guestNameInput.value = '';
+                 guestNameError.classList.add('hidden');
+            }
+           
+            // Close the modal after a brief delay (applies to both scanner and guest modals)
+            // Use separate close functions if needed, but this might suffice
+            if(scannerModal.classList.contains('hidden') === false) {
+                setTimeout(closeModal, 1500);
+            }
+            if(guestModal.classList.contains('hidden') === false) {
+                setTimeout(closeGuestModalFunction, 1500);
+            }
         }
         
         // Scan animation
@@ -533,6 +649,99 @@
         function stopScanAnimation() {
             scanAnimation.style.animation = 'none';
         }
+
+        // --- Guest Modal Logic ---
+
+        // Show guest modal
+        guestButton.addEventListener('click', function() {
+            guestModal.classList.remove('hidden');
+            guestNameInput.focus(); // Focus the name input
+        });
+
+        // Close guest modal function
+        function closeGuestModalFunction() {
+            guestModal.classList.add('hidden');
+            guestNameInput.value = ''; // Clear input on close
+            guestNameError.classList.add('hidden'); // Hide error on close
+        }
+
+        // Event listeners for closing guest modal
+        closeGuestModal.addEventListener('click', closeGuestModalFunction);
+        cancelGuestModal.addEventListener('click', closeGuestModalFunction);
+        guestModalOverlay.addEventListener('click', function(event) {
+            if (event.target === guestModalOverlay) {
+                closeGuestModalFunction();
+            }
+        });
+
+        // Function to handle guest check-in/out submission
+        function handleGuestSubmit(status) {
+            const guestName = guestNameInput.value.trim();
+            
+            // Validation
+            if (!guestName) {
+                guestNameError.classList.remove('hidden');
+                guestNameInput.focus();
+                return;
+            } else {
+                guestNameError.classList.add('hidden');
+            }
+
+            // Show processing alert
+            Swal.fire({
+                title: 'Processing...',
+                text: `Processing guest ${status === 'IN' ? 'check-in' : 'check-out'}`,
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Send data to server
+            fetch('{{ route("admin.session.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}' 
+                },
+                body: JSON.stringify({
+                    guest_name: guestName,
+                    status: status
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                
+                if (data.success) {
+                    // Reuse the existing success handler
+                    handleSuccessfulScan(data.data);
+                    // Close modal is handled within handleSuccessfulScan now
+                } else {
+                     Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'Error processing guest request',
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.close();
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Network error. Please check your connection and try again.',
+                    icon: 'error'
+                });
+            });
+        }
+
+        // Event listeners for guest action buttons
+        guestCheckInBtn.addEventListener('click', () => handleGuestSubmit('IN'));
+        guestCheckOutBtn.addEventListener('click', () => handleGuestSubmit('OUT'));
+
     });
 </script>
 

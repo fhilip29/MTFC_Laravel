@@ -12,8 +12,7 @@
     <!-- Main content -->
     <div class="relative z-10 max-w-7xl mx-auto px-6 py-16">
         <!-- Title -->
-        <h1 class="text-3xl md:text-5xl font-bold text-white text-center mb-6">Gym Membership Plans</h1>
-        <p class="text-lg text-white text-center mb-10">Access state-of-the-art gym facilities and equipment</p>
+        <h1 class="text-3xl md:text-5xl font-bold text-white text-center mb-10">Fitness Pricing Table</h1>
 
         <!-- Tabs -->
         <div class="flex justify-center space-x-4 mb-10 overflow-x-auto">
@@ -31,98 +30,70 @@
             </a>
         </div>
 
-        <!-- Pricing Cards -->
+        <!-- Pricing Cards Preview -->
         <div class="flex flex-wrap justify-center gap-8">
-            <!-- Daily Pass -->
-            <div class="w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col">
+            <!-- Card 1: Daily -->
+            <div class="w-80 bg-white rounded-2xl shadow-lg p-6">
                 <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
-                <h2 class="text-xl font-bold mb-3">Daily Pass</h2>
+                <h2 class="text-xl font-bold mb-3">Daily</h2>
                 <ul class="text-sm text-gray-700 space-y-2 mb-6">
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Full gym access for one day
+                        Access to gym equipment
                     </li>
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Access to locker rooms
+                        Use of locker room facilities
                     </li>
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Towel service included
+                        Use of swimming pool
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$15 / day</span>
-                    @if(Auth::check())
-                        @if($userHasActive)
-                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
-                        @else
-                            <button onclick="openWaiverModal('gym', 'daily', '15.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-                                Join Now
-                            </button>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}" class="text-sm px-3 py-1 bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition">
-                            Login
-                        </a>
-                    @endif
+                    <span class="text-lg font-semibold text-gray-800">₱1000 / month</span>
+                    <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Subscribed</span>
                 </div>
             </div>
 
-            <!-- Monthly Membership -->
-            <div class="w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col border-2 border-blue-600">
+            <!-- Card 2: Monthly -->
+            <div class="w-80 bg-white rounded-2xl shadow-lg p-6">
                 <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
-                <h2 class="text-xl font-bold mb-3">Monthly Membership</h2>
+                <h2 class="text-xl font-bold mb-3">Monthly</h2>
                 <ul class="text-sm text-gray-700 space-y-2 mb-6">
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Unlimited gym access
+                        Access to gym equipment
                     </li>
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Free fitness assessment
+                        Use of locker room facilities
                     </li>
                     <li class="flex items-start gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Access to group fitness classes
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                        </svg>
-                        Discounts on personal training
+                        Use of swimming pool
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$80 / month</span>
-                    @if(Auth::check())
-                        @if($userHasActive)
-                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
-                        @else
-                            <button onclick="openWaiverModal('gym', 'monthly', '80.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-                                Join Now
-                            </button>
-                        @endif
-                    @else
-                        <a href="{{ route('login') }}" class="text-sm px-3 py-1 bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition">
-                            Login
-                        </a>
-                    @endif
+                    <span class="text-lg font-semibold text-gray-800">₱2000 / month</span>
+                    <button onclick="openWaiverModal()" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                        Join Now
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 </section>
-@endsection
+@endsection 

@@ -19,6 +19,7 @@ class SubscriptionController extends Controller
             'type' => 'required|string',
             'plan' => 'required|string',
             'price' => 'required|numeric',
+            'waiver_accepted' => 'required|in:1',
         ]);
 
         // Create new subscription
@@ -42,7 +43,23 @@ class SubscriptionController extends Controller
         $subscription->is_active = true;
         $subscription->save();
 
-        return redirect()->back()->with('success', 'You have successfully subscribed to ' . ucfirst($validated['type']) . '!');
+        // Update the user's is_agreed_to_terms field to true since they've accepted the waiver
+        $user = Auth::user();
+        if (!$user->is_agreed_to_terms) {
+            $user->is_agreed_to_terms = true;
+            $user->save();
+        }
+
+        $successMessage = 'You have successfully subscribed to ' . ucfirst($validated['type']) . '!';
+        
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage
+            ]);
+        }
+
+        return redirect()->back()->with('success', $successMessage);
     }
 
     /**

@@ -246,7 +246,7 @@
                 <i class="fas fa-shopping-cart"></i>
                 <span>Manage Orders</span>
             </a>
-            <a href="/admin/invoices" class="nav-link {{ request()->is('admin/invoices') ? 'active' : '' }}">
+            <a href="/admin/invoice/admin_invoice" class="nav-link {{ request()->is('admin/invoice/admin_invoice') ? 'active' : '' }}">
                 <i class="fas fa-file-invoice"></i>
                 <span>Manage Invoice</span>
             </a>

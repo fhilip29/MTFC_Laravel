@@ -45,14 +45,15 @@
                         <span class="px-2 py-1 bg-red-100 text-red-600 text-xs font-semibold rounded-full">New</span>
                     @endif
                 </div>
-                <p class="text-sm text-gray-500">
-                    {{ $announcement->created_at->format('F j, Y') }}
-                </p>
+                <p class="text-sm text-gray-500" data-date="{{ $announcement->created_at->toDateString() }}">
+    {{ $announcement->created_at->format('F j, Y') }}
+</p>
             </div>
             
             <!-- Card Body -->
             <div class="px-6 py-4">
-                <p class="text-gray-700 line-clamp-3">
+            <p class="text-gray-700 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
+
                     {{ $announcement->message }}
                 </p>
             </div>
@@ -190,5 +191,7 @@ function viewAnnouncement(id) {
 function closeViewModal() {
     document.getElementById('viewModal').classList.add('hidden');
 }
+
+
 </script>
 @endpush

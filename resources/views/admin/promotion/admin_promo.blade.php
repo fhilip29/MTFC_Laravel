@@ -31,36 +31,37 @@
         </div>
     </div>
 
-    <!-- Announcement Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
-            <div class="rounded-full bg-red-600 p-3 mr-4">
-                <i class="fas fa-bullhorn text-white text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-400 text-sm">Total Announcements</p>
-                <p class="text-2xl font-bold text-white">{{ count($announcements) }}</p>
-            </div>
+   <!-- Announcement Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+        <div class="rounded-full bg-red-600 p-3 mr-4">
+            <i class="fas fa-bullhorn text-white text-xl"></i>
         </div>
-        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
-            <div class="rounded-full bg-green-600 p-3 mr-4">
-                <i class="fas fa-check-circle text-white text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-400 text-sm">Active Announcements</p>
-                <p class="text-2xl font-bold text-white">{{ $announcements->where('is_active', true)->count() }}</p>
-            </div>
-        </div>
-        <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
-            <div class="rounded-full bg-blue-600 p-3 mr-4">
-                <i class="fas fa-calendar-alt text-white text-xl"></i>
-            </div>
-            <div>
-                <p class="text-gray-400 text-sm">Scheduled Announcements</p>
-                <p class="text-2xl font-bold text-white">{{ $announcements->whereNotNull('scheduled_at')->where('scheduled_at', '>', now())->count() }}</p>
-            </div>
+        <div>
+            <p class="text-gray-400 text-sm">Total Announcements</p>
+            <p class="text-2xl font-bold text-white">{{ count($announcements) }}</p>
         </div>
     </div>
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+        <div class="rounded-full bg-green-600 p-3 mr-4">
+            <i class="fas fa-check-circle text-white text-xl"></i>
+        </div>
+        <div>
+            <p class="text-gray-400 text-sm">Active Announcements</p>
+            <p class="text-2xl font-bold text-white">{{ $announcements->where('is_active', 'active')->count() }}</p>
+        </div>
+    </div>
+    <div class="bg-gray-800 rounded-lg p-6 shadow-lg flex items-center">
+        <div class="rounded-full bg-blue-600 p-3 mr-4">
+            <i class="fas fa-calendar-alt text-white text-xl"></i>
+        </div>
+        <div>
+            <p class="text-gray-400 text-sm">Scheduled Announcements</p>
+            <p class="text-2xl font-bold text-white">{{ $announcements->whereNotNull('scheduled_at')->where('scheduled_at', '>', now())->count() }}</p>
+        </div>
+    </div>
+</div>
+
 
     <!-- Announcement Table -->
     <div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
@@ -106,9 +107,13 @@
                                 <button @click="confirmDelete('{{ $announcement->id }}', '{{ $announcement->title }}')" class="text-red-400 hover:text-red-300 delete-announcement" data-id="{{ $announcement->id }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                <button @click="toggleStatus('{{ $announcement->id }}')" class="toggle-status {{ $announcement->is_active ? 'text-green-400 hover:text-green-300' : 'text-gray-400 hover:text-gray-300' }}" data-id="{{ $announcement->id }}">
-                                    <i class="fas {{ $announcement->is_active ? 'fa-toggle-on' : 'fa-toggle-off' }}"></i>
-                                </button>
+                                <form onsubmit="event.preventDefault(); toggleStatus('{{ $announcement->id }}');">
+    <button type="submit"
+        class="px-3 py-1 rounded text-sm font-medium 
+        {{ $announcement->is_active === 'active' ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-white' }}">
+        {{ $announcement->is_active === 'active' ? 'Disable' : 'Enable' }}
+    </button>
+</form>
                             </div>
                         </td>
                     </tr>
@@ -258,11 +263,22 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                     <div>
-                        <p class="text-sm"><span class="font-medium">Status:</span> 
-                            <span x-show="currentAnnouncement?.is_active && !currentAnnouncement?.scheduled_at" class="px-2 py-1 text-xs rounded-full bg-green-600 text-white">Active</span>
-                            <span x-show="!currentAnnouncement?.is_active" class="px-2 py-1 text-xs rounded-full bg-gray-600 text-white">Inactive</span>
-                            <span x-show="currentAnnouncement?.scheduled_at" class="px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">Pending</span>
-                        </p>
+                    <p class="text-sm">
+    <span class="font-medium">Status:</span>
+    <template x-if="currentAnnouncement?.status === 'Active'">
+        <span class="px-2 py-1 text-xs rounded-full bg-green-600 text-white">Active</span>
+    </template>
+    <template x-if="currentAnnouncement?.status === 'Inactive'">
+        <span class="px-2 py-1 text-xs rounded-full bg-gray-600 text-white">Inactive</span>
+    </template>
+    <template x-if="currentAnnouncement?.status === 'Pending'">
+        <span class="px-2 py-1 text-xs rounded-full bg-yellow-600 text-white">Pending</span>
+    </template>
+    <template x-if="currentAnnouncement?.status === 'Sent'">
+        <span class="px-2 py-1 text-xs rounded-full bg-green-700 text-white">Sent</span>
+    </template>
+</p>
+
                     </div>
                     <div>
                         <p class="text-sm"><span class="font-medium">Created:</span> <span x-text="new Date(currentAnnouncement?.created_at).toLocaleString()"></span></p>
@@ -357,23 +373,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
+
+        // Reset edit modal form when opened
+        const originalShowEditModal = app.showEditModal;
+        Object.defineProperty(app, 'showEditModal', {
+            get() { return originalShowEditModal; },
+            set(value) {
+                originalShowEditModal = value;
+                if (value) {
+                    // Reset form when modal is opened
+                    setTimeout(() => {
+                        const form = document.getElementById('editAnnouncementForm');
+                        if (form) form.reset();
+                        const editSchedulingOptions = document.getElementById('editSchedulingOptions');
+                        if (editSchedulingOptions) editSchedulingOptions.classList.add('hidden');
+                    }, 100);
+                }
+            }
+        });
     }
-    
+
     // Handle form submissions
     const announcementForm = document.getElementById('announcementForm');
     if (announcementForm) {
         announcementForm.addEventListener('submit', function(e) {
-            // Native form submission - no need for preventDefault()
+            if (!formIsValid()) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Please fill all required fields.',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#FFFFFF',
+                    confirmButtonColor: '#DC2626'
+                });
+            }
         });
     }
-    
+
     const editAnnouncementForm = document.getElementById('editAnnouncementForm');
     if (editAnnouncementForm) {
         editAnnouncementForm.addEventListener('submit', function(e) {
-            // Native form submission - no need for preventDefault()
+            if (!formIsValid()) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'Please fill all required fields.',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#FFFFFF',
+                    confirmButtonColor: '#DC2626'
+                });
+            }
         });
     }
-    
+
+    // Function to validate forms
+    function formIsValid() {
+        // Add your form validation logic here
+        return true;  // Returning true as a placeholder for real validation
+    }
+
     // Show success message if it exists in the session
     @if(session('success'))
         Swal.fire({
@@ -382,7 +442,11 @@ document.addEventListener('DOMContentLoaded', function() {
             icon: 'success',
             background: '#1F2937',
             color: '#FFFFFF',
-            confirmButtonColor: '#DC2626'
+            confirmButtonColor: '#DC2626',
+            customClass: {
+                popup: 'swal-popup-custom',
+                confirmButton: 'swal-btn-custom'
+            }
         });
     @endif
     
@@ -393,7 +457,11 @@ document.addEventListener('DOMContentLoaded', function() {
             icon: 'error',
             background: '#1F2937',
             color: '#FFFFFF',
-            confirmButtonColor: '#DC2626'
+            confirmButtonColor: '#DC2626',
+            customClass: {
+                popup: 'swal-popup-custom',
+                confirmButton: 'swal-btn-custom'
+            }
         });
     @endif
 });
@@ -451,39 +519,28 @@ function confirmDelete(id, title) {
 
 // Update the toggleStatus function to use direct URL
 function toggleStatus(id) {
-    fetch(`/admin/announcements/${id}/toggle-active`, {
+    fetch(`/announcements/${id}/toggle`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
         }
     })
-    .then(response => response.json())
+    .then(res => {
+        if (!res.ok) throw new Error('Request failed');
+        return res.json();
+    })
     .then(data => {
-        if (data.success) {
-            // Show success message
-            Swal.fire({
-                icon: 'success',
-                title: 'Status Updated!',
-                text: data.message,
-                background: '#1F2937',
-                color: '#FFFFFF',
-                confirmButtonColor: '#DC2626'
-            }).then(() => {
-                location.reload();
-            });
-        }
+        // optionally refresh or update UI
+        location.reload();
     })
     .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'An error occurred while updating the announcement status.',
-            background: '#1F2937',
-            color: '#FFFFFF',
-            confirmButtonColor: '#DC2626'
-        });
+        alert("An error occurred while updating the announcement status.");
+        console.error(error);
     });
 }
+
 </script>
+
 @endsection

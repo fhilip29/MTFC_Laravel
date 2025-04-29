@@ -29,6 +29,12 @@ class Post extends Model
     // Define the comments associated with the post
     public function comments()
     {
-        return $this->hasMany(PostComment::class);
+        return $this->hasMany(Comment::class);
     }
+
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'post_likes')->withTimestamps();
+    }
+
 }

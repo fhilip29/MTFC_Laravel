@@ -6,22 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up()
 {
     Schema::table('post_likes', function (Blueprint $table) {
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        try {
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        } catch (\Exception $e) {
+            // Foreign key probably already exists; ignore error
+        }
     });
 }
 
-public function down()
-{
-    Schema::table('post_likes', function (Blueprint $table) {
-        $table->dropForeign(['user_id']);
-        $table->dropColumn('user_id');
-    });
-}
-
+    public function down()
+    {
+        Schema::table('post_likes', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+        });
+    }
 };

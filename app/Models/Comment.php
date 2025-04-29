@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Comment extends Model
 {
-    protected $table = 'comments';  // Specify the table name explicitly
+    use HasFactory;
 
-    protected $fillable = ['content', 'post_id', 'user_id'];
-    
-    // Define relationships
+    protected $fillable = [
+        'post_id',
+        'user_id',
+        'content',
+    ];
+
     public function post()
     {
         return $this->belongsTo(Post::class);

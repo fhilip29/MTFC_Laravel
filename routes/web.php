@@ -25,6 +25,7 @@ use App\Http\Controllers\InvoiceController;
 
 
 
+
 // Community routes
 Route::get('/community', [PostController::class, 'index'])->name('community'); // View all posts
 Route::get('/community/search', [PostController::class, 'search'])->name('community.search'); // Search posts
@@ -32,7 +33,7 @@ Route::get('/community/search', [PostController::class, 'search'])->name('commun
 // Post-related routes
 Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create'); // Form for creating post
 Route::post('/posts', [PostController::class, 'store'])->name('posts.store'); // Store new post
-Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like'); // Like a post
+Route::post('/posts/{post}/like', [PostController::class, 'like'])->name('posts.like');// Like a post
 Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show'); // View a single post with comments
 
 // Comment-related routes
@@ -134,7 +135,7 @@ Route::view('/account-settings', 'account-settings')->name('account-settings');
 
 
 Route::view('/payment-method', 'payment-method')->name('payment-method');
-Route::view('/profile/settings', 'profile-settings')->name('profile.settings');
+Route::view('/profile/settings', 'account-settings')->name('profile.settings');
 
 
 // ===================
@@ -238,8 +239,13 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
     Route::delete('/vendors/{vendor}', [VendorController::class, 'destroy'])->name('admin.gym.vendors.destroy');
 });
 
+
 // Public user announcements
 Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+
+  
+
 
 // Admin routes (only for authenticated users)
 Route::middleware(['auth'])->prefix('admin')->group(function () {
@@ -248,13 +254,13 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/promotion/admin_promo', [AnnouncementController::class, 'adminIndex'])->name('admin.promotion.admin_promo');
 
     // Admin full announcement CRUD
-    Route::get('/announcements', [AnnouncementController::class, 'index'])->name('admin.announcements');
+    Route::get('/announcements', [AnnouncementController::class, 'adminIndex'])->name('admin.announcements');
+    Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
     Route::post('/announcements', [AnnouncementController::class, 'store'])->name('admin.announcements.store');
-    Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('admin.announcements.show');
-    Route::get('/announcements/{announcement}/edit', [AnnouncementController::class, 'edit'])->name('admin.announcements.edit');
-    Route::put('/announcements/{announcement}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
-    Route::delete('/announcements/{announcement}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
-    Route::patch('/announcements/{announcement}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggle-active');
+    Route::put('/announcements/{id}', [AnnouncementController::class, 'update'])->name('admin.announcements.update');
+    Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('admin.announcements.destroy');
+    Route::patch('/announcements/{id}/toggle-active', [AnnouncementController::class, 'toggleActive'])->name('admin.announcements.toggleActive');
+
 
     // Temporary view (optional)
     Route::view('/announcement', 'admin.announcement.admin_announcement')->name('admin.announcement');
@@ -262,6 +268,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
 // API route
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
+
+
 
 // File Upload Routes for FilePond
 Route::post('/upload', [FileUploadController::class, 'process'])->name('upload.process');

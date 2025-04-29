@@ -68,78 +68,79 @@
 
         <!-- Posts -->
         <div class="space-y-6">
-            @foreach ($posts as $post)
-                <div class="bg-[#2d2d2d] p-4 rounded-lg post-card">
-                    <div class="flex items-start space-x-4">
-                        <img src="{{ $post->user->profile_image ? asset('storage/' . $post->user->profile_image) : asset('assets/default-user.png') }}" alt="User" class="w-10 h-10 rounded-full">
-                        <div>
-                            <div class="flex items-center space-x-2">
-                                <h3 class="font-semibold">{{ $post->user->full_name }}</h3>
-                                <span class="text-sm text-gray-400">{{ $post->created_at->diffForHumans() }}</span>
-                            </div>
-                            <p class="mt-2 text-white">{{ $post->content }}</p>
+        @foreach ($posts as $post)
+    <div class="bg-[#2d2d2d] p-4 rounded-lg post-card">
+        <div class="flex items-start space-x-4">
+            <img src="{{ $post->user->profile_image ? asset('storage/' . $post->user->profile_image) : asset('assets/default-user.png') }}" alt="User" class="w-10 h-10 rounded-full">
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h3 class="font-semibold">{{ $post->user->full_name }}</h3>
+                    <span class="text-sm text-gray-400">{{ $post->created_at->diffForHumans() }}</span>
+                </div>
+                <p class="mt-2 text-white">{{ $post->content }}</p>
 
-                            @if ($post->images && $post->images->count())
-                                <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
-                                    @foreach ($post->images as $image)
-                                        <img src="{{ asset('storage/' . $image->path) }}" class="rounded w-full h-40 object-cover">
-                                    @endforeach
+                @if ($post->images && $post->images->count())
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
+                        @foreach ($post->images as $image)
+                            <img src="{{ asset('storage/' . $image->path) }}" class="rounded w-full h-40 object-cover">
+                        @endforeach
+                    </div>
+                @endif
+
+                <div class="mt-4 flex space-x-4 text-gray-400">
+                    <form method="POST" action="{{ route('posts.like', $post->id) }}">
+                        @csrf
+                        <button type="submit" class="vote-button hover:text-red-500">
+                            <i class="fas fa-heart"></i> {{ $post->likes->count() }}
+                        </button>
+                    </form>
+
+                    <span class="vote-button text-gray-400">
+                        <i class="fas fa-comment"></i> {{ $post->comments->count() }}
+                    </span>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="mt-4 space-y-2">
+                    @foreach ($post->comments as $comment)
+                        <div class="bg-[#1e1e1e] p-3 rounded">
+                            <div class="flex justify-between">
+                                <span class="text-sm font-semibold">{{ $comment->user->full_name }}</span>
+                                <span class="text-xs text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
+                            </div>
+                            <p class="text-sm mt-1">{{ $comment->content }}</p>
+
+                            @if (auth()->check() && auth()->id() === $comment->user_id)
+                                <div class="flex space-x-2 mt-2">
+                                    <!-- Delete Comment -->
+                                    <form action="{{ route('comments.destroy', $comment->id) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-400 text-xs">Delete</button>
+                                    </form>
                                 </div>
                             @endif
-
-                            <div class="mt-4 flex space-x-4 text-gray-400">
-                                <form method="POST" action="{{ route('posts.like', $post->id) }}">
-                                    @csrf
-                                    <button type="submit" class="vote-button hover:text-red-500">
-                                        <i class="fas fa-heart"></i> {{ $post->likes->count() }}
-                                    </button>
-                                </form>
-
-                                <a href="{{ route('posts.show', $post->id) }}" class="vote-button hover:text-red-500">
-                                    <i class="fas fa-comment"></i> {{ $post->comments->count() }}
-                                </a>
-                            </div>
-
-                            <!-- Comments Section -->
-                            <div class="mt-4 space-y-2">
-                                @foreach ($post->comments as $comment)
-                                    <div class="bg-[#1e1e1e] p-3 rounded">
-                                        <div class="flex justify-between">
-                                            <span class="text-sm font-semibold">{{ $comment->user->full_name }}</span>
-                                            <span class="text-xs text-gray-500">{{ $comment->created_at->diffForHumans() }}</span>
-                                        </div>
-                                        <p class="text-sm mt-1">{{ $comment->content }}</p>
-
-                                        @if (auth()->check() && auth()->id() === $comment->user_id)
-                                            <div class="flex space-x-2 mt-2">
-                                                <!-- Delete Comment -->
-                                                <form action="{{ route('comments.destroy', $comment->id) }}" method="POST">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="text-red-400 text-xs">Delete</button>
-                                                </form>
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <!-- Comment Form -->
-                            @auth
-                                <form action="{{ route('comments.store', $post->id) }}" method="POST" class="mt-4">
-                                    @csrf
-                                    <textarea name="content" rows="2" class="w-full p-2 border rounded text-black" placeholder="Add a comment..." required></textarea>
-                                    <button type="submit" class="bg-blue-600 text-white px-4 py-2 mt-2 rounded hover:bg-blue-700">
-                                        Comment
-                                    </button>
-                                </form>
-                            @else
-                                <p class="text-sm text-gray-400 mt-2">You need to log in to comment.</p>
-                            @endauth
                         </div>
-                    </div>
+                    @endforeach
                 </div>
-            @endforeach
+
+                <!-- Comment Form -->
+                @auth
+                    <form action="{{ route('comments.store', $post->id) }}" method="POST" class="mt-4">
+                        @csrf
+                        <textarea name="content" rows="2" class="w-full p-2 border rounded text-black" placeholder="Add a comment..." required></textarea>
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 mt-2 rounded hover:bg-blue-700">
+                            Comment
+                        </button>
+                    </form>
+                @else
+                    <p class="text-sm text-gray-400 mt-2">You need to log in to comment.</p>
+                @endauth
+            </div>
+        </div>
+    </div>
+@endforeach
+
         </div>
     </div>
 </div>

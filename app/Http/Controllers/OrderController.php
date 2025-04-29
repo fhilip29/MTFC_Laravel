@@ -6,12 +6,20 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Cart;
+use App\Http\Controllers\InvoiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
+    protected $invoiceController;
+
+    public function __construct(InvoiceController $invoiceController)
+    {
+        $this->invoiceController = $invoiceController;
+    }
+
     /**
      * Display a listing of the user's orders
      */
@@ -73,8 +81,16 @@ class OrderController extends Controller
             'order_date' => now(),
         ]);
 
+        // Calculate total amount and prepare items for invoice
+        $totalAmount = 0;
+        $invoiceItems = [];
+
         // Create order items
         foreach ($validated['items'] as $item) {
+            // Add to order total
+            $itemTotal = $item['price'] * $item['quantity'];
+            $totalAmount += $itemTotal;
+            
             OrderItem::create([
                 'order_id' => $order->id,
                 'product_id' => $item['id'],
@@ -85,6 +101,14 @@ class OrderController extends Controller
             // Update product stock (reserving stock when order is placed)
             $product = Product::find($item['id']);
             if ($product) {
+                // Add to invoice items
+                $invoiceItems[] = [
+                    'id' => $item['id'],
+                    'name' => $product->name,
+                    'price' => $item['price'],
+                    'quantity' => $item['quantity']
+                ];
+                
                 // Ensure stock doesn't go below 0
                 $newStock = max(0, $product->stock - $item['quantity']);
                 $product->stock = $newStock;
@@ -101,6 +125,9 @@ class OrderController extends Controller
                 $product->save();
             }
         }
+
+        // Generate invoice for this order
+        $this->invoiceController->storeProductInvoice(Auth::id(), $invoiceItems, $totalAmount);
 
         // Clear cart from database if user is logged in
         $cart = Cart::where('user_id', Auth::id())->first();

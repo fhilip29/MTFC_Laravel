@@ -242,11 +242,11 @@
                 <i class="fas fa-users"></i>
                 <span>Manage Members</span>
             </a>
-            <a href="/admin/orders" class="nav-link {{ request()->is('admin/orders') ? 'active' : '' }}">
+            <a href="/admin/orders/admin_orders" class="nav-link {{ request()->is('admin/orders/admin_orders') ? 'active' : '' }}">
                 <i class="fas fa-shopping-cart"></i>
                 <span>Manage Orders</span>
             </a>
-            <a href="/admin/invoice/admin_invoice" class="nav-link {{ request()->is('admin/invoice/admin_invoice') ? 'active' : '' }}">
+            <a href="{{ route('admin.invoice.invoice') }}" class="nav-link {{ request()->is('admin/invoice*') ? 'active' : '' }}">
                 <i class="fas fa-file-invoice"></i>
                 <span>Manage Invoice</span>
             </a>

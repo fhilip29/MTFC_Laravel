@@ -36,7 +36,7 @@
                         @csrf
                         <input type="hidden" id="subType" name="type" value="">
                         <input type="hidden" id="subPlan" name="plan" value="">
-                        <input type="hidden" id="subPrice" name="price" value="">
+                        <input type="hidden" id="subPrice" name="amount" value="">
                         <input type="hidden" id="waiverAccepted" name="waiver_accepted" value="1">
                     </form>
                     
@@ -74,6 +74,7 @@
                 document.getElementById('subType').value = type;
                 document.getElementById('subPlan').value = plan;
                 document.getElementById('subPrice').value = price;
+                console.log('Subscription details set:', {type, plan, price});
             }
         };
         
@@ -101,6 +102,12 @@
             if (waiverCheck.checked) {
                 const formData = new FormData(subscriptionForm);
                 
+                // Log form data for debugging
+                console.log('Form action:', subscriptionForm.action);
+                for (let [key, value] of formData.entries()) {
+                    console.log(key, ':', value);
+                }
+                
                 // Show loading indicator
                 Swal.fire({
                     title: 'Processing...',
@@ -116,12 +123,25 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    // Log the raw response for debugging
+                    console.log('Response status:', response.status);
+                    // Check if response is ok before trying to parse JSON
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            console.error('Error response:', text);
+                            throw new Error('Server error: ' + response.status);
+                        });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     closeModal();
+                    console.log('Response data:', data);
                     
                     if (data.success) {
                         // Show success message with SweetAlert
@@ -149,16 +169,18 @@
                 })
                 .catch(error => {
                     closeModal();
+                    console.error('Fetch error:', error);
+                    
                     // Show error message
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: 'An error occurred while processing your request. Please try again.',
+                        text: 'An error occurred while processing your request. Please try again. Details: ' + error.message,
                         confirmButtonColor: '#3085d6'
                     });
-                    console.error('Error:', error);
                 });
             }
         });
     });
+</script>
 </script>

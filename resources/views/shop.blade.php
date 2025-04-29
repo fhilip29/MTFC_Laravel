@@ -7,6 +7,9 @@
 <!-- Add Alpine.js CDN at the top to ensure it's loaded first -->
 <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+<!-- Add CSRF token meta tag for AJAX requests -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <!-- Initialize Cart JS -->
 <script>
 // Global cart functions
@@ -15,6 +18,42 @@ let cartItems = [];
 // Function to add item to cart
 function addToCart(product) {
     console.log('Adding to cart:', product);
+    
+    // Get existing cart from localStorage
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    
+    // Check if product already exists in cart
+    const existingItemIndex = cart.findIndex(item => item.id === product.id);
+    
+    if (existingItemIndex > -1) {
+        // Product exists, increase quantity
+        cart[existingItemIndex].quantity += product.quantity || 1;
+    } else {
+        // Product doesn't exist, add new item
+        cart.push({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity: product.quantity || 1,
+            stock: product.stock
+        });
+    }
+    
+    // Save updated cart to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    // Update cart badge count
+    const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+    const cartBadge = document.getElementById('cartCount');
+    if (cartBadge) {
+        cartBadge.textContent = cartCount;
+    }
+    
+    // Update cart UI if renderCart function exists
+    if (typeof window.renderCart === 'function') {
+        window.renderCart();
+    }
     
     // Show confirmation message
     Swal.fire({
@@ -25,14 +64,32 @@ function addToCart(product) {
         timer: 2000
     });
     
-    // Here you would typically add the logic to update your cart
-    // This is just a placeholder - your actual cart implementation may differ
-    
-    // If you have server-side cart syncing
-    if (typeof syncCartWithServer === 'function') {
-        syncCartWithServer(product);
-    }
+    // Sync with server if user is authenticated
+    @auth
+    syncCartWithServer(cart);
+    @endauth
 }
+
+// Function to sync cart with server for logged in users
+@auth
+function syncCartWithServer(cart) {
+    fetch('{{ route('cart.sync') }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({
+            items: cart
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Cart synced with server:', data);
+    })
+    .catch(error => console.error('Error syncing cart:', error));
+}
+@endauth
 
 // Console log when the page loads to check Alpine.js
 document.addEventListener('DOMContentLoaded', function() {

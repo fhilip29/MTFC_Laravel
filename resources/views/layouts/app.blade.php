@@ -158,6 +158,103 @@
     </div>
 
     <script>
+        // Global cart functions for use across pages
+        function increaseQuantity(index) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            if (cart[index]) {
+                cart[index].quantity++;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // If we're on a page with cart rendering
+                if (typeof renderCart === 'function') {
+                    renderCart();
+                }
+                
+                // Update cart badge
+                updateCartBadge();
+                
+                // Sync with server if user is logged in
+                syncCartWithServer(cart);
+            }
+        }
+        
+        function decreaseQuantity(index) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            if (cart[index] && cart[index].quantity > 1) {
+                cart[index].quantity--;
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // If we're on a page with cart rendering
+                if (typeof renderCart === 'function') {
+                    renderCart();
+                }
+                
+                // Update cart badge
+                updateCartBadge();
+                
+                // Sync with server if user is logged in
+                syncCartWithServer(cart);
+            }
+        }
+        
+        function confirmRemoveFromCart(index) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            
+            Swal.fire({
+                title: 'Are you sure?',
+                text: cart[index] ? `Do you want to remove "${cart[index].name}" from the cart?` : 'Remove this item?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, remove it!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed && cart[index]) {
+                    // Remove the item
+                    cart.splice(index, 1);
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    
+                    // If we're on a page with cart rendering
+                    if (typeof renderCart === 'function') {
+                        renderCart();
+                    }
+                    
+                    // Update cart badge
+                    updateCartBadge();
+                    
+                    // Sync with server if user is logged in
+                    syncCartWithServer(cart);
+                }
+            });
+        }
+        
+        function updateCartBadge() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+            const cartBadge = document.getElementById('cartCount');
+            if (cartBadge) {
+                cartBadge.textContent = cartCount;
+            }
+        }
+        
+        function syncCartWithServer(cart) {
+            // Check if user is logged in and csrf token exists
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) return;
+            
+            fetch('{{ route('cart.sync') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken.content
+                },
+                body: JSON.stringify({
+                    items: cart
+                })
+            }).catch(error => console.error('Error syncing cart:', error));
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const cartButton = document.getElementById('cartButton');
             const cartDrawer = document.getElementById('cartDrawer');
@@ -222,7 +319,7 @@
             }
 
             // Function to render cart items
-            function renderCart() {
+            window.renderCart = function() {
                 // Update cart items count
                 const cartTotalItems = document.getElementById('cartTotalItems');
                 if (cartTotalItems) {
@@ -261,14 +358,14 @@
                             <h4 class="text-md font-semibold">${item.name}</h4>
                             <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
                             <div class="flex items-center space-x-2 mt-2">
-                                <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="event.stopPropagation(); decreaseQuantity(${index})">
+                                <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="decreaseQuantity(${index})">
                                     <i class="fas fa-minus text-xs"></i>
                                 </button>
                                 <span class="quantity-value text-center w-6">${item.quantity}</span>
-                                <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="event.stopPropagation(); increaseQuantity(${index})">
+                                <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="increaseQuantity(${index})">
                                     <i class="fas fa-plus text-xs"></i>
                                 </button>
-                                <button type="button" class="ml-2 text-red-500 hover:text-red-700" onclick="event.stopPropagation(); confirmRemoveFromCart(${index})">
+                                <button type="button" class="ml-2 text-red-500 hover:text-red-700" onclick="confirmRemoveFromCart(${index})">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -291,46 +388,6 @@
                 } else {
                     scrollToTopButton.classList.add('hidden');
                 }
-            }
-
-            function updateCartBadge() {
-                const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-                const cartBadge = document.getElementById('cartCount');
-                if (cartBadge) {
-                    cartBadge.textContent = cartCount;
-                }
-            }
-
-            // Update cart and localStorage when the user modifies the cart
-            function increaseQuantity(index) {
-                cart[index].quantity++;
-                localStorage.setItem('cart', JSON.stringify(cart));
-                renderCart();
-            }
-
-            function decreaseQuantity(index) {
-                if (cart[index].quantity > 1) {
-                    cart[index].quantity--;
-                    localStorage.setItem('cart', JSON.stringify(cart));
-                    renderCart();
-                }
-            }
-
-            function confirmRemoveFromCart(index) {
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: `Do you want to remove "${cart[index].name}" from the cart?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, remove it!',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        cart.splice(index, 1);
-                        localStorage.setItem('cart', JSON.stringify(cart));
-                        renderCart();
-                    }
-                });
             }
         });
     </script>

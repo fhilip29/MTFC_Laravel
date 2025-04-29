@@ -5,6 +5,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
 
 <!-- Custom styling for the checkout page -->
 <style>
@@ -752,7 +754,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                         },
                         body: JSON.stringify(orderData)
                     })
@@ -771,7 +773,7 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Order Placed Successfully!',
-                                text: 'Your order has been confirmed and is being processed.',
+                                text: 'Your order has been confirmed and is now being processed.',
                                 confirmButtonColor: '#dc2626',
                                 confirmButtonText: 'OK',
                                 showDenyButton: true,

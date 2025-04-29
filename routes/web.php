@@ -21,6 +21,7 @@ use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PasswordResetController;
+use App\Http\Controllers\InvoiceController;
 
 
 
@@ -186,7 +187,10 @@ Route::delete('/admin/products/{id}', [ProductController::class, 'destroy'])->na
 
 
 
-Route::view('/admin/invoice', 'admin.invoice.admin_invoice')->name('admin.invoice.invoice');
+Route::get('/admin/invoice', [InvoiceController::class, 'index'])->name('admin.invoice.invoice');
+Route::get('/admin/invoice/export', [InvoiceController::class, 'export'])->name('admin.invoice.export');
+Route::get('/admin/invoice/{id}', [InvoiceController::class, 'show'])->name('admin.invoice.show');
+Route::get('/admin/invoice/{id}/print', [InvoiceController::class, 'printReceipt'])->name('admin.invoice.print');
 Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 
 

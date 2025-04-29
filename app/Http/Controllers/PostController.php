@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\PostImage;
-use App\Models\PostLike;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -12,69 +11,71 @@ class PostController extends Controller
 {
     // Display all posts in the community feed
     public function index()
-    {
-        $posts = Post::with(['images', 'likes'])->latest()->get(); // Load posts with associated images and likes
-        return view('community', compact('posts'));
-    }
-
+{
+    // Load posts along with their relationships (user, images, likes, and comments)
+    $posts = Post::with(['user', 'images', 'likes', 'comments.user'])->latest()->get();
+    
+    // Pass posts to the community view
+    return view('community', compact('posts'));
+}
+    // Search for posts based on content
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $posts = Post::where('content', 'like', "%{$query}%")->get();
-        return view('community', compact('posts'));
+        $posts = Post::where('content', 'like', "%{$query}%")->with(['images', 'likedByUsers'])->get();
+        return redirect()->route('community')->with('success', 'Comment added!');
+
     }
 
-    // Store a new post (including content and images)
+    // Store a new post (with optional images)
     public function store(Request $request)
-    {
-        $request->validate([
-            'content' => 'required|string|max:500',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', // image validation
-        ]);
+{
+    // Validate the incoming request
+    $request->validate([
+        'content' => 'required|string|max:500',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    ]);
 
-        // Create the post
-        $post = Post::create([
-            'user_id' => Auth::id(),
-            'content' => $request->content,
-        ]);
+    // Create the post
+    $post = Post::create([
+        'user_id' => Auth::id(),
+        'content' => $request->content,
+    ]);
 
-        // Handle image uploads
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('posts', 'public'); // Store images in the "posts" folder
-                PostImage::create([
-                    'post_id' => $post->id,
-                    'path' => $path,
-                ]);
-            }
+    // Handle image uploads for the post
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            $path = $image->store('posts', 'public');
+            PostImage::create([
+                'post_id' => $post->id,
+                'path' => $path,
+            ]);
         }
-
-        return redirect()->route('community')->with('success', 'Post created successfully!');
     }
+
+    // Redirect to community page with a success message
+    return redirect()->route('community')->with('success', 'Post created successfully!');
+}
+
 
     // Like a post
     public function like(Post $post)
 {
-    // Check if the user has already liked this post
-    if ($post->likedByUsers->contains(auth()->user())) {
-        // If the user has already liked the post, you can either return a message or just redirect
+    // Prevent duplicate likes
+    if ($post->likedByUsers()->where('user_id', auth()->id())->exists()) {
         return back()->with('message', 'You already liked this post.');
     }
 
-    // Attach the logged-in user to the post likes
     $post->likedByUsers()->attach(auth()->id());
 
     return back();
 }
 
-    
 
-    // Show a single post (view comments, likes, etc.)
+    // Show a single post with likes (optional: comments if implemented)
     public function show($id)
-{
-    $post = Post::with('likes')->find($id);
-    return view('posts.show', compact('post'));
+    {
+        $post = Post::with(['images', 'likedByUsers'])->findOrFail($id);
+        return view('community', compact('post'));
+    }
 }
-
-}
-

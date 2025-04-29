@@ -20,10 +20,11 @@ class Announcement extends Model
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
         'scheduled_at' => 'datetime',
         'sent_at' => 'datetime',
     ];
+
+    
 
     protected $dates = [
         'scheduled_at',
@@ -70,18 +71,33 @@ class Announcement extends Model
 
     // Get the status of the announcement
     public function getStatusAttribute()
-    {
-        if ($this->scheduled_at) {
-            return 'Pending';
-        }
-        return $this->is_active ? 'Active' : 'Inactive';
+{
+    if ($this->is_active === 'inactive') {
+        return 'Inactive';
     }
+
+    if ($this->is_active === 'pending') {
+        return 'Pending';
+    }
+
+    if ($this->sent_at) {
+        return 'Sent';
+    }
+
+    return 'Active';
+}
     
+
+
+    // Get the status class for UI styling
     public function getStatusClassAttribute()
-    {
-        if ($this->scheduled_at) {
-            return 'bg-yellow-600 text-white';
-        }
-        return $this->is_active ? 'bg-green-600 text-white' : 'bg-gray-600 text-white';
-    }
+{
+    return [
+        'Sent' => 'bg-green-500',
+        'Active' => 'bg-green-500',
+        'Pending' => 'bg-yellow-500',
+        'Inactive' => 'bg-gray-500',
+    ][$this->status] ?? 'bg-gray-500';
+}
+
 }

@@ -45,13 +45,21 @@ class AdminMemberController extends Controller
         $validated = $request->validate([
             'type' => 'required|string|in:gym,boxing,muay,jiu-jitsu',
             'plan' => 'required|string|in:daily,monthly,per-session',
-            'price' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'is_active' => 'boolean',
         ]);
         
-        $subscription = $user->subscriptions()->create($validated);
+        // Set predefined values based on plan type
+        $price = $this->getPlanPrice($validated['type'], $validated['plan']);
+        $dates = $this->getPlanDates($validated['plan']);
+        
+        // Create subscription with predefined values
+        $subscription = $user->subscriptions()->create([
+            'type' => $validated['type'],
+            'plan' => $validated['plan'],
+            'price' => $price,
+            'start_date' => $dates['start_date'],
+            'end_date' => $dates['end_date'],
+            'is_active' => true
+        ]);
         
         return response()->json([
             'success' => true,
@@ -73,19 +81,85 @@ class AdminMemberController extends Controller
         $validated = $request->validate([
             'type' => 'required|string|in:gym,boxing,muay,jiu-jitsu',
             'plan' => 'required|string|in:daily,monthly,per-session',
-            'price' => 'required|numeric|min:0',
-            'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'is_active' => 'boolean',
         ]);
         
-        $subscription->update($validated);
+        // Set predefined values based on plan type
+        $price = $this->getPlanPrice($validated['type'], $validated['plan']);
+        $dates = $this->getPlanDates($validated['plan']);
+        
+        // Update subscription with predefined values
+        $subscription->update([
+            'type' => $validated['type'],
+            'plan' => $validated['plan'],
+            'price' => $price,
+            'start_date' => $dates['start_date'],
+            'end_date' => $dates['end_date'],
+            'is_active' => true
+        ]);
         
         return response()->json([
             'success' => true,
             'message' => 'Subscription updated successfully',
             'subscription' => $subscription
         ]);
+    }
+    
+    /**
+     * Get predefined price based on plan type and duration
+     */
+    private function getPlanPrice($type, $plan)
+    {
+        $prices = [
+            'gym' => [
+                'daily' => 10.00,
+                'monthly' => 80.00,
+                'per-session' => 15.00
+            ],
+            'boxing' => [
+                'daily' => 15.00,
+                'monthly' => 100.00,
+                'per-session' => 20.00
+            ],
+            'muay' => [
+                'daily' => 15.00,
+                'monthly' => 100.00,
+                'per-session' => 20.00
+            ],
+            'jiu-jitsu' => [
+                'daily' => 20.00,
+                'monthly' => 120.00,
+                'per-session' => 25.00
+            ]
+        ];
+        
+        return $prices[$type][$plan] ?? 0.00;
+    }
+    
+    /**
+     * Get start/end dates based on plan
+     */
+    private function getPlanDates($plan)
+    {
+        $startDate = now();
+        $endDate = null;
+        
+        switch ($plan) {
+            case 'daily':
+                $endDate = now()->addDay();
+                break;
+            case 'monthly':
+                $endDate = now()->addMonth();
+                break;
+            case 'per-session':
+                // No end date for per-session plans
+                $endDate = null;
+                break;
+        }
+        
+        return [
+            'start_date' => $startDate,
+            'end_date' => $endDate
+        ];
     }
     
     public function cancelSubscription(User $user, Subscription $subscription)

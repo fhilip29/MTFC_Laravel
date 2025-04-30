@@ -203,6 +203,7 @@ Route::view('/admin/equipment', 'admin.gym.admin_gym')->name('admin.gym.gym');
 
 // Admin Orders Management
 Route::get('/admin/orders', [AdminOrderController::class, 'index'])->name('admin.orders.orders');
+Route::get('/admin/orders/admin_orders', [AdminOrderController::class, 'index'])->name('admin.orders.admin_orders');
 Route::get('/admin/orders/{id}/details', [AdminOrderController::class, 'showDetails'])->name('admin.orders.details');
 Route::post('/admin/orders/{id}/update-status', [AdminOrderController::class, 'updateStatus'])->name('admin.orders.update-status');
 

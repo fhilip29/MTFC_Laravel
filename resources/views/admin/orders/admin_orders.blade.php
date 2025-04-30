@@ -8,14 +8,30 @@
     <div class="bg-[#1F2937] shadow-lg rounded-xl p-4 sm:p-6 border border-[#374151]">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
             <h2 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2"><i class="fas fa-shopping-cart text-[#9CA3AF]"></i> Manage Orders</h2>
-            <div class="relative w-full sm:w-80">
-                <input 
-                    type="text" 
-                    id="orderSearch"
-                    placeholder="Search orders..." 
-                    class="w-full px-4 py-2 pl-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] text-sm sm:text-base" 
-                >
-                <i class="fas fa-search absolute left-3 top-3 text-[#9CA3AF]"></i>
+            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div class="relative w-full sm:w-80">
+                    <input 
+                        type="text" 
+                        id="orderSearch"
+                        placeholder="Search orders..." 
+                        class="w-full px-4 py-2 pl-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] text-sm sm:text-base" 
+                    >
+                    <i class="fas fa-search absolute left-3 top-3 text-[#9CA3AF]"></i>
+                </div>
+                <div class="relative w-full sm:w-44">
+                    <select 
+                        id="statusFilter" 
+                        class="w-full px-4 py-2 pr-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] appearance-none text-sm sm:text-base"
+                    >
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                    <i class="fas fa-filter absolute right-3 top-3 text-[#9CA3AF]"></i>
+                </div>
             </div>
         </div>
 
@@ -27,8 +43,8 @@
                         <th class="px-3 sm:px-6 py-2 sm:py-3 text-left">Order ID</th>
                         <th class="px-3 sm:px-6 py-2 sm:py-3 text-left">Customer</th>
                         <th class="px-3 sm:px-6 py-2 sm:py-3 text-left">Order Date</th>
-                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left">Status</th>
-                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left">Action</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-center w-28">Status</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-center w-32">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-[#1F2937] divide-y divide-[#374151]">
@@ -55,16 +71,16 @@
                             <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-medium text-white text-xs sm:text-base order-id">{{ $order->reference_no }}</td>
                             <td class="px-3 sm:px-6 py-3 sm:py-4 text-[#9CA3AF] text-xs sm:text-base">{{ $order->first_name }} {{ $order->last_name }}</td>
                             <td class="px-3 sm:px-6 py-3 sm:py-4 text-[#9CA3AF] text-xs sm:text-base">{{ $order->created_at->format('M d, Y') }}</td>
-                            <td class="px-3 sm:px-6 py-3 sm:py-4">
+                            <td class="px-3 sm:px-6 py-3 sm:py-4 text-center w-28">
                                 <span 
-                                    class="inline-flex items-center gap-2 text-white px-3 py-1 rounded-full text-sm font-medium {{ $colors[$order->status] ?? 'bg-gray-500' }}"
+                                    class="inline-flex items-center justify-center gap-1 text-white px-2 py-1 rounded-full text-xs font-medium {{ $colors[$order->status] ?? 'bg-gray-500' }}"
                                     title="{{ $order->status }}"
                                 >
                                     <i class="{{ $icons[$order->status] ?? 'fas fa-question-circle' }}"></i> {{ $order->status }}
                                 </span>
                             </td>
-                            <td class="px-3 sm:px-6 py-3 sm:py-4">
-                                <div class="flex space-x-2">
+                            <td class="px-3 sm:px-6 py-3 sm:py-4 text-center w-32">
+                                <div class="flex items-center justify-center space-x-2">
                                     <button 
                                         onclick="viewOrderDetails('{{ $order->id }}')"
                                         title="View Details"
@@ -103,37 +119,52 @@
 
 <!-- Order Details Modal (Hidden by default) -->
 <div id="orderDetailsModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-[#1F2937] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-[#374151]">
-            <!-- Modal content will be loaded here -->
-            <div id="orderDetailsContent" class="p-6">
-                <div class="flex justify-center">
-                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
-                </div>
-            </div>
-            <div class="bg-[#374151] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="closeOrderDetailsModal()" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                    Close
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <!-- Modal backdrop -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" @click="closeOrderDetailsModal()"></div>
+        
+        <!-- Modal content -->
+        <div class="relative bg-[#1F2937] rounded-lg max-w-2xl w-full mx-auto shadow-xl z-50 border border-[#374151]">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-4 border-b border-[#374151]">
+                <h3 class="text-xl font-bold text-white" id="modal-title">Order Details</h3>
+                <button onclick="closeOrderDetailsModal()" class="text-[#9CA3AF] hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
+            </div>
+            
+            <!-- Modal body with content -->
+            <div class="p-6 max-h-[70vh] overflow-y-auto" id="orderDetailsContent">
+                <div class="flex justify-center items-center h-40">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Filter orders by search term
-    document.getElementById('orderSearch').addEventListener('keyup', function() {
-        const searchTerm = this.value.toLowerCase();
+    // Filter orders by search term and status
+    function filterOrders() {
+        const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
+        const selectedStatus = document.getElementById('statusFilter').value;
         const orderRows = document.querySelectorAll('.order-row');
         
         orderRows.forEach(row => {
             const orderId = row.querySelector('.order-id').textContent.toLowerCase();
-            const isVisible = orderId.includes(searchTerm);
-            row.classList.toggle('hidden', !isVisible);
+            const statusElement = row.querySelector('td:nth-child(4) span');
+            const status = statusElement ? statusElement.textContent.trim() : '';
+            
+            const matchesSearch = orderId.includes(searchTerm);
+            const matchesStatus = selectedStatus === '' || status === selectedStatus;
+            
+            row.classList.toggle('hidden', !(matchesSearch && matchesStatus));
         });
-    });
+    }
+    
+    // Add event listeners for both filters
+    document.getElementById('orderSearch').addEventListener('keyup', filterOrders);
+    document.getElementById('statusFilter').addEventListener('change', filterOrders);
 
     // Function to view order details
     function viewOrderDetails(orderId) {
@@ -143,10 +174,13 @@
         
         // Show loading spinner
         document.getElementById('orderDetailsContent').innerHTML = `
-            <div class="flex justify-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-white"></div>
+            <div class="flex justify-center items-center h-40">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         `;
+        
+        // Update modal title
+        document.getElementById('modal-title').textContent = 'Loading Order Details...';
         
         // Fetch order details
         fetch(`/admin/orders/${orderId}/details`)
@@ -154,73 +188,123 @@
             .then(data => {
                 if (data.success) {
                     const order = data.order;
-                    let itemsHtml = '';
                     
-                    // Generate HTML for order items
-                    order.items.forEach(item => {
+                    // Update modal title
+                    document.getElementById('modal-title').textContent = `Order #${order.reference_no}`;
+                    
+                    // Build the order items HTML
+                    let itemsHtml = '';
+                    const total = order.items.reduce((sum, item) => {
+                        const itemTotal = item.price * item.quantity;
+                        
                         itemsHtml += `
-                            <div class="flex items-center space-x-4 border-b border-[#374151] pb-4 mb-4">
+                            <div class="flex items-start space-x-3 pb-3 mb-3 border-b border-[#374151]">
                                 <img src="${item.product.image}" alt="${item.product.name}" class="w-16 h-16 object-cover rounded">
-                                <div class="flex-1">
-                                    <h4 class="text-sm font-medium text-white">${item.product.name}</h4>
-                                    <div class="text-sm text-[#9CA3AF]">
-                                        <span>Qty: ${item.quantity}</span>
-                                        <span class="mx-2">|</span>
-                                        <span>₱${item.price * item.quantity}</span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-white font-medium">${item.product.name}</p>
+                                    <div class="text-sm text-[#9CA3AF] mt-1">
+                                        <span>${item.quantity} × ₱${parseFloat(item.price).toFixed(2)}</span>
                                     </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-white font-medium">₱${(item.price * item.quantity).toFixed(2)}</span>
                                 </div>
                             </div>
                         `;
+                        
+                        return sum + itemTotal;
+                    }, 0);
+                    
+                    // Get formatted date
+                    const orderDate = new Date(order.created_at);
+                    const formattedDate = orderDate.toLocaleDateString('en-US', {
+                        year: 'numeric', month: 'short', day: 'numeric'
                     });
                     
-                    // Calculate total
-                    const total = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    // Get status with appropriate styling
+                    const colors = {
+                        'Accepted': 'bg-green-500',
+                        'Pending': 'bg-yellow-400',
+                        'Cancelled': 'bg-red-500',
+                        'Completed': 'bg-emerald-600',
+                        'Out for Delivery': 'bg-blue-500',
+                    };
                     
-                    // Update modal content
-                    document.getElementById('orderDetailsContent').innerHTML = `
-                        <div class="space-y-4">
+                    const icons = {
+                        'Accepted': 'fas fa-check-circle',
+                        'Pending': 'fas fa-clock',
+                        'Cancelled': 'fas fa-times-circle',
+                        'Completed': 'fas fa-check-double',
+                        'Out for Delivery': 'fas fa-truck',
+                    };
+                    
+                    const statusColor = colors[order.status] || 'bg-gray-500';
+                    const statusIcon = icons[order.status] || 'fas fa-question-circle';
+                    
+                    // Build the complete modal content
+                    const content = `
+                        <div class="space-y-6">
+                            <!-- Status and Date -->
                             <div class="flex justify-between items-center">
-                                <h3 class="text-lg font-bold text-white">Order #${order.reference_no}</h3>
-                                <span class="px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}">
-                                    ${order.status}
+                                <span class="text-[#9CA3AF]">
+                                    <i class="far fa-calendar-alt mr-1"></i> ${formattedDate}
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-white px-3 py-1 rounded-full text-sm font-medium ${statusColor}">
+                                    <i class="${statusIcon}"></i> ${order.status}
                                 </span>
                             </div>
                             
-                            <div class="border-t border-[#374151] pt-4">
-                                <h4 class="text-sm font-semibold text-white mb-2">Customer Details</h4>
-                                <p class="text-sm text-[#9CA3AF]">${order.first_name} ${order.last_name}</p>
-                                <p class="text-sm text-[#9CA3AF]">${order.phone_number}</p>
+                            <!-- Customer Info and Shipping -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#111827] p-4 rounded-lg border border-[#374151]">
+                                <div>
+                                    <h4 class="text-sm font-bold text-white uppercase mb-2">Customer</h4>
+                                    <p class="text-[#9CA3AF] mb-1">${order.first_name} ${order.last_name}</p>
+                                    <p class="text-[#9CA3AF]">${order.phone_number}</p>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white uppercase mb-2">Ship To</h4>
+                                    <p class="text-[#9CA3AF] mb-1">${order.street}, ${order.barangay}</p>
+                                    <p class="text-[#9CA3AF]">${order.city}, ${order.postal_code}</p>
+                                </div>
                             </div>
                             
-                            <div class="border-t border-[#374151] pt-4">
-                                <h4 class="text-sm font-semibold text-white mb-2">Shipping Address</h4>
-                                <p class="text-sm text-[#9CA3AF]">${order.street}, ${order.barangay}</p>
-                                <p class="text-sm text-[#9CA3AF]">${order.city}, ${order.postal_code}</p>
+                            <!-- Payment Method -->
+                            <div>
+                                <h4 class="text-sm font-bold text-white uppercase mb-2">Payment Method</h4>
+                                <p class="text-[#9CA3AF]">${order.payment_method}</p>
                             </div>
                             
-                            <div class="border-t border-[#374151] pt-4">
-                                <h4 class="text-sm font-semibold text-white mb-2">Payment Method</h4>
-                                <p class="text-sm text-[#9CA3AF]">${order.payment_method}</p>
-                            </div>
-                            
-                            <div class="border-t border-[#374151] pt-4">
-                                <h4 class="text-sm font-semibold text-white mb-2">Order Items</h4>
-                                <div class="space-y-4">
+                            <!-- Order Items -->
+                            <div>
+                                <h4 class="text-sm font-bold text-white uppercase mb-3">Order Items</h4>
+                                <div class="space-y-3 bg-[#111827] p-4 rounded-lg border border-[#374151]">
                                     ${itemsHtml}
+                                    <div class="flex justify-between pt-3 border-t border-[#374151]">
+                                        <span class="font-bold text-white">Total</span>
+                                        <span class="font-bold text-white">₱${total.toFixed(2)}</span>
+                                    </div>
                                 </div>
                             </div>
                             
-                            <div class="border-t border-[#374151] pt-4">
-                                <div class="flex justify-between items-center">
-                                    <span class="text-sm font-semibold text-white">Total:</span>
-                                    <span class="text-sm font-bold text-white">₱${total.toFixed(2)}</span>
-                                </div>
+                            <!-- Actions -->
+                            <div class="flex justify-end space-x-3 pt-2">
+                                <button onclick="updateOrderStatus('${order.id}', '${order.reference_no}', '${order.status}')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                    <i class="fas fa-edit mr-1"></i> Update Status
+                                </button>
+                                <button onclick="closeOrderDetailsModal()" class="px-4 py-2 bg-[#374151] text-white rounded hover:bg-[#4B5563] transition-colors">
+                                    Close
+                                </button>
                             </div>
                         </div>
                     `;
+                    
+                    // Update modal content
+                    document.getElementById('orderDetailsContent').innerHTML = content;
+                    
                 } else {
                     document.getElementById('orderDetailsContent').innerHTML = `
-                        <div class="text-center text-red-500">
+                        <div class="text-center text-red-500 py-8">
+                            <i class="fas fa-exclamation-circle text-3xl mb-3"></i>
                             <p>Error loading order details.</p>
                         </div>
                     `;
@@ -229,7 +313,8 @@
             .catch(error => {
                 console.error('Error:', error);
                 document.getElementById('orderDetailsContent').innerHTML = `
-                    <div class="text-center text-red-500">
+                    <div class="text-center text-red-500 py-8">
+                        <i class="fas fa-exclamation-circle text-3xl mb-3"></i>
                         <p>Error loading order details.</p>
                     </div>
                 `;
@@ -325,19 +410,6 @@
                 });
             }
         });
-    }
-    
-    // Helper function to get status color class
-    function getStatusColor(status) {
-        const colors = {
-            'Accepted': 'bg-green-500 text-white',
-            'Pending': 'bg-yellow-400 text-gray-800',
-            'Cancelled': 'bg-red-500 text-white',
-            'Completed': 'bg-emerald-600 text-white',
-            'Out for Delivery': 'bg-blue-500 text-white'
-        };
-        
-        return colors[status] || 'bg-gray-500 text-white';
     }
 </script>
 @endsection

@@ -12,13 +12,9 @@
     currentMemberId: null, 
     subscriptions: [],
     setEditFormValues(subscription) {
-        // Set form data for edit
+        // Set form data for edit - only type and plan now
         document.getElementById('edit-type').value = subscription.type;
         document.getElementById('edit-plan').value = subscription.plan;
-        document.getElementById('edit-price').value = subscription.price;
-        document.getElementById('edit-start-date').value = subscription.start_date;
-        document.getElementById('edit-end-date').value = subscription.end_date || '';
-        document.getElementById('edit-is-active').checked = subscription.is_active;
         document.getElementById('edit-subscription-id').value = subscription.id;
         
         // Show/hide cancel button based on subscription status
@@ -196,10 +192,11 @@
                                 <td class="hidden md:table-cell px-4 py-3">{{ $member->created_at->format('M d, Y') }}</td>
                                 <td class="px-4 py-3">
                                     @php
-                                        $status = 'Active'; // replace with real status if available
-                                        $statusClass = 'bg-green-500'; // or use a field like $member->status
+                                        $hasActiveSubscription = $member->activeSubscriptions()->count() > 0;
+                                        $status = $hasActiveSubscription ? 'Active' : 'Inactive';
+                                        $statusClass = $hasActiveSubscription ? 'bg-green-500' : 'bg-gray-500';
                                     @endphp
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white {{ $statusClass }}">
+                                    <span id="member-status-{{ $member->id }}" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white {{ $statusClass }}">
                                         {{ $status }}
                                     </span>
                                 </td>
@@ -217,7 +214,16 @@
                                         </button>
                                         <button 
                                             type="button"
-                                            @click="showModal = true; currentMember = {{ json_encode($member) }}" 
+                                            @click="showModal = true; 
+                                                fetch('/admin/members/' + {{ $member->id }} + '/subscriptions')
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    const activeSubscriptions = data.filter(sub => sub.is_active);
+                                                    currentMember = Object.assign({}, {{ json_encode($member) }}, {
+                                                        subscriptions: data,
+                                                        active_subscriptions: activeSubscriptions
+                                                    });
+                                                })"
                                             class="text-blue-400 hover:text-blue-300 transition-colors" 
                                             title="View Details">
                                             <i class="fas fa-eye"></i>
@@ -272,7 +278,27 @@
                                      :alt="currentMember?.full_name" 
                                      class="w-32 h-32 rounded-full object-cover border-4 border-[#374151] mb-2">
                                 <h4 x-text="currentMember?.full_name" class="text-lg font-bold text-white"></h4>
-                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full mt-1">Active Member</span>
+                                <div>
+                                    <template x-if="currentMember?.active_subscriptions && currentMember.active_subscriptions.length > 0">
+                                        <div class="flex flex-wrap justify-center gap-1 mt-1">
+                                            <template x-for="sub in currentMember.active_subscriptions" :key="sub.id">
+                                                <span 
+                                                    :class="{
+                                                        'bg-red-500': sub.type === 'boxing',
+                                                        'bg-purple-500': sub.type === 'muay',
+                                                        'bg-blue-500': sub.type === 'jiu-jitsu',
+                                                        'bg-green-500': sub.type === 'gym'
+                                                    }"
+                                                    class="px-2 py-1 rounded-full text-xs font-medium text-white"
+                                                    x-text="sub.type.charAt(0).toUpperCase() + sub.type.slice(1)"
+                                                ></span>
+                                            </template>
+                                        </div>
+                                    </template>
+                                    <template x-if="!currentMember?.active_subscriptions || currentMember.active_subscriptions.length === 0">
+                                        <span class="bg-gray-500 text-white text-xs px-2 py-1 rounded-full mt-1">Inactive Member</span>
+                                    </template>
+                                </div>
                             </div>
                             
                             <div class="flex-1 space-y-3">
@@ -313,7 +339,12 @@
                                         </div>
                                         <div class="flex items-center">
                                             <span class="w-24 text-[#9CA3AF]">Status:</span>
-                                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-green-500">Active</span>
+                                            <template x-if="currentMember?.active_subscriptions && currentMember.active_subscriptions.length > 0">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-green-500">Active</span>
+                                            </template>
+                                            <template x-if="!currentMember?.active_subscriptions || currentMember.active_subscriptions.length === 0">
+                                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-gray-500">Inactive</span>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -350,11 +381,11 @@
                     </div>
                     
                     <div class="py-4">
-                        <!-- Subscription list -->
+                        <!-- Subscription list with scrollable container -->
                         <div class="mb-6" x-show="subscriptions.length > 0">
-                            <div class="overflow-x-auto rounded-lg shadow-md">
+                            <div class="overflow-auto max-h-60 rounded-lg shadow-md">
                                 <table class="min-w-full divide-y divide-[#374151] text-sm">
-                                    <thead class="bg-[#374151] text-[#9CA3AF] uppercase text-xs">
+                                    <thead class="bg-[#374151] text-[#9CA3AF] uppercase text-xs sticky top-0 z-10">
                                         <tr>
                                             <th class="px-4 py-3 text-left">Type</th>
                                             <th class="px-4 py-3 text-left">Plan</th>
@@ -383,37 +414,98 @@
                                                 <td class="px-4 py-3 text-center">
                                                     <div class="flex justify-center items-center gap-2">
                                                         <button 
-                                                            @click="setEditFormValues(subscription)"
-                                                            class="text-blue-400 hover:text-blue-300 transition-colors" 
-                                                            title="Edit">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                        <button 
                                                             @click="
-                                                                if (confirm('Are you sure you want to cancel this subscription?')) {
-                                                                    fetch('/admin/members/'+currentMemberId+'/subscriptions/'+subscription.id+'/cancel', {
-                                                                        method: 'POST',
-                                                                        headers: {
-                                                                            'Content-Type': 'application/json',
-                                                                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                                                                        }
-                                                                    })
-                                                                    .then(response => response.json())
-                                                                    .then(data => {
-                                                                        if (data.success) {
-                                                                            // Refresh the subscriptions list
-                                                                            fetch('/admin/members/'+currentMemberId+'/subscriptions')
-                                                                                .then(response => response.json())
-                                                                                .then(data => { subscriptions = data; });
-                                                                        } else {
-                                                                            alert('Error cancelling subscription: ' + data.message);
-                                                                        }
-                                                                    })
-                                                                    .catch(error => {
-                                                                        console.error('Error:', error);
-                                                                        alert('An error occurred. Please try again.');
-                                                                    });
-                                                                }
+                                                                Swal.fire({
+                                                                    title: 'Cancel Subscription',
+                                                                    text: 'Are you sure you want to cancel this subscription?',
+                                                                    icon: 'warning',
+                                                                    showCancelButton: true,
+                                                                    confirmButtonColor: '#EF4444',
+                                                                    cancelButtonColor: '#6B7280',
+                                                                    confirmButtonText: 'Yes, cancel it!',
+                                                                    cancelButtonText: 'No, keep it',
+                                                                    background: '#1F2937',
+                                                                    color: '#FFFFFF',
+                                                                    customClass: {
+                                                                        popup: 'rounded-lg border border-[#374151]',
+                                                                        title: 'text-white text-xl',
+                                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                                        confirmButton: 'rounded-md px-4 py-2',
+                                                                        cancelButton: 'rounded-md px-4 py-2'
+                                                                    }
+                                                                }).then((result) => {
+                                                                    if (result.isConfirmed) {
+                                                                        fetch('/admin/members/'+currentMemberId+'/subscriptions/'+subscription.id+'/cancel', {
+                                                                            method: 'POST',
+                                                                            headers: {
+                                                                                'Content-Type': 'application/json',
+                                                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                                            }
+                                                                        })
+                                                                        .then(response => response.json())
+                                                                        .then(data => {
+                                                                            if (data.success) {
+                                                                                // Refresh the subscriptions list
+                                                                                fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                                                    .then(response => response.json())
+                                                                                    .then(data => { 
+                                                                                        subscriptions = data;
+                                                                                        
+                                                                                        // Update member status in main table
+                                                                                        updateMemberStatusBadge(currentMemberId, false);
+                                                                                        
+                                                                                        // Show success message
+                                                                                        Swal.fire({
+                                                                                            title: 'Cancelled!',
+                                                                                            text: 'Subscription has been cancelled successfully.',
+                                                                                            icon: 'success',
+                                                                                            confirmButtonColor: '#3B82F6',
+                                                                                            background: '#1F2937',
+                                                                                            color: '#FFFFFF',
+                                                                                            customClass: {
+                                                                                                popup: 'rounded-lg border border-[#374151]',
+                                                                                                title: 'text-white text-xl',
+                                                                                                htmlContainer: 'text-[#9CA3AF]',
+                                                                                                confirmButton: 'rounded-md px-4 py-2'
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                            } else {
+                                                                                Swal.fire({
+                                                                                    title: 'Error!',
+                                                                                    text: data.message || 'Failed to cancel subscription',
+                                                                                    icon: 'error',
+                                                                                    confirmButtonColor: '#3B82F6',
+                                                                                    background: '#1F2937',
+                                                                                    color: '#FFFFFF',
+                                                                                    customClass: {
+                                                                                        popup: 'rounded-lg border border-[#374151]',
+                                                                                        title: 'text-white text-xl',
+                                                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                                                        confirmButton: 'rounded-md px-4 py-2'
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        })
+                                                                        .catch(error => {
+                                                                            console.error('Error:', error);
+                                                                            Swal.fire({
+                                                                                title: 'Error!',
+                                                                                text: 'An error occurred. Please try again.',
+                                                                                icon: 'error',
+                                                                                confirmButtonColor: '#3B82F6',
+                                                                                background: '#1F2937',
+                                                                                color: '#FFFFFF',
+                                                                                customClass: {
+                                                                                    popup: 'rounded-lg border border-[#374151]',
+                                                                                    title: 'text-white text-xl',
+                                                                                    htmlContainer: 'text-[#9CA3AF]',
+                                                                                    confirmButton: 'rounded-md px-4 py-2'
+                                                                                }
+                                                                            });
+                                                                        });
+                                                                    }
+                                                                })
                                                             "
                                                             class="text-red-400 hover:text-red-300 transition-colors"
                                                             title="Cancel"
@@ -443,6 +535,16 @@
                             <form 
                                 class="grid grid-cols-1 md:grid-cols-2 gap-4"
                                 @submit.prevent="
+                                    // Show loading state
+                                    Swal.fire({
+                                        title: 'Adding subscription...',
+                                        text: 'Please wait',
+                                        allowOutsideClick: false,
+                                        didOpen: () => {
+                                            Swal.showLoading();
+                                        }
+                                    });
+                                    
                                     fetch('/admin/members/' + currentMemberId + '/subscriptions', {
                                         method: 'POST',
                                         headers: {
@@ -451,11 +553,7 @@
                                         },
                                         body: JSON.stringify({
                                             type: $event.target.elements.type.value,
-                                            plan: $event.target.elements.plan.value,
-                                            price: $event.target.elements.price.value,
-                                            start_date: $event.target.elements.start_date.value,
-                                            end_date: $event.target.elements.end_date.value,
-                                            is_active: $event.target.elements.is_active.checked
+                                            plan: $event.target.elements.plan.value
                                         })
                                     })
                                     .then(response => response.json())
@@ -468,14 +566,59 @@
                                                     subscriptions = data; 
                                                     // Reset form
                                                     $event.target.reset();
+                                                    
+                                                    // Update member status in main table
+                                                    updateMemberStatusBadge(currentMemberId, true);
+                                                    
+                                                    // Show success message
+                                                    Swal.fire({
+                                                        title: 'Success!',
+                                                        text: 'Subscription added successfully',
+                                                        icon: 'success',
+                                                        confirmButtonColor: '#3B82F6',
+                                                        background: '#1F2937',
+                                                        color: '#FFFFFF',
+                                                        customClass: {
+                                                            popup: 'rounded-lg border border-[#374151]',
+                                                            title: 'text-white text-xl',
+                                                            htmlContainer: 'text-[#9CA3AF]',
+                                                            confirmButton: 'rounded-md px-4 py-2'
+                                                        }
+                                                    });
                                                 });
                                         } else {
-                                            alert('Error adding subscription: ' + data.message);
+                                            Swal.fire({
+                                                title: 'Error!',
+                                                text: data.message || 'Failed to add subscription',
+                                                icon: 'error',
+                                                confirmButtonColor: '#3B82F6',
+                                                background: '#1F2937',
+                                                color: '#FFFFFF',
+                                                customClass: {
+                                                    popup: 'rounded-lg border border-[#374151]',
+                                                    title: 'text-white text-xl',
+                                                    htmlContainer: 'text-[#9CA3AF]',
+                                                    confirmButton: 'rounded-md px-4 py-2'
+                                                }
+                                            });
                                         }
                                     })
                                     .catch(error => {
                                         console.error('Error:', error);
-                                        alert('An error occurred. Please try again.');
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            text: 'An error occurred. Please try again.',
+                                            icon: 'error',
+                                            confirmButtonColor: '#3B82F6',
+                                            background: '#1F2937',
+                                            color: '#FFFFFF',
+                                            customClass: {
+                                                popup: 'rounded-lg border border-[#374151]',
+                                                title: 'text-white text-xl',
+                                                htmlContainer: 'text-[#9CA3AF]',
+                                                confirmButton: 'rounded-md px-4 py-2'
+                                            }
+                                        });
                                     })
                                 "
                             >
@@ -498,22 +641,6 @@
                                         <option value="per-session">Per Session</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Price ($)</label>
-                                    <input name="price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00">
-                                </div>
-                                <div>
-                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Start Date</label>
-                                    <input name="start_date" type="date" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                </div>
-                                <div>
-                                    <label class="block text-[#9CA3AF] text-sm font-medium mb-2">End Date</label>
-                                    <input name="end_date" type="date" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                </div>
-                                <div class="flex items-center mt-3">
-                                    <input name="is_active" type="checkbox" id="is_active" checked class="h-4 w-4 text-blue-600 rounded border-[#4B5563] focus:ring-blue-500 bg-[#374151]">
-                                    <label for="is_active" class="ml-2 text-[#9CA3AF]">Active</label>
-                                </div>
                             
                                 <div class="md:col-span-2 mt-6 flex justify-end">
                                     <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
@@ -529,7 +656,7 @@
     </div>
     
     <!-- Edit Subscription Modal -->
-    <div id="edit-subscription-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div id="edit-subscription-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div onclick="document.getElementById('edit-subscription-modal').classList.add('hidden')" class="fixed inset-0 bg-black opacity-50"></div>
             
@@ -559,11 +686,7 @@
                                     },
                                     body: JSON.stringify({
                                         type: form.elements['type'].value,
-                                        plan: form.elements['plan'].value,
-                                        price: form.elements['price'].value,
-                                        start_date: form.elements['start_date'].value,
-                                        end_date: form.elements['end_date'].value || null,
-                                        is_active: form.elements['is_active'].checked
+                                        plan: form.elements['plan'].value
                                     })
                                 })
                                 .then(response => response.json())
@@ -608,26 +731,6 @@
                                     <option value="monthly">Monthly</option>
                                     <option value="per-session">Per Session</option>
                                 </select>
-                            </div>
-                            
-                            <div>
-                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Price ($)</label>
-                                <input id="edit-price" name="price" type="number" min="0" step="0.01" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Start Date</label>
-                                <input id="edit-start-date" name="start_date" type="date" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-[#9CA3AF] text-sm font-medium mb-2">End Date</label>
-                                <input id="edit-end-date" name="end_date" type="date" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            </div>
-                            
-                            <div class="flex items-center">
-                                <input id="edit-is-active" name="is_active" type="checkbox" class="h-4 w-4 text-blue-600 rounded border-[#4B5563] focus:ring-blue-500 bg-[#374151]">
-                                <label for="edit-is-active" class="ml-2 text-[#9CA3AF]">Active</label>
                             </div>
                             
                             <div class="flex flex-wrap justify-end gap-3 mt-6">
@@ -756,6 +859,31 @@
 
 <style>
     [x-cloak] { display: none !important; }
+    
+    /* Custom scrollbar for subscription list */
+    .overflow-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-track {
+        background: #374151;
+        border-radius: 8px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-thumb {
+        background: #4B5563;
+        border-radius: 8px;
+    }
+    
+    .overflow-auto::-webkit-scrollbar-thumb:hover {
+        background: #6B7280;
+    }
+    
+    /* Firefox scrollbar */
+    .overflow-auto {
+        scrollbar-width: thin;
+        scrollbar-color: #4B5563 #374151;
+    }
 </style>
 
 <script>
@@ -768,6 +896,22 @@
             // Future implementation for filtering by other statuses
             // For now just reload the page without archived members
             window.location.href = "{{ route('admin.members.admin_members') }}";
+        }
+    }
+
+    /**
+     * Update the member status badge in the main table
+     */
+    function updateMemberStatusBadge(memberId, isActive) {
+        const statusBadge = document.getElementById(`member-status-${memberId}`);
+        if (statusBadge) {
+            if (isActive) {
+                statusBadge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-green-500';
+                statusBadge.textContent = 'Active';
+            } else {
+                statusBadge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-gray-500';
+                statusBadge.textContent = 'Inactive';
+            }
         }
     }
 </script>

@@ -56,7 +56,12 @@
                 <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 ? $trainer->profile_url : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" alt="{{ $trainer->user->full_name }}" class="w-full h-48 object-cover transition-transform duration-300 hover:scale-105">
                 <div class="absolute top-2 right-2">
                     <span class="px-3 py-1 text-sm font-medium rounded-full bg-[#374151] text-[#9CA3AF] shadow-sm">
-                        {{ $trainer->user->is_archived ? 'Archived' : 'Active' }}
+                        @if($trainer->user->is_archived)
+                            Archived
+                        @else
+                            {{-- Assuming instructor_for is passed as an array or collection --}}
+                            {{ $trainer->instructor_for ? implode(', ', (array)$trainer->instructor_for) : 'Active' }}
+                        @endif
                     </span>
                 </div>
             </div>
@@ -65,8 +70,9 @@
                 <p class="text-[#9CA3AF] text-sm mb-3">{{ $trainer->specialization }}</p>
                 <div class="flex items-center text-sm text-[#9CA3AF] mb-4">
                     <i class="fas fa-users mr-2"></i>
-                    <span>{{ $trainer->active_clients_count }} Active Clients</span>
+                    <span>{{ $trainer->instructed_clients_count }} Instructed Clients</span>
                 </div>
+
                 <!-- Weekly Schedule -->
                 <div class="mb-4">
                     <h4 class="text-white text-sm font-semibold mb-2">Weekly Schedule</h4>

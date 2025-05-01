@@ -107,6 +107,15 @@
                 <input type="password" name="password_confirmation" placeholder="Confirm Password" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
+                <div class="flex items-start mb-4 mt-2">
+                    <input type="checkbox" id="terms_agreement" name="is_agreed_to_terms" required
+                           class="mt-1 mr-2"/>
+                    <label for="terms_agreement" class="text-sm text-gray-300">
+                        I agree to the <a href="{{ route('terms') }}" class="text-white underline hover:text-purple-300" target="_blank">Terms of Use</a> and 
+                        <a href="{{ route('privacy') }}" class="text-white underline hover:text-purple-300" target="_blank">Privacy Policy</a>
+                    </label>
+                </div>
+
                 <button type="submit"
                         class="w-full py-3 bg-white text-black rounded hover:bg-gray-200 transition mt-4">
                     Sign Up
@@ -128,5 +137,20 @@
     </div>
 
 </div>
+
+<script>
+    document.querySelector('form[action="{{ route('signup') }}"]').addEventListener('submit', function(event) {
+        const termsCheckbox = document.getElementById('terms_agreement');
+        if (!termsCheckbox.checked) {
+            event.preventDefault(); // Stop form submission
+            Swal.fire({
+                icon: 'warning',
+                title: 'Agreement Required',
+                text: 'Please read the terms and privacy before signing up'
+            });
+        }
+    });
+</script>
+
 </body>
 </html>

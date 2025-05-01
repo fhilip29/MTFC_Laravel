@@ -62,8 +62,22 @@ class TrainerController extends Controller
             // Add formatted schedule to trainer
             $trainer->formatted_schedule = $weeklySchedule;
             
-            // Count active clients (placeholder - to be implemented with real data)
-            $trainer->active_clients_count = rand(5, 15); // Placeholder
+            // Count active clients whose subscription type matches the trainer's instruction types
+            $instructedTypes = explode(',', $trainer->instructor_for); // Assuming instructor_for is comma-separated
+            $instructedTypes = array_map('trim', $instructedTypes);
+
+            $trainer->instructed_clients_count = User::whereHas('activeSubscriptions', function($query) use ($instructedTypes) {
+                $query->whereIn('type', $instructedTypes);
+            })->where('role', '!=', 'trainer') // Ensure we count clients, not other trainers
+              ->where('id', '!=', $trainer->user_id) // Exclude the trainer themselves
+              ->count();
+
+            // Count active subscriptions for the trainer's own user account
+            if ($trainer->user) {
+                $trainer->trainer_active_subscriptions_count = $trainer->user->activeSubscriptions()->count();
+            } else {
+                $trainer->trainer_active_subscriptions_count = 0;
+            }
         });
         
         return view('admin.trainer.admin_trainer', compact('trainers', 'filter'));

@@ -118,8 +118,8 @@
     <div class="receipt">
         <div class="receipt-header">
             <h1>MTFC FITNESS</h1>
-            <p>Move Together Fitness Center</p>
-            <p>123 Main Street, Cityville, Philippines</p>
+            <p>Manila Total Fitness Center</p>
+            <p>Bldg, 3rd Floor, 350, YMCA, 1000 Antonio Villegas St, Ermita, Manila, 1000 Metro Manila</p>
             <p>Tel: (123) 456-7890</p>
             <p>Email: info@mtfcfitness.com</p>
         </div>
@@ -202,4 +202,4 @@
         }
     </script>
 </body>
-</html> 
+</html>

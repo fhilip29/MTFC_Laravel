@@ -100,15 +100,17 @@
     </style>
 
 </head>
-<body class="bg-gray-100 text-gray-900">
+<body class="min-h-screen flex flex-col">
 
     @include('components.header')
 
-    <main>
+    <main class="flex-grow">
         @yield('content')
     </main>
 
+    <footer class="mt-20 py-2">
     @include('components.footer')
+    </footer>
 
    <!-- 🛒 Cart Drawer -->
    <div id="cartDrawer" class="fixed top-0 right-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition-transform z-50 overflow-hidden flex flex-col">

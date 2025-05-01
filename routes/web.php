@@ -22,7 +22,6 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\InvoiceController;
-use App\Http\Controllers\ContactController;
 
 
 
@@ -41,16 +40,16 @@ Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show')
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])->name('comments.store'); // Add a comment to a post
 Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy'); // Delete a comment
 
+// Delete post route
+Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.destroy'); // Delete a post
+
 
 //Role Middleware
 // Only Admins
 //Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function () {
-use App\Http\Controllers\AdminController;
-
-// ... other use statements ...
-
-Route::get('/admin/dashboard', [AdminController::class, 'index'])
-    ->name('admin.dashboard');
+    Route::get('/admin/dashboard', function () {
+        return view('admin.admin_dashboard');
+    })->name('admin.dashboard');
 //});
 
 // Only Trainers
@@ -88,11 +87,6 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Fallback for logout if POST request fails
 Route::get('/logout', [AuthController::class, 'logout']);
 
-// Email Verification Routes
-Route::get('/email/verify', [AuthController::class, 'showVerificationNotice'])->name('verification.notice');
-Route::get('/email/verify/{token}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
-Route::post('/email/resend', [AuthController::class, 'resendVerification'])->name('verification.resend');
-
 // Password Reset Routes
 Route::view('/forgot-password', 'auth.forgot_password')->name('forgot_password');
 Route::post('/password/email', [PasswordResetController::class, 'sendResetCode'])->name('password.email');
@@ -108,12 +102,8 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::cla
 // ===================
 // HEADER BTNS ROUTES
 // ===================
-Route::get('/about', function () { return view('about'); })->name('about');
-
-// Contact routes
-Route::get('/contact', [ContactController::class, 'index'])->name('contact');
-Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
-
+Route::view('/about', 'about')->name('about');
+Route::view('/contact', 'contact')->name('contact');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers');
 

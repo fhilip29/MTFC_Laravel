@@ -509,14 +509,25 @@ function confirmArchiveTrainer(trainerId, trainerName, isArchived) {
 
 // Archive/Unarchive a trainer
 function archiveTrainer(trainerId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    
+    // Create form data or JSON payload
+    const formData = new FormData();
+    formData.append('_token', csrfToken);
+    
     fetch(`/admin/trainers/${trainerId}/archive`, {
         method: 'POST',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json'
-        }
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.status);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             Swal.fire({

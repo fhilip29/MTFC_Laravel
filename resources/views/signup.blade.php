@@ -20,7 +20,7 @@
         }
     </style>
 </head>
-<body class="bg-[#1D1B20] text-white overflow-hidden">
+<body class="bg-[#1D1B20] text-white">
 
 <div class="flex h-screen">
 
@@ -88,17 +88,29 @@
                     <option value="" disabled selected>Gender</option>
                     <option value="male" class="text-black">Male</option>
                     <option value="female" class="text-black">Female</option>
+                    <option value="other" class="text-black">Other</option>
                 </select>
+                
+                <div id="otherGenderField" style="display: none;">
+                    <input type="text" name="other_gender" placeholder="Please specify your gender" 
+                           class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                </div>
 
-                <select name="fitness_goal" required
+                <select name="fitness_goal" 
                         class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
-                    <option value="" disabled selected>Fitness Goal</option>
+                    <option value="" selected>Fitness Goal (Optional)</option>
                     <option value="lose-weight" class="text-black">Lose Weight</option>
                     <option value="build-muscle" class="text-black">Build Muscle</option>
                     <option value="maintain" class="text-black">Maintain</option>
+                    <option value="boxing" class="text-black">Boxing</option>
+                    <option value="muay-thai" class="text-black">Muay Thai</option>
+                    <option value="jiu-jitsu" class="text-black">Jiu-Jitsu</option>
                 </select>
 
                 <input type="email" name="email" placeholder="Email Address" required
+                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                
+                <input type="tel" name="mobile_number" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
                 <input type="password" name="password" placeholder="Password" required
@@ -149,6 +161,19 @@
                 text: 'Please read the terms and privacy before signing up'
             });
         }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const genderSelect = document.querySelector('select[name="gender"]');
+        const otherGenderField = document.getElementById('otherGenderField');
+        
+        genderSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                otherGenderField.style.display = 'block';
+            } else {
+                otherGenderField.style.display = 'none';
+            }
+        });
     });
 </script>
 

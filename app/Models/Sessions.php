@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Sessions extends Model
 {
-    protected $fillable = ['user_id', 'time', 'status'];
+    protected $fillable = ['user_id', 'guest_name', 'mobile_number', 'time', 'status'];
 
     public function user(): BelongsTo
     {

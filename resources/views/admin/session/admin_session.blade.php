@@ -19,12 +19,41 @@
             </div>
         </div>
 
-        <input 
-            type="text" 
-            id="searchInput" 
-            placeholder="Search by name or date..." 
-            class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4"
-        >
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Search by name..." 
+                    class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm"
+                >
+            </div>
+            <div>
+                <select 
+                    id="roleFilter" 
+                    class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] shadow-sm"
+                >
+                    <option value="">All Roles</option>
+                    <option value="member">Member</option>
+                    <option value="trainer">Trainer</option>
+                    <option value="admin">Admin</option>
+                    <option value="guest">Guest</option>
+                </select>
+            </div>
+            <div>
+                <input 
+                    type="date" 
+                    id="dateFilter" 
+                    placeholder="Filter by date"
+                    class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] shadow-sm"
+                >
+            </div>
+            <div>
+                <button id="resetFilters" class="w-full p-3 bg-[#374151] hover:bg-[#4B5563] text-[#9CA3AF] hover:text-white rounded-md shadow-md flex items-center justify-center gap-2 transition-colors">
+                    <i class="fas fa-undo-alt"></i> Reset Filters
+                </button>
+            </div>
+        </div>
 
         <div class="-mx-4 sm:mx-0 overflow-x-auto bg-[#1F2937] rounded-lg shadow-md">
             <div class="min-w-full inline-block align-middle">
@@ -67,7 +96,7 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? 'Guest User' }}</td>
+                                    <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? ($session->guest_name ?? 'Guest User') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF] capitalize">{{ $session->user->role ?? 'guest' }}</td> 
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('M d, Y') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('h:i A') }}</td>
@@ -181,6 +210,13 @@
                             <input type="text" id="guestNameInput" placeholder="Enter guest's full name" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
                             <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required.</p>
                         </div>
+                        
+                        <div class="mt-2 relative z-10">
+                            <label for="guestPhoneInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Phone Number</label>
+                            <input type="tel" id="guestPhoneInput" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
+                            <p id="guestPhoneError" class="text-red-500 text-xs mt-1 hidden">Valid Philippine phone number is required.</p>
+                        </div>
+                        
                         <div class="mt-4 mb-6 flex gap-4 justify-center relative z-10">
                             <button id="guestCheckInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors flex-1 justify-center">
                                 <i class="fas fa-sign-in-alt text-lg"></i>
@@ -209,19 +245,100 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Simple search filter
-    document.getElementById('searchInput').addEventListener('keyup', function () {
-        let filter = this.value.toLowerCase();
-        let rows = document.querySelectorAll('#sessionTable tbody tr');
-
-        rows.forEach(row => {
-            // Improved search: Check Name and Role columns
-            let nameCell = row.cells[1];
-            let roleCell = row.cells[2];
-            let text = (nameCell ? nameCell.innerText.toLowerCase() : '') + ' ' + 
-                       (roleCell ? roleCell.innerText.toLowerCase() : '');
-            row.style.display = text.includes(filter) ? '' : 'none';
-        });
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const roleFilter = document.getElementById('roleFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const resetFilters = document.getElementById('resetFilters');
+        const rows = document.querySelectorAll('#sessionTable tbody tr');
+        
+        // Function to apply all filters
+        function applyFilters() {
+            const searchText = searchInput.value.toLowerCase();
+            const roleValue = roleFilter.value.toLowerCase();
+            const dateValue = dateFilter.value ? new Date(dateFilter.value) : null;
+            
+            rows.forEach(row => {
+                // Get column values
+                const nameCell = row.cells[1];
+                const roleCell = row.cells[2];
+                const dateCell = row.cells[3];
+                
+                // Get text for search filter
+                const nameText = nameCell ? nameCell.innerText.toLowerCase() : '';
+                
+                // Get role for role filter
+                const roleText = roleCell ? roleCell.innerText.toLowerCase() : '';
+                
+                // Get date for date filter
+                let rowDate = null;
+                if (dateCell) {
+                    const dateParts = dateCell.innerText.split(',')[0].split(' ');
+                    const month = getMonthNumber(dateParts[0]);
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateCell.innerText.split(', ')[1]);
+                    if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+                        rowDate = new Date(year, month, day);
+                    }
+                }
+                
+                // Check if row passes all filters
+                const passesSearch = nameText.includes(searchText);
+                const passesRole = !roleValue || roleText === roleValue;
+                const passesDate = !dateValue || (rowDate && 
+                    rowDate.getFullYear() === dateValue.getFullYear() && 
+                    rowDate.getMonth() === dateValue.getMonth() && 
+                    rowDate.getDate() === dateValue.getDate());
+                
+                // Show or hide row based on filter results
+                row.style.display = (passesSearch && passesRole && passesDate) ? '' : 'none';
+            });
+        }
+        
+        // Helper function to get month number from abbreviation
+        function getMonthNumber(monthAbbr) {
+            const months = {
+                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+            };
+            return months[monthAbbr.toLowerCase()];
+        }
+        
+        // Reset all filters and show all rows
+        function resetAllFilters() {
+            searchInput.value = '';
+            roleFilter.value = '';
+            dateFilter.value = '';
+            
+            // Show all rows
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            
+            // Show reset toast notification
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true
+            });
+            
+            Toast.fire({
+                icon: 'success',
+                title: 'Filters have been reset'
+            });
+        }
+        
+        // Add event listeners for all filters
+        searchInput.addEventListener('input', applyFilters);
+        roleFilter.addEventListener('change', applyFilters);
+        dateFilter.addEventListener('change', applyFilters);
+        resetFilters.addEventListener('click', resetAllFilters);
+        
+        // Apply filters on page load (if any values are already set)
+        applyFilters();
     });
 
     // QR Code Scanner Implementation
@@ -247,6 +364,8 @@
         const cancelGuestModal = document.getElementById('cancelGuestModal');
         const guestNameInput = document.getElementById('guestNameInput');
         const guestNameError = document.getElementById('guestNameError');
+        const guestPhoneInput = document.getElementById('guestPhoneInput');
+        const guestPhoneError = document.getElementById('guestPhoneError');
         const guestCheckInBtn = document.getElementById('guestCheckInBtn');
         const guestCheckOutBtn = document.getElementById('guestCheckOutBtn');
         
@@ -354,91 +473,97 @@
         // Start scanner function
         function startScanner() {
             scannerMessage.textContent = 'Attempting to access camera...';
+            scannerMessage.classList.remove('text-red-500');
             
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                // Try to get a list of available cameras first
-                navigator.mediaDevices.enumerateDevices()
-                    .then(devices => {
-                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                        console.log('Available cameras:', videoDevices);
-                        
-                        if (videoDevices.length === 0) {
-                            scannerMessage.textContent = 'No camera detected on this device.';
-                            scannerMessage.classList.add('text-red-500');
-                            return;
-                        }
-                        
-                        // Proceed with camera access
-                        return navigator.mediaDevices.getUserMedia({ 
-                            video: { 
-                                // Try to use any available camera
-                                deviceId: videoDevices.length > 0 ? {exact: videoDevices[0].deviceId} : undefined,
-                                width: { ideal: 640 },
-                                height: { ideal: 480 }
-                            },
-                            audio: false
-                        });
-                    })
-                    .then(function(mediaStream) {
-                        if (!mediaStream) return; // Handle case where we didn't get a stream
-                        
-                        stream = mediaStream;
-                        video.srcObject = mediaStream;
-                        video.setAttribute('playsinline', true);
-                        
-                        // Ensure video starts playing
-                        video.onloadedmetadata = function(e) {
-                            console.log('Video metadata loaded, attempting to play');
-                            video.play()
-                                .then(() => {
-                                    console.log('Video playback started');
-                                    console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
-                                    scanning = true;
-                                    startScanAnimation();
-                                    scannerMessage.textContent = `Scanning for Time ${scanMode}...`;
-                                    
-                                    // Set canvas size to match video
-                                    canvas.width = video.videoWidth;
-                                    canvas.height = video.videoHeight;
-                                    
-                                    // Start QR code detection loop
-                                    requestAnimationFrame(scanQRCode);
-                                })
-                                .catch(err => {
-                                    console.error('Error playing video:', err);
-                                    scannerMessage.textContent = 'Error starting video: ' + err.message;
-                                    scannerMessage.classList.add('text-red-500');
+                // Request camera access directly
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment", // Prefer back camera
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    },
+                    audio: false
+                })
+                .then(function(mediaStream) {
+                    stream = mediaStream;
+                    video.srcObject = mediaStream;
+                    video.setAttribute('playsinline', true);
+                    
+                    // Ensure video starts playing
+                    video.onloadedmetadata = function(e) {
+                        console.log('Video metadata loaded, attempting to play');
+                        video.play()
+                            .then(() => {
+                                console.log('Video playback started');
+                                console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+                                scanning = true;
+                                startScanAnimation();
+                                scannerMessage.textContent = `Scanning for Time ${scanMode}...`;
+                                
+                                // Set canvas size to match video
+                                canvas.width = video.videoWidth;
+                                canvas.height = video.videoHeight;
+                                
+                                // Start QR code detection loop
+                                requestAnimationFrame(scanQRCode);
+                            })
+                            .catch(err => {
+                                console.error('Error playing video:', err);
+                                scannerMessage.textContent = 'Error starting video: ' + err.message;
+                                scannerMessage.classList.add('text-red-500');
+                                
+                                // Show explanation to user
+                                Swal.fire({
+                                    title: 'Camera Error',
+                                    text: 'Could not start video stream: ' + err.message,
+                                    icon: 'error'
                                 });
-                        };
-                        
-                        // Add additional event listeners for debugging
-                        video.addEventListener('play', () => console.log('Video play event fired'));
-                        video.addEventListener('error', (e) => {
-                            console.error('Video error:', e);
-                            scannerMessage.textContent = 'Video error: ' + (video.error ? video.error.message : 'Unknown error');
-                            scannerMessage.classList.add('text-red-500');
-                        });
-                    })
-                    .catch(function(error) {
-                        console.error('Error accessing camera:', error);
-                        let errorMessage = 'Error accessing camera. ';
-                        
-                        if (error.name === 'NotAllowedError') {
-                            errorMessage += 'Camera permission denied. Please allow camera access in your browser settings.';
-                        } else if (error.name === 'NotFoundError') {
-                            errorMessage += 'No camera found on this device.';
-                        } else if (error.name === 'NotReadableError') {
-                            errorMessage += 'Camera is already in use by another application.';
-                        } else {
-                            errorMessage += error.message || 'Unknown error.';
-                        }
-                        
-                        scannerMessage.textContent = errorMessage;
+                            });
+                    };
+                    
+                    // Add additional event listeners for debugging
+                    video.addEventListener('play', () => console.log('Video play event fired'));
+                    video.addEventListener('error', (e) => {
+                        console.error('Video error:', e);
+                        scannerMessage.textContent = 'Video error: ' + (video.error ? video.error.message : 'Unknown error');
                         scannerMessage.classList.add('text-red-500');
                     });
+                })
+                .catch(function(error) {
+                    console.error('Error accessing camera:', error);
+                    let errorMessage = 'Error accessing camera. ';
+                    
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage += 'Camera permission denied. Please allow camera access in your browser settings and try again.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage += 'No camera found on this device.';
+                    } else if (error.name === 'NotReadableError') {
+                        errorMessage += 'Camera is already in use by another application.';
+                    } else {
+                        errorMessage += error.message || 'Unknown error.';
+                    }
+                    
+                    scannerMessage.textContent = errorMessage;
+                    scannerMessage.classList.add('text-red-500');
+                    
+                    // Show explanation to user
+                    Swal.fire({
+                        title: 'Camera Access Error',
+                        text: errorMessage,
+                        icon: 'error'
+                    });
+                });
             } else {
                 scannerMessage.textContent = 'Camera access not supported in this browser.';
                 scannerMessage.classList.add('text-red-500');
+                
+                // Show explanation to user
+                Swal.fire({
+                    title: 'Browser Not Supported',
+                    text: 'Your browser does not support camera access. Please try using Chrome, Firefox, or Edge.',
+                    icon: 'error'
+                });
             }
         }
         
@@ -468,7 +593,7 @@
                     }
                     
                     // Play a beep sound
-                    const beep = new Audio('data:audio/wav;base64,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');
+                    const beep = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Hh4NwVlZldoSQkIF0W1Vjc4CNjIV3XVlecXqFioZ8aGRmeX+IiYN3cXR5foODgnyAdHZ9gIGDgXt4dXd8f4GDgn98eHZ4e36BhYaBfXh1dXh8gIaIh4F7dnR2e3+FiYmGgHl0cnZ8gIaKioR+eHR1eX6DiYuKhYB7eXd6f4WJi4iBfXp5e36DiYuLh4J+e3p7f4OGioqGg3+8vr/AwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4CBg4SGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2NnbW9zdXl9f4CBg4SGh4iJiouMjY6PkZKTlP6goaKjpKWmp6j7s7S1tre4ubq7/MbHyMnKy8zNzv3Z2tvc3d7f4GBJRkM/PDgLDhEUFxocHyLwJScoKSssLS7/ODk6Ozw9Pj9A+0pLTE1OT1BR/ltcXV5fYGFiY/ttbm9wcXJzdHX+f4CBgoOEhYaH+5GSk5SVlpeYmf6jo6SlpqeoqKn7s7S1tre4ubq7/MXGx8jJysvMzf3X2Nna29zd3t/v+fr7/P3+/wAB/wsNDg8QERIT+x0eHyAhIiMkJf8vMDEyMzQ1Njf+QUJDREVGSElK/lRVVldYWVpbXP5mZ2hpamtsbW7+eHl6e3x9fn+A/oqLjI2Oj5CRkv2cnZ6foKGio6T9rq+wsbKztLW2/cDBwsPExcbHyP7S09TV1tfY2dr95+jp6uvs7e7v/vn6+/z9/v8AAf0LDA0ODxAREv0cHR4fICEiIyT+Li8wMTIzNDU2/kBBQkNERUZHSP5SUlNUVVZXWFn+Y2RlZmdoaWpr/nV2d3h5ent8ff+HvLzb3fLy/wD8ciEAAAAAABgBAACfAAAAHQAAAB0AAAAdAAAAHQAAAB0AAAAdAAAAHQAAAB0AAAAdAAAAHQAAAB0AAAAdAAAAHQAAAB0AAAAdAAAAHQAAAB0AAAD9////QgAAABsAAQALAAIACgADAAkABAAIAAUABwAGAAYABwAFAAgABAAJAAMAqAGzAb4BqAGMAT8BuAGPAXIBbgE2AbgBjwFVAVkBKwG4AY8BQQFNASEBuAGPAUEBSQEdAbgBjwFBAUYBGgG4AY8BQQFEARcBuAGPAUEBQQEVAbgBjwFBATYBBQG4AY8BQQEWAfwAuAGPAUEBBQHxALgBjwFBAaUBKAGGAY0BQQHZASEBCgO4AY8BQQFuACUBCwO4AY8BQQC+AQUBCwO4AY8BQQDnAfMAeAG3A');
                     beep.play().catch(e => console.log('Audio play error:', e));
                     
                     // Flash overlay
@@ -663,6 +788,8 @@
             guestModal.classList.add('hidden');
             guestNameInput.value = ''; // Clear input on close
             guestNameError.classList.add('hidden'); // Hide error on close
+            guestPhoneInput.value = ''; // Clear phone input on close
+            guestPhoneError.classList.add('hidden'); // Hide phone error on close
         }
 
         // Event listeners for closing guest modal
@@ -674,17 +801,42 @@
             }
         });
 
+        // Function to validate Philippine phone number
+        function isValidPhoneNumber(phone) {
+            // Basic regex for Philippine phone numbers: +63XXXXXXXXXX or 09XXXXXXXXXX
+            const philippinePhoneRegex = /^(\+63|0)9\d{9}$/;
+            return philippinePhoneRegex.test(phone.replace(/\s+/g, ''));
+        }
+
         // Function to handle guest check-in/out submission
         function handleGuestSubmit(status) {
             const guestName = guestNameInput.value.trim();
+            const guestPhone = guestPhoneInput.value.trim();
+            let isValid = true;
             
-            // Validation
+            // Validate name
             if (!guestName) {
                 guestNameError.classList.remove('hidden');
                 guestNameInput.focus();
-                return;
+                isValid = false;
             } else {
                 guestNameError.classList.add('hidden');
+            }
+            
+            // Validate phone number
+            if (!guestPhone || !isValidPhoneNumber(guestPhone)) {
+                guestPhoneError.classList.remove('hidden');
+                if (isValid) {
+                    guestPhoneInput.focus();
+                }
+                isValid = false;
+            } else {
+                guestPhoneError.classList.add('hidden');
+            }
+            
+            // If validation fails, stop here
+            if (!isValid) {
+                return;
             }
 
             // Show processing alert
@@ -700,18 +852,23 @@
             });
 
             // Send data to server
+            const formData = new FormData();
+            formData.append('guest_name', guestName);
+            formData.append('mobile_number', guestPhone);
+            formData.append('status', status);
+            formData.append('_token', '{{ csrf_token() }}');
+            
             fetch('{{ route("admin.session.store") }}', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}' 
-                },
-                body: JSON.stringify({
-                    guest_name: guestName,
-                    status: status
-                })
+                body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json().catch(err => {
+                    console.error('JSON parse error:', err);
+                    throw new Error('Invalid JSON response');
+                });
+            })
             .then(data => {
                 Swal.close();
                 

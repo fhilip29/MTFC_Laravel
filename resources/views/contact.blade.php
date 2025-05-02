@@ -202,10 +202,10 @@
     function contactForm() {
         return {
             form: {
-                fullName: '{{ $user ? $user->full_name : '' }}',
-                email: '{{ $user ? $user->email : '' }}',
+                fullName: '{{ $user->full_name ?? '' }}',
+                email: '{{ $user->email ?? '' }}',
                 subject: '',
-                phoneNumber: '{{ $user && $user->mobile_number ? $user->mobile_number : '' }}',
+                phoneNumber: '{{ $user->mobile_number ?? '' }}',
                 message: ''
             },
             errors: {},
@@ -256,10 +256,10 @@
                         
                         // Reset form
                         this.form = {
-                            fullName: '{{ $user ? $user->full_name : '' }}',
-                            email: '{{ $user ? $user->email : '' }}',
+                            fullName: '{{ $user->full_name ?? '' }}',
+                            email: '{{ $user->email ?? '' }}',
                             subject: '',
-                            phoneNumber: '{{ $user && $user->mobile_number ? $user->mobile_number : '' }}',
+                            phoneNumber: '{{ $user->mobile_number ?? '' }}',
                             message: ''
                         };
                     } else {

@@ -149,14 +149,19 @@ public function trainer()
     return $this->hasOne(Trainer::class);
 }
 
+public function invoices()
+{
+    return $this->hasMany(Invoice::class);
+}
+
 public function likedPosts()
 {
     return $this->belongsToMany(Post::class, 'post_likes')->withTimestamps();
 }
+
 public function likedPostsCount()
 {
     return $this->likedPosts()->count();
-
 }
 
 }

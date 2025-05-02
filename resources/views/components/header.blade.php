@@ -54,7 +54,7 @@
             @else
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center focus:outline-none">
-                        <img src="{{ Auth::user()->profile_url ?? asset('assets/default-profile.png') }}"
+                        <img src="{{ Auth::user()->profile_image ? asset('storage/'.Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
                              class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
                     </button>
                     <div x-show="open" @click.outside="open = false"
@@ -68,7 +68,7 @@
                                     Profile
                                 </button>
                             @else
-                                <a href="{{ route('profile.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
+                                <a href="{{ route('account.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
                                 <a href="{{ Auth::user()->role === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
                                 <a href="{{ route('community') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Community</a>
                                 <a href="{{ route('orders') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Orders</a>

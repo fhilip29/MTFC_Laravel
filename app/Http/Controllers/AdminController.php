@@ -11,6 +11,7 @@ use App\Models\User; // Assuming stats relate to users
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\Sessions; // Import the Sessions model
 
 class AdminController extends Controller
 {
@@ -85,21 +86,20 @@ class AdminController extends Controller
         $topProductName = $topProduct && $topProduct->product ? $topProduct->product->name : 'No sales yet';
 
         // Product Sales This Month - Only from completed orders
-        $productSalesAmount = OrderItem::whereHas('order', function($q) {
+        $productSalesAmount = OrderItem::select(DB::raw('SUM(price * quantity) as total_sales'))
+            ->whereHas('order', function($q) {
                 $q->where('status', 'Completed')
                   ->whereYear('created_at', Carbon::now()->year)
                   ->whereMonth('created_at', Carbon::now()->month);
             })
-            ->sum(DB::raw('price * quantity'));
+            ->first();
 
         // If no sales this month, display 0
-        if ($productSalesAmount === null) {
-            $productSalesAmount = 0;
-        }
+        $productSalesAmount = $productSalesAmount ? $productSalesAmount->total_sales : 0;
 
         // Product Stats
         $productStats = [
-            ['label' => "Products Sold ($currentMonth)", 'count' => $productsSold ? $productsSold : '0', 'icon' => 'fas fa-shopping-cart', 'color' => 'bg-purple-500'],
+            ['label' => "Products Sold ($currentMonth)", 'count' => $productsSold ?: '0', 'icon' => 'fas fa-shopping-cart', 'color' => 'bg-purple-500'],
             ['label' => 'Low Stock Items', 'count' => $lowStockItems, 'icon' => 'fas fa-exclamation-triangle', 'color' => 'bg-red-500'],
             ['label' => 'Top Product', 'count' => $topProductName, 'icon' => 'fas fa-trophy', 'color' => 'bg-amber-500'],
             ['label' => "Product Sales ($currentMonth)", 'count' => '₱' . number_format($productSalesAmount), 'icon' => 'fas fa-shopping-bag', 'color' => 'bg-pink-500'],
@@ -139,9 +139,30 @@ class AdminController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i)->format('Y-m');
             $chartLabels[] = Carbon::now()->subMonths($i)->format('M');
-            $productSalesChartData[] = $productSalesData[$month] ?? 0;
-            $subscriptionSalesChartData[] = $subscriptionSalesData[$month] ?? 0;
+            $productSalesChartData[] = isset($productSalesData[$month]) ? $productSalesData[$month] : 0;
+            $subscriptionSalesChartData[] = isset($subscriptionSalesData[$month]) ? $subscriptionSalesData[$month] : 0;
         }
+
+        // --- Fetch Attendance Data (Last 7 Days) ---
+        $attendanceDataRaw = Sessions::select(
+                DB::raw('DATE(time) as date'),
+                DB::raw('COUNT(*) as count')
+            )
+            ->where('status', 'IN')
+            ->where('time', '>=', Carbon::now()->subDays(6)->startOfDay()) // Last 7 days including today
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->get()
+            ->keyBy('date'); // Key by date for easy lookup
+
+        $attendanceLabels = [];
+        $attendanceData = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            $attendanceLabels[] = Carbon::now()->subDays($i)->format('M d'); // Format like 'Jul 25'
+            $attendanceData[] = $attendanceDataRaw->has($date) ? $attendanceDataRaw[$date]->count : 0;
+        }
+
 
         return view('admin.admin_dashboard', compact(
             'membershipStats',
@@ -150,7 +171,9 @@ class AdminController extends Controller
             'contactMessages',
             'chartLabels',
             'productSalesChartData',
-            'subscriptionSalesChartData'
+            'subscriptionSalesChartData',
+            'attendanceLabels',
+            'attendanceData'
         ));
     }
 }

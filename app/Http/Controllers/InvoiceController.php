@@ -143,4 +143,29 @@ class InvoiceController extends Controller
         
         return response()->stream($callback, 200, $headers);
     }
+
+    /**
+     * Display the specified invoice for the authenticated user
+     */
+    public function userShow($id)
+    {
+        $invoice = Invoice::with(['user', 'items'])
+            ->where('user_id', auth()->id()) // Only show invoices owned by the user
+            ->findOrFail($id);
+        
+        return view('invoice_details', compact('invoice'));
+    }
+
+    /**
+     * Display a printable receipt for the authenticated user
+     */
+    public function userShowReceipt($id)
+    {
+        $invoice = Invoice::with(['user', 'items'])
+            ->where('user_id', auth()->id()) // Ensure invoice belongs to the logged-in user
+            ->findOrFail($id);
+            
+        // Reuse the admin receipt view
+        return view('admin.invoice.receipt', compact('invoice'));
+    }
 } 

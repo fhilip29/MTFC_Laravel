@@ -22,6 +22,10 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AccountController;
 
 
 
@@ -47,9 +51,7 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 //Role Middleware
 // Only Admins
 //Route::middleware(['auth', RoleMiddleware::class . ':admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.admin_dashboard');
-    })->name('admin.dashboard');
+    Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 //});
 
 // Only Trainers
@@ -103,7 +105,8 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::cla
 // HEADER BTNS ROUTES
 // ===================
 Route::view('/about', 'about')->name('about');
-Route::view('/contact', 'contact')->name('contact');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
 Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers');
 
@@ -126,7 +129,6 @@ Route::view('/privacypolicy', 'privacy')->name('privacy');
 // ===================
 
 Route::view('/notifications', 'notifications')->name('notifications');
-Route::view('/account-settings', 'account-settings')->name('account-settings');
 
 // Order routes (protected by auth middleware)
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
@@ -138,13 +140,18 @@ Route::view('/account-settings', 'account-settings')->name('account-settings');
 
 
 Route::view('/payment-method', 'payment-method')->name('payment-method');
-Route::view('/profile/settings', 'account-settings')->name('profile.settings');
+Route::get('/profile/settings', [AccountController::class, 'index'])->name('profile.settings');
 
 
 // ===================
 // USER ROUTES
 // ===================
 Route::view('/profile', 'profile')->name('profile');
+Route::get('/profile/qr', [ProfileController::class, 'showQrCode'])->name('profile.qr');
+Route::get('/my-qr', [\App\Http\Controllers\ProfileController::class, 'showQrCode'])->name('user.qr')->middleware('auth');
+Route::get('/invoices/{id}', [InvoiceController::class, 'userShow'])->name('user.invoices.show')->middleware('auth');
+Route::get('/my-invoice/{id}/receipt', [InvoiceController::class, 'userShowReceipt'])->name('user.invoices.receipt')->middleware('auth');
+Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates')->middleware('auth'); // Added for calendar
 
 
 
@@ -272,6 +279,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
 // API route
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
+Route::get('/api/user/attendance', [\App\Http\Controllers\ProfileController::class, 'getUserAttendance'])->name('api.user.attendance')->middleware('auth');
 
 
 
@@ -291,5 +299,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/subscription/history', [SubscriptionController::class, 'history'])->name('subscription.history');
     Route::post('/subscription/{id}/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
 });
+
+// Account Settings Routes
+Route::get('/account-settings', [AccountController::class, 'index'])->name('account.settings');
+Route::post('/account-settings/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
+Route::post('/account-settings/password', [AccountController::class, 'updatePassword'])->name('password.update');
 
 

@@ -17,7 +17,7 @@ class ContactController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
+        $user = Auth::check() ? Auth::user() : null;
         return view('contact', compact('user'));
     }
 

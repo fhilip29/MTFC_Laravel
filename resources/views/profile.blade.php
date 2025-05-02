@@ -42,10 +42,26 @@
         align-items: center;
         justify-content: center;
     }
+    
+    /* Card hover effects */
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+    }
 </style>
 @endsection
 
 @section('content')
+@php
+    // Default value to prevent undefined variable error
+    $activeSubscription = $activeSubscription ?? null;
+    $invoices = $invoices ?? collect();
+@endphp
+
 <div class="flex flex-col md:flex-row min-h-screen bg-[#121212] text-white">
     <!-- Mobile Toggle for Sidebar - Moved lower -->
     <button id="sidebarToggle" class="md:hidden bg-[#2d2d2d] text-gray-300 hover:text-white p-2 m-4 rounded-lg absolute top-15 left-0 z-10 flex items-center justify-center w-10 h-10">
@@ -58,7 +74,7 @@
             <div class="relative">
                 <div class="h-24 w-24 md:h-32 md:w-32 bg-gradient-to-r from-red-600 to-red-800 rounded-full p-1">
                     <div class="h-full w-full bg-white rounded-full flex items-center justify-center overflow-hidden">
-                        <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="Profile" class="h-20 w-20 md:h-28 md:w-28 object-cover">
+                        <img src="{{ Auth::user()->profile_image ? asset('storage/'.Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" alt="Profile" class="h-full w-full object-cover">
                     </div>
                 </div>
                 <div class="absolute bottom-2 right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -70,18 +86,21 @@
         </div>
 
         <!-- QR Code -->
-        <div class="bg-[#2d2d2d] p-4 md:p-6 rounded-xl">
+        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl">
             <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center">Check-In QR</h3>
             <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center cursor-pointer" id="qrCodeContainer" onclick="openQrModal()">
                 <div class="w-32 h-32 md:w-40 md:h-40">
                     {!! QrCode::size(150)->generate(Auth::user()->qr_code) !!}
                 </div>
             </div>
+            <div class="flex justify-center mt-2">
+                <a href="{{ route('profile.qr') }}" class="text-xs text-center text-blue-400 hover:text-blue-300">View full screen</a>
+            </div>
             <p class="text-xs text-center mt-2 md:mt-3 text-gray-400">Tap the QR code to enlarge</p>
         </div>
 
         <!-- Personal Information -->
-        <div class="bg-[#2d2d2d] p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
+        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
             <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Personal Information</h3>
             <div class="space-y-3 md:space-y-4">
                 <div class="flex justify-between items-center">
@@ -99,33 +118,27 @@
             </div>
         </div>
         
-        <!-- Billing Details -->
-        <div class="bg-[#2d2d2d] p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
-            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Billing Details</h3>
-            <div class="space-y-3 md:space-y-4">
-                <div class="flex items-center">
-                    <div class="bg-gray-700 p-2 rounded mr-2 md:mr-3">
-                        <i class="fas fa-credit-card text-gray-300 text-sm md:text-base"></i>
-                    </div>
-                    <div>
-                        <p class="font-medium text-sm md:text-base">VISA •••• 4582</p>
-                        <p class="text-xs text-gray-400">Expires 09/2025</p>
-                    </div>
-                    <div class="ml-auto">
-                        <span class="px-2 py-0.5 md:py-1 bg-green-500 bg-opacity-20 text-green-500 rounded-full text-xs">Primary</span>
-                    </div>
-                </div>
+        <!-- Quick Links -->
+        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
+            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Quick Links</h3>
+            <div class="space-y-3">
+                <a href="{{ route('orders') }}" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-shopping-bag mr-2"></i> My Orders
+                </a>
+                <a href="{{ route('account.settings') }}" class="w-full bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-user-cog mr-2"></i> Account Settings
+                </a>
+                <a href="{{ route('payment-method') }}" class="w-full bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-credit-card mr-2"></i> Payment Methods
+                </a>
             </div>
-            <a href="{{ route('payment-method') }}" class="mt-3 md:mt-4 w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
-                <i class="fas fa-plus mr-2"></i> Add Payment Method
-            </a>
         </div>
     </div>
 
     <!-- Main Content -->
     <div class="flex-1 p-4 md:p-8 overflow-auto mt-16 md:mt-0">
         <!-- Attendance Graph -->
-        <div class="bg-[#2d2d2d] rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
                 <h2 class="text-lg md:text-xl font-semibold">Attendance</h2>
                 <div class="flex space-x-2 w-full sm:w-auto overflow-x-auto py-1 sm:py-0">
@@ -175,96 +188,170 @@
         </div>
 
         <!-- Membership Plan -->
-        <div class="bg-[#2d2d2d] rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
                 <h2 class="text-lg md:text-xl font-semibold">Membership Plan</h2>
-                <button class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
-                    Add Plan
-                </button>
+                <a href="{{ route('pricing') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
+                    @if (!$activeSubscription)
+                        Add Plan
+                    @else
+                        Change Plan
+                    @endif
+                </a>
             </div>
+            
+            @if ($activeSubscription)
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div class="space-y-3 md:space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400 text-sm">Type</span>
-                        <span class="font-medium text-sm md:text-base">GYM</span>
+                        <span class="font-medium text-sm md:text-base">{{ strtoupper($activeSubscription->type) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400 text-sm">Status</span>
                         <span class="px-2 py-0.5 md:px-3 md:py-1 bg-green-500 bg-opacity-20 text-green-500 rounded-full text-xs md:text-sm font-medium">ACTIVE</span>
                     </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-400 text-sm">Plan</span>
+                        <span class="font-medium text-sm md:text-base">{{ strtoupper($activeSubscription->plan) }}</span>
+                    </div>
                 </div>
                 <div class="space-y-3 md:space-y-4">
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400 text-sm">Start Date</span>
-                        <span class="font-medium text-sm md:text-base">2023-04-06</span>
+                        <span class="font-medium text-sm md:text-base">{{ $activeSubscription->start_date ? $activeSubscription->start_date->format('Y-m-d') : 'N/A' }}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-400 text-sm">End Date</span>
-                        <span class="font-medium text-sm md:text-base">2024-04-06</span>
+                        <span class="font-medium text-sm md:text-base">{{ $activeSubscription->end_date ? $activeSubscription->end_date->format('Y-m-d') : 'N/A' }}</span>
                     </div>
                 </div>
             </div>
             
-            <!-- Progress Bar -->
+            <!-- Progress Bar (only for subscriptions with end dates) -->
+            @if($activeSubscription->end_date)
+                @php
+                    $startDate = $activeSubscription->start_date->timestamp;
+                    $endDate = $activeSubscription->end_date->timestamp;
+                    $currentDate = time();
+                    $totalDuration = $endDate - $startDate;
+                    $elapsed = $currentDate - $startDate;
+                    $percentComplete = min(100, max(0, ($elapsed / $totalDuration) * 100));
+                @endphp
             <div class="mt-4 md:mt-6">
                 <div class="flex justify-between text-xs md:text-sm mb-1">
                     <span>Membership Duration</span>
-                    <span>65% Complete</span>
+                    <span>{{ round($percentComplete) }}% Complete</span>
                 </div>
                 <div class="w-full bg-gray-700 rounded-full h-2">
-                    <div class="bg-red-600 h-2 rounded-full" style="width: 65%"></div>
+                    <div class="bg-red-600 h-2 rounded-full" style="width: {{ $percentComplete }}%"></div>
                 </div>
             </div>
+            @endif
             
-            <button class="mt-4 md:mt-6 w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 text-sm md:text-base">
-                Renew Membership
-            </button>
+            <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3">
+                <a href="{{ route('pricing') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-sync-alt mr-2"></i> Change Plan
+                </a>
+                <a href="{{ route('subscription.history') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-history mr-2"></i> View History
+                </a>
+                <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" class="flex-1">
+                    @csrf
+                    <button type="submit" onclick="return confirm('Are you sure you want to cancel your subscription?')" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 text-sm md:text-base">
+                        <i class="fas fa-ban mr-2"></i> Cancel Subscription
+                    </button>
+                </form>
+            </div>
+            @else
+            <div class="py-6 text-center bg-[#1e1e1e] rounded-lg">
+                <i class="fas fa-dumbbell text-gray-500 text-4xl mb-3"></i>
+                <p class="text-gray-400 mb-4">You don't have any active membership plan.</p>
+                <a href="{{ route('pricing') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-plus mr-2"></i> Get Membership
+                </a>
+            </div>
+            @endif
         </div>
 
         <!-- Payment History -->
-        <div class="bg-[#2d2d2d] rounded-xl shadow-lg p-4 md:p-6">
-            <h2 class="text-lg md:text-xl font-semibold mb-4 md:mb-6">Payment History</h2>
+        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
+                <h2 class="text-lg md:text-xl font-semibold">Payment History</h2>
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <select id="filterType" class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm px-3 py-2">
+                        <option value="">All Types</option>
+                        <option value="product">Products</option>
+                        <option value="subscription">Subscriptions</option>
+                    </select>
+                    <input 
+                        type="date" 
+                        id="dateFilter"
+                        class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm px-3 py-2"
+                    >
+                </div>
+            </div>
             <div class="overflow-x-auto -mx-4 md:mx-0">
                 <div class="min-w-[600px] px-4 md:px-0">
-                    <table class="w-full">
+                    <table class="w-full" id="invoiceTable">
                         <thead>
                             <tr class="text-left border-b border-gray-700">
+                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Invoice #</th>
                                 <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Date</th>
+                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Type</th>
                                 <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Amount</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Transaction</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Payment Method</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm"></th>
+                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="border-b border-gray-700">
-                                <td class="py-3 md:py-4 text-xs md:text-sm">2023-04-05</td>
-                                <td class="py-3 md:py-4 text-red-500 font-medium text-xs md:text-sm">₱500</td>
-                                <td class="py-3 md:py-4 text-xs md:text-sm">ORDER</td>
-                                <td class="py-3 md:py-4 text-xs md:text-sm">GCASH</td>
-                                <td class="py-3 md:py-4">
-                                    <button class="text-gray-400 hover:text-white transition-colors">
-                                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                    </button>
+                            @if(isset($invoices) && count($invoices) > 0)
+                                @foreach($invoices as $invoice)
+                                <tr class="border-b border-gray-700 hover:bg-[#374151]">
+                                    <td class="py-3 md:py-4 text-xs md:text-sm">
+                                        {{ substr($invoice->invoice_number ?? 'N/A', 0, 10) }}...
+                                    </td>
+                                    <td class="py-3 md:py-4 text-xs md:text-sm">
+                                        {{ \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d') }}
+                                    </td>
+                                    <td class="py-3 md:py-4 text-xs md:text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs 
+                                            {{ ($invoice->type ?? '') === 'subscription' ? 'bg-blue-900 text-blue-200' : 'bg-green-900 text-green-200' }}">
+                                            {{ ucfirst($invoice->type ?? 'unknown') }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 md:py-4 text-red-500 font-medium text-xs md:text-sm">
+                                        ₱{{ number_format($invoice->total_amount ?? 0, 2) }}
+                                    </td>
+                                    <td class="py-3 md:py-4 flex space-x-2">
+                                        <button class="text-gray-400 hover:text-white transition-colors" 
+                                        onclick="openReceiptModal('{{ $invoice->invoice_number ?? 'Unknown' }}', {{ json_encode([
+                                            'date' => \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d'),
+                                            'type' => ucfirst($invoice->type ?? 'unknown'),
+                                            'amount' => number_format($invoice->total_amount ?? 0, 2),
+                                            'items' => collect($invoice->items ?? [])->map(function($item) {
+                                                return [
+                                                    'description' => $item['description'] ?? $item->description ?? 'Unknown item',
+                                                    'amount' => number_format(isset($item['amount']) ? $item['amount'] : (isset($item->amount) ? $item->amount : 0), 2)
+                                                ];
+                                            })
+                                        ]) }})">
+                                            <i class="fas fa-eye text-sm"></i>
+                                        </button>
+                                        @if(isset($invoice->id))
+                                        <a href="{{ route('user.invoices.receipt', $invoice->id) }}" class="text-gray-400 hover:text-white transition-colors">
+                                            <i class="fas fa-print text-sm"></i>
+                                        </a>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-gray-400">
+                                    No payment history found. Your purchases and subscriptions will appear here.
                                 </td>
                             </tr>
-                            <tr class="border-b border-gray-700">
-                                <td class="py-3 md:py-4 text-xs md:text-sm">2023-03-29</td>
-                                <td class="py-3 md:py-4 text-red-500 font-medium text-xs md:text-sm">₱2,000</td>
-                                <td class="py-3 md:py-4 text-xs md:text-sm">MEMBERSHIP</td>
-                                <td class="py-3 md:py-4 text-xs md:text-sm">CREDIT CARD</td>
-                                <td class="py-3 md:py-4">
-                                    <button class="text-gray-400 hover:text-white transition-colors">
-                                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                    </button>
-                                </td>
-                            </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -273,23 +360,11 @@
     </div>
 </div>
 
-<!-- QR Code Modal -->
-<div id="qrModal" class="modal">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-white">Your Check-In QR Code</h2>
-            <button onclick="closeQrModal()" class="text-gray-400 hover:text-white">
-                <i class="fas fa-times text-lg"></i>
-            </button>
-        </div>
-        <div class="bg-white p-4 rounded-lg flex justify-center items-center">
-            <div class="w-64 h-64">
-                {!! QrCode::size(250)->generate(Auth::user()->qr_code) !!}
-            </div>
-        </div>
-        <p class="text-center mt-4 text-gray-300 text-sm">Show this QR code at the gym entrance to check in</p>
-    </div>
-</div>
+<!-- Include QR Code Modal from partials -->
+@include('profile.partials.qr-code-modal')
+
+<!-- Include Receipt Modal from partials -->
+@include('profile.partials.receipt-modal')
 
 <!-- Inline script for immediate execution -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
@@ -328,13 +403,99 @@
             document.getElementById('qrModal').classList.remove('modal-open');
         };
         
-        // Close modal when clicking outside of it
+        // Receipt Modal
+        window.openReceiptModal = function(invoiceNumber, data) {
+            // Set receipt title
+            document.getElementById('receipt-title').textContent = 'Receipt #' + invoiceNumber.substring(0, 8);
+            
+            // Set receipt details
+            document.getElementById('receiptInvoiceNumber').textContent = invoiceNumber;
+            document.getElementById('receiptDate').textContent = data.date;
+            
+            // Set receipt type with colored badge
+            const typeElement = document.getElementById('receiptType');
+            typeElement.innerHTML = '';
+            const typeBadge = document.createElement('span');
+            typeBadge.className = data.type.toLowerCase() === 'subscription' 
+                ? 'px-2 py-1 bg-blue-800 text-blue-200 rounded-full text-xs font-medium' 
+                : 'px-2 py-1 bg-green-800 text-green-200 rounded-full text-xs font-medium';
+            typeBadge.textContent = data.type;
+            typeElement.appendChild(typeBadge);
+            
+            // Set receipt amount
+            document.getElementById('receiptAmount').textContent = '₱' + data.amount;
+            
+            // Set items
+            const itemsContainer = document.getElementById('receiptItems');
+            itemsContainer.innerHTML = '';
+            
+            data.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="py-2 px-3">${item.description}</td>
+                    <td class="py-2 px-3 text-right">₱${item.amount}</td>
+                `;
+                itemsContainer.appendChild(row);
+            });
+            
+            document.getElementById('receiptModal').classList.add('modal-open');
+        };
+        
+        window.closeReceiptModal = function() {
+            document.getElementById('receiptModal').classList.remove('modal-open');
+        };
+        
+        window.printReceipt = function() {
+            alert('Printing functionality will be implemented here');
+        };
+        
+        // Close modals when clicking outside of them
         window.addEventListener('click', function(event) {
-            const modal = document.getElementById('qrModal');
-            if (event.target === modal) {
+            const qrModal = document.getElementById('qrModal');
+            const receiptModal = document.getElementById('receiptModal');
+            
+            if (event.target === qrModal) {
                 closeQrModal();
             }
+            
+            if (event.target === receiptModal) {
+                closeReceiptModal();
+            }
         });
+        
+        // Filter invoice table
+        const searchInput = document.getElementById('filterType');
+        const dateFilter = document.getElementById('dateFilter');
+        const rows = document.querySelectorAll('#invoiceTable tbody tr');
+        
+        const filterTable = () => {
+            const typeFilter = searchInput.value.toLowerCase();
+            const dateValue = dateFilter.value;
+            
+            rows.forEach(row => {
+                if (row.cells.length < 3) return; // Skip "No payment history" row
+                
+                const type = row.cells[2].textContent.toLowerCase().trim();
+                const date = row.cells[1].textContent.trim();
+                
+                let shouldShow = true;
+                
+                // Check type filter
+                if (typeFilter && !type.includes(typeFilter)) {
+                    shouldShow = false;
+                }
+                
+                // Check date filter
+                if (dateValue && date !== dateValue) {
+                    shouldShow = false;
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        };
+        
+        if (searchInput) searchInput.addEventListener('change', filterTable);
+        if (dateFilter) dateFilter.addEventListener('input', filterTable);
         
         // Chart.js initialization
         try {

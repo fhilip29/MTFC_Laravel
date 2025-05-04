@@ -108,7 +108,8 @@
     <main class="flex-grow">
         @yield('content')
         
-        @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') && !Request::is('pricing'))
+        @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
+        !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart'))
             <div class="h-[400px]"></div>
         @endif
     </main>

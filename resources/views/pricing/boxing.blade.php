@@ -39,20 +39,17 @@
                 <h2 class="text-xl font-bold mb-3">Monthly Membership</h2>
                 <ul class="text-sm text-gray-700 space-y-2 mb-6">
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> Unlimited boxing classes
+                        <x-check-icon /> Free Use of Gym
                     </li>
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> One-on-one technique coaching
+                        <x-check-icon /> Shower Given
                     </li>
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> Sparring opportunities
-                    </li>
-                    <li class="flex items-start gap-2">
-                        <x-check-icon /> Full gym access included
+                        <x-check-icon /> Free Use of Boxing Equipment
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$150 / month</span>
+                    <span class="text-lg font-semibold text-gray-800">₱3,000 / month</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
@@ -72,20 +69,23 @@
             <!-- Per-Session Pass -->
             <div class="w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col">
                 <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
-                <h2 class="text-xl font-bold mb-3">Per-Session Pass</h2>
+                <h2 class="text-xl font-bold mb-3">10 Session Pass</h2>
                 <ul class="text-sm text-gray-700 space-y-2 mb-6">
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> Single boxing session
+                        <x-check-icon /> Good for 1 Month
                     </li>
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> Equipment rental available
+                        <x-check-icon /> Free Use of Gym
                     </li>
                     <li class="flex items-start gap-2">
-                        <x-check-icon /> Perfect for trying it out
+                        <x-check-icon /> Shower Given
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <x-check-icon /> Free Use of Boxing Equipment
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$20 / session</span>
+                    <span class="text-lg font-semibold text-gray-800">₱2,500 / session</span>
                     @if(Auth::check())
                         <button onclick="openWaiverModal('boxing', 'per-session', '20.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
                             Buy Now

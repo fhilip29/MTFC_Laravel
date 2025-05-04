@@ -26,6 +26,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\HomeController;
 
 
 
@@ -69,11 +70,9 @@ Route::middleware(['auth', 'role:trainer'])->group(function () {
 //});
 
 
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 
-Route::get('/', function () {
-    return view('home');
-})->name('home');
 
 
 // ===================
@@ -141,6 +140,7 @@ Route::view('/notifications', 'notifications')->name('notifications');
 
 Route::view('/payment-method', 'payment-method')->name('payment-method');
 Route::get('/profile/settings', [AccountController::class, 'index'])->name('profile.settings');
+Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync');
 
 
 // ===================

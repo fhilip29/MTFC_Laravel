@@ -101,17 +101,21 @@
     </style>
 
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="flex flex-col min-h-screen">
 
     @include('components.header')
 
     <main class="flex-grow">
         @yield('content')
+        
+        @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') && !Request::is('pricing'))
+            <div class="h-[400px]"></div>
+        @endif
     </main>
 
-    <footer class="mt-20 py-2">
+    
     @include('components.footer')
-    </footer>
+
 
    <!-- 🛒 Cart Drawer -->
    <div id="cartDrawer" class="fixed top-0 right-0 w-96 h-full bg-white shadow-lg transform translate-x-full transition-transform z-50 overflow-hidden flex flex-col">

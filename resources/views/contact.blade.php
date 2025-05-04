@@ -3,12 +3,12 @@
 @section('title', 'Contact Us')
 
 @section('content')
-<section class="bg-gradient-to-b from-gray-800 to-gray-900 min-h-screen py-12 pb-24 px-4 md:px-36">
+<section class="bg-white min-h-screen py-12 pb-6 px-4 md:px-36">
     <div class="max-w-5xl mx-auto">
         <!-- Header with animated elements -->
         <div class="text-center mb-12 animate-fade-in-down">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">Get in Touch</h1>
-            <p class="text-gray-300 text-lg max-w-2xl mx-auto">Have questions about our gym or services? Our team is ready to help you with any inquiries you might have.</p>
+            <h1 class="text-4xl md:text-5xl font-bold text-black mb-4">Get in Touch</h1>
+            <p class="text-black text-lg max-w-2xl mx-auto">Have questions about our gym or services? Our team is ready to help you with any inquiries you might have.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">

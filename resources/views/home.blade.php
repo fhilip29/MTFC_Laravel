@@ -76,110 +76,81 @@
 </section>
 
 
-<!-- Products Section (Carousel) -->
+<!-- Top Rated Products Section -->
 @php
-        $products = [
-            [
-                'name' => 'Resistance Bands',
-                'price' => 499,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Resistance+Bands',
-            ],
-            [
-                'name' => 'Yoga Mat',
-                'price' => 699,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Yoga+Mat',
-            ],
-            [
-                'name' => 'Dumbbells Set',
-                'price' => 1999,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Dumbbells+Set',
-            ],
-            [
-                'name' => 'Pull-up Bar',
-                'price' => 999,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Pull-up+Bar',
-            ],
-            [
-                'name' => 'Kettlebell',
-                'price' => 849,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Kettlebell',
-            ],
-            [
-                'name' => 'Protein Shaker',
-                'price' => 349,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Protein+Shaker',
-            ],
-            [
-                'name' => 'Treadmill',
-                'price' => 25999,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Treadmill',
-            ],
-            [
-                'name' => 'Stationary Bike',
-                'price' => 18999,
-                'imgUrl' => 'https://via.placeholder.com/150?text=Stationary+Bike',
-            ],
-        ];
+    $chunks = $topRatedProducts->chunk(4);
+@endphp
 
-        $chunks = collect($products)->chunk(4);
-    @endphp
 <div class="bg-[#121212] mb-0 pb-16">
-    <section class="products-section py-16 pb-16" data-animate x-data="{ modalOpen: false, activeProduct: null }">
-    <div class="container mx-auto my-10">
-        <h2 class="text-center mb-8 text-white">Top Rated Products</h2>
+    <section class="products-section py-16 pb-16" data-animate x-data="{ modalOpen: false, activeProduct: {} }" x-init="$watch('cartItems', value => console.log(value))">
+        <div class="container mx-auto my-10">
+            <h2 class="text-center mb-8 text-white">Most Purchased Products</h2>
 
-        <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                @foreach ($chunks as $chunkIndex => $chunk)
-                    <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-                        <div class="d-flex justify-content-center gap-4">
-                            @foreach ($chunk as $product)
-                                <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 16rem;">
-                                    <img src="{{ $product['imgUrl'] }}" class="w-full h-40 object-cover" alt="{{ $product['name'] }}">
-                                    <div class="p-3">
-                                        <h3 class="text-md font-semibold mb-1">{{ $product['name'] }}</h3>
-                                        <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product['price'], 2) }}</p>
-                                        <div class="flex justify-between items-center">
-                                            <button @click="modalOpen = true; activeProduct = {name: '{{ $product['name'] }}', price: '{{ number_format($product['price'], 2) }}', imgUrl: '{{ $product['imgUrl'] }}'}" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
-                                                <i class="fas fa-eye"></i>
-                                                <span>View</span>
-                                            </button>
-                                            <button class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
-                                                <i class="fas fa-shopping-cart"></i>
-                                                <span>Add</span>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+            @if($topRatedProducts->isEmpty())
+                <p class="text-center text-white text-lg">No Products Available Yet</p>
+            @else
+                <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                    @foreach ($chunks as $chunkIndex => $chunk)
+    <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
+        <div class="d-flex justify-content-center gap-4">
+            @foreach ($chunk as $product)
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 16rem;">
+                    <!-- Display Product Image -->
+                    <img src="{{ asset($product->image) }}" class="w-full h-40 object-cover" alt="{{ $product->name }}">
+
+                    <div class="p-3">
+                        <h3 class="text-md font-semibold mb-1">{{ $product->name }}</h3>
+                        <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product->price, 2) }}</p>
+                        <div class="flex justify-between items-center">
+                            <button @click="modalOpen = true; activeProduct = {
+                                id: {{ $product->id }},
+                                name: '{{ $product->name }}',
+                                price: {{ $product->price }},
+                                imgUrl: '{{ asset($product->image) }}'
+                            }" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                <i class="fas fa-eye"></i>
+                                <span>View</span>
+                            </button>
+                            <button @click="addToCart({
+                                id: {{ $product->id }},
+                                name: '{{ $product->name }}',
+                                price: {{ $product->price }},
+                                imgUrl: '{{ asset($product->image) }}'
+                            })" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Add</span>
+                            </button>
                         </div>
                     </div>
-                @endforeach
-            </div>
-
-            <!-- Carousel Pagination -->
-            <div class="flex justify-center mt-8 gap-3">
-                @foreach ($chunks as $index => $chunk)
-                    <button type="button" 
-                        data-bs-target="#topItemsCarousel" 
-                        data-bs-slide-to="{{ $index }}" 
-                        class="{{ $index === 0 ? 'w-4 h-4 rounded-full bg-red-600' : 'w-4 h-4 rounded-full bg-gray-300' }} hover:bg-red-400 transition-all duration-300"
-                        aria-label="Slide {{ $index + 1 }}" 
-                        {{ $index === 0 ? 'aria-current="true"' : '' }}>
-                    </button>
-                @endforeach
-            </div>
+                </div>
+            @endforeach
         </div>
-        
+    </div>
+@endforeach
+
+
+                    <div class="flex justify-center mt-8 gap-3">
+                        @foreach ($chunks as $index => $chunk)
+                            <button type="button" 
+                                data-bs-target="#topItemsCarousel" 
+                                data-bs-slide-to="{{ $index }}" 
+                                class="{{ $index === 0 ? 'w-4 h-4 rounded-full bg-red-600' : 'w-4 h-4 rounded-full bg-gray-300' }} hover:bg-red-400 transition-all duration-300"
+                                aria-label="Slide {{ $index + 1 }}" 
+                                {{ $index === 0 ? 'aria-current="true"' : '' }}></button>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        </div>
+
         <!-- Product Modal -->
         <div x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
             <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                <!-- Background overlay -->
                 <div x-show="modalOpen" @click="modalOpen = false" class="fixed inset-0 transition-opacity" aria-hidden="true">
                     <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
                 </div>
-
-                <!-- Modal panel -->
+                <!-- Modal Content -->
                 <div x-show="modalOpen" class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                     <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div class="sm:flex sm:items-start">
@@ -197,8 +168,8 @@
                                     <div class="md:w-2/3">
                                         <p class="text-sm text-gray-500 mb-2">Product Details:</p>
                                         <p class="text-sm text-gray-700 mb-4">High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.</p>
-                                        <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="activeProduct?.price"></span></p>
-                                        <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                                        <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
+                                        <button @click="addToCart(activeProduct); modalOpen = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
                                             Add to Cart
                                         </button>
                                     </div>
@@ -209,8 +180,10 @@
                 </div>
             </div>
         </div>
-    </div>
     </section>
+</div>
+
+
 
     
 
@@ -260,6 +233,42 @@
     document.querySelector('.products-button')?.addEventListener('click', () => {
         window.location.href = '{{ url("products") }}';
     });
+
+    document.addEventListener('alpine:init', () => {
+    Alpine.data('cartHandler', () => ({
+        cartItems: [],
+        modalOpen: false,
+        activeProduct: null,
+
+        addToCart(product) {
+            const existing = this.cartItems.find(item => item.id === product.id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                this.cartItems.push({ ...product, quantity: 1 });
+            }
+            this.syncCart();
+        },
+
+        syncCart() {
+            fetch("{{ route('cart.sync') }}", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ items: this.cartItems })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    alert("Cart sync failed: " + data.message);
+                }
+            });
+        }
+    }));
+});
+
 </script>
 
 @endsection

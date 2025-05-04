@@ -45,10 +45,12 @@ class AccountController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'mobile_number' => ['nullable', 'string', 'max:20'],
+            'mobile_number' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
+            'other_gender' => ['nullable', 'string', 'required_if:gender,other'],
             'fitness_goal' => ['nullable', 'string', 'in:weight-loss,muscle-gain,endurance,flexibility,general-fitness'],
             'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:4096'], // 4MB
+            'cropped_image' => ['nullable', 'string'],
         ]);
 
         if ($validator->fails()) {
@@ -63,17 +65,41 @@ class AccountController extends Controller
             'gender' => $request->gender,
             'fitness_goal' => $request->fitness_goal,
         ]);
+        
+        // Handle other gender if selected
+        if ($request->gender === 'other' && $request->has('other_gender')) {
+            $user->other_gender = $request->other_gender;
+        }
 
         // Handle profile image upload
-        if ($request->hasFile('profile_image')) {
+        if ($request->hasFile('profile_image') || $request->filled('cropped_image')) {
             // Delete old image if it exists
             if ($user->profile_image && Storage::exists('public/' . $user->profile_image)) {
                 Storage::delete('public/' . $user->profile_image);
             }
             
-            // Store new image
-            $path = $request->file('profile_image')->store('profile_images', 'public');
-            $user->profile_image = $path;
+            if ($request->filled('cropped_image')) {
+                // Process base64 image data
+                $imageData = $request->cropped_image;
+                
+                // Extract the actual base64 string
+                if (strpos($imageData, ';base64,') !== false) {
+                    list(, $imageData) = explode(';base64,', $imageData);
+                }
+                
+                // Generate a unique filename
+                $filename = 'profile_' . $user->id . '_' . time() . '.jpg';
+                $path = 'profile_images/' . $filename;
+                
+                // Store the file
+                Storage::disk('public')->put($path, base64_decode($imageData));
+                $user->profile_image = $path;
+            }
+            elseif ($request->hasFile('profile_image')) {
+                // Store new image the traditional way
+                $path = $request->file('profile_image')->store('profile_images', 'public');
+                $user->profile_image = $path;
+            }
         }
 
         $user->save();

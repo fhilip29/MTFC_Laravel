@@ -52,13 +52,15 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$150 / month</span>
+                    <span class="text-lg font-semibold text-gray-800">$100 / month</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
+                        @elseif($isTrainer)
+                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
-                            <button onclick="openWaiverModal('muay', 'monthly', '150.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-                                Subscribe Now
+                            <button onclick="openWaiverModal('muay', 'monthly', '100.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                                Join Now
                             </button>
                         @endif
                     @else
@@ -85,11 +87,17 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$20 / session</span>
+                    <span class="text-lg font-semibold text-gray-800">$20 / day</span>
                     @if(Auth::check())
-                        <button onclick="openWaiverModal('muay', 'per-session', '20.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
-                            Buy Now
-                        </button>
+                        @if($userHasActive)
+                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
+                        @elseif($isTrainer)
+                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
+                        @else
+                            <button onclick="openWaiverModal('muay', 'daily', '20.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                                Join Now
+                            </button>
+                        @endif
                     @else
                         <a href="{{ route('login') }}" class="text-sm px-3 py-1 bg-gray-300 text-gray-700 rounded-full hover:bg-gray-400 transition">
                             Login

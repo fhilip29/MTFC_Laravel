@@ -6,6 +6,65 @@
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Toggle Switch Styles -->
+<style>
+    /* Toggle Switch Styles */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #4B5563;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: #10B981;
+    }
+    
+    input:focus + .slider {
+        box-shadow: 0 0 1px #10B981;
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(24px);
+    }
+    
+    .status-label {
+        margin-left: 8px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+</style>
+
 <div class="p-6" x-data="{ 
     showAddModal: false, 
     showViewModal: false,
@@ -84,6 +143,7 @@
                         <th scope="col" class="px-6 py-3 text-left tracking-wider">Date</th>
                         <th scope="col" class="px-6 py-3 text-left tracking-wider">Status</th>
                         <th scope="col" class="px-6 py-3 text-left tracking-wider">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left tracking-wider">Enable</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-700">
@@ -97,7 +157,7 @@
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex space-x-2">
+                            <div class="flex space-x-2 items-center">
                                 <button @click="openViewModal({{ $announcement }})" class="text-blue-400 hover:text-blue-300 view-announcement" data-id="{{ $announcement->id }}">
                                     <i class="fas fa-eye"></i>
                                 </button>
@@ -107,19 +167,25 @@
                                 <button @click="confirmDelete('{{ $announcement->id }}', '{{ $announcement->title }}')" class="text-red-400 hover:text-red-300 delete-announcement" data-id="{{ $announcement->id }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
-                                <form onsubmit="event.preventDefault(); toggleStatus('{{ $announcement->id }}');">
-    <button type="submit"
-        class="px-3 py-1 rounded text-sm font-medium 
-        {{ $announcement->is_active === 'active' ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-gray-600 hover:bg-gray-500 text-white' }}">
-        {{ $announcement->is_active === 'active' ? 'Disable' : 'Enable' }}
-    </button>
-</form>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <label class="switch">
+                                    <input type="checkbox" 
+                                           {{ $announcement->is_active === 'active' ? 'checked' : '' }} 
+                                           onchange="toggleStatus('{{ $announcement->id }}')">
+                                    <span class="slider"></span>
+                                </label>
+                                <span class="status-label text-xs {{ $announcement->is_active === 'active' ? 'text-green-400' : 'text-gray-400' }}">
+                                    {{ $announcement->is_active === 'active' ? 'Active' : 'Inactive' }}
+                                </span>
                             </div>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="4" class="px-6 py-4 text-center text-gray-400">
+                        <td colspan="5" class="px-6 py-4 text-center text-gray-400">
                             No announcements found. Click "Create Announcement" to add your first announcement.
                         </td>
                     </tr>
@@ -210,11 +276,6 @@
                         <label for="edit_message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
                         <textarea name="message" id="edit_message" rows="5" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-text="currentAnnouncement?.message"></textarea>
                         <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
-                    </div>
-                    
-                    <div class="flex items-center">
-                        <input type="checkbox" name="is_active" id="edit_is_active" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500" x-bind:checked="currentAnnouncement?.is_active">
-                        <label for="edit_is_active" class="ml-2 text-sm font-medium text-gray-300">Make announcement active</label>
                     </div>
                     
                     <div class="flex items-center">
@@ -346,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const tbody = document.querySelector('tbody');
                 const newRow = document.createElement('tr');
                 newRow.id = 'no-results-row';
-                newRow.innerHTML = '<td colspan="4" class="px-6 py-4 text-center text-gray-400">No matching announcements found</td>';
+                newRow.innerHTML = '<td colspan="5" class="px-6 py-4 text-center text-gray-400">No matching announcements found</td>';
                 tbody.appendChild(newRow);
             } else if (visibleRows.length > 0 && noResultsRow) {
                 noResultsRow.remove();
@@ -381,12 +442,25 @@ document.addEventListener('DOMContentLoaded', function() {
             set(value) {
                 originalShowEditModal = value;
                 if (value) {
-                    // Reset form when modal is opened
+                    // Reset form and properly show/hide scheduling options based on the announcement data
                     setTimeout(() => {
                         const form = document.getElementById('editAnnouncementForm');
-                        if (form) form.reset();
+                        if (form) {
+                            // Don't use reset() as it would remove the values set by Alpine.js
+                            // Instead, let the x-bind directives populate the values
+                        }
+                        
+                        const editScheduleLater = document.getElementById('edit_schedule_later');
                         const editSchedulingOptions = document.getElementById('editSchedulingOptions');
-                        if (editSchedulingOptions) editSchedulingOptions.classList.add('hidden');
+                        
+                        if (editScheduleLater && app.currentAnnouncement) {
+                            const hasScheduledTime = app.currentAnnouncement.scheduled_at !== null;
+                            editScheduleLater.checked = hasScheduledTime;
+                            
+                            if (editSchedulingOptions) {
+                                editSchedulingOptions.classList.toggle('hidden', !hasScheduledTime);
+                            }
+                        }
                     }, 100);
                 }
             }
@@ -517,27 +591,97 @@ function confirmDelete(id, title) {
     });
 }
 
-// Update the toggleStatus function to use direct URL
+// Update the toggleStatus function to handle toggle switches
 function toggleStatus(id) {
-    fetch(`/announcements/${id}/toggle`, {
+    // Find the toggle switch, label, and status badge for this announcement
+    const toggleSwitch = document.querySelector(`tr[data-id="${id}"] .switch input`);
+    const statusLabel = document.querySelector(`tr[data-id="${id}"] .status-label`);
+    const statusCell = document.querySelector(`tr[data-id="${id}"] td:nth-child(3) span`);
+    
+    // The current checked state before we send to server
+    const currentChecked = toggleSwitch.checked;
+    
+    // Store the text of the status cell to check if it's in pending state
+    const currentStatus = statusCell ? statusCell.textContent.trim() : '';
+    const isPending = currentStatus === 'Pending';
+    
+    // We're going to send the current checked state as our intended state
+    // If the switch is checked, we want to activate, if unchecked, deactivate
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    
+    // Temporarily disable the switch until we get a response
+    toggleSwitch.disabled = true;
+    
+    // Make API request to toggle status
+    fetch(`/admin/announcements/${id}/toggle-active`, {
         method: 'PATCH',
         headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({ 
+            is_active: currentChecked ? 'active' : 'inactive',
+            status: currentStatus
+        })
     })
     .then(res => {
         if (!res.ok) throw new Error('Request failed');
         return res.json();
     })
     .then(data => {
-        // optionally refresh or update UI
-        location.reload();
+        if (data.success) {
+            // For successful responses, we keep the switch state as it is now
+            // (user toggled it before we sent the request)
+            
+            // Update status label next to toggle switch
+            if (statusLabel) {
+                statusLabel.textContent = currentChecked ? 'Active' : 'Inactive';
+                statusLabel.className = `status-label text-xs ${currentChecked ? 'text-green-400' : 'text-gray-400'}`;
+            }
+            
+            // Update status badge in status column, preserving pending status if applicable
+            if (statusCell && !isPending) {
+                statusCell.textContent = currentChecked ? 'Active' : 'Inactive';
+                statusCell.className = `px-2 py-1 text-xs rounded-full ${currentChecked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`;
+            }
+            
+            // Show success notification with correct message
+            Swal.fire({
+                icon: 'success',
+                title: 'Status Updated',
+                text: `Announcement ${currentChecked ? 'activated' : 'deactivated'} successfully.`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                background: '#1F2937',
+                color: '#FFFFFF'
+            });
+        } else {
+            throw new Error(data.message || 'Operation failed');
+        }
     })
     .catch(error => {
-        alert("An error occurred while updating the announcement status.");
-        console.error(error);
+        console.error('Error:', error);
+        
+        // On error, revert the switch to its original state (opposite of what user clicked)
+        toggleSwitch.checked = !currentChecked;
+        
+        // Show error notification
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update announcement status. Please try again.',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#DC2626'
+        });
+    })
+    .finally(() => {
+        // Re-enable the switch
+        toggleSwitch.disabled = false;
     });
 }
 

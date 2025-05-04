@@ -2,6 +2,32 @@
 @section('title', 'Announcement Management')
 
 @section('content')
+<style>
+    /* Custom styling for the toggle switch */
+    .form-check-input.toggle-status {
+        width: 3em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+    
+    .form-check-input.toggle-status:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }
+    
+    .form-check-input.toggle-status:focus {
+        box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+    }
+    
+    td .form-check.form-switch {
+        margin-bottom: 0;
+    }
+    
+    .form-check-label {
+        font-weight: 500;
+    }
+</style>
+
 <div class="container-fluid px-4">
     <h1 class="mt-4">Announcement Management</h1>
     <ol class="breadcrumb mb-4">
@@ -42,11 +68,15 @@
                             <td>{{ $announcement->title }}</td>
                             <td>{{ $announcement->created_at->format('Y-m-d') }}</td>
                             <td>
-                                @if($announcement->is_active)
-                                <span class="badge bg-success">Active</span>
-                                @else
-                                <span class="badge bg-secondary">Inactive</span>
-                                @endif
+                                <div class="form-check form-switch d-flex justify-content-center">
+                                    <input class="form-check-input toggle-status" type="checkbox" role="switch" 
+                                           id="statusSwitch{{ $announcement->id }}" 
+                                           data-id="{{ $announcement->id }}" 
+                                           {{ $announcement->is_active ? 'checked' : '' }}>
+                                    <label class="form-check-label ms-2" for="statusSwitch{{ $announcement->id }}">
+                                        {{ $announcement->is_active ? 'Active' : 'Inactive' }}
+                                    </label>
+                                </div>
                             </td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-info view-announcement" data-id="{{ $announcement->id }}">
@@ -57,9 +87,6 @@
                                 </button>
                                 <button type="button" class="btn btn-sm btn-danger delete-announcement" data-id="{{ $announcement->id }}">
                                     <i class="fas fa-trash"></i>
-                                </button>
-                                <button type="button" class="btn btn-sm {{ $announcement->is_active ? 'btn-warning' : 'btn-success' }} toggle-status" data-id="{{ $announcement->id }}">
-                                    <i class="fas {{ $announcement->is_active ? 'fa-ban' : 'fa-check' }}"></i>
                                 </button>
                             </td>
                         </tr>
@@ -384,10 +411,11 @@ if ($('#schedule_later').is(':checked')) {
     });
     
     // Toggle status
-    $('.toggle-status').click(function() {
+    $('.toggle-status').change(function() {
         const id = $(this).data('id');
-        const currentStatus = $(this).find('i').hasClass('fa-ban') ? 'active' : 'inactive';
-        const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+        const isActive = $(this).prop('checked');
+        const statusLabel = $(this).siblings('label');
+        const toggleSwitch = $(this);
         
         $.ajax({
             url: `/admin/announcements/${id}/toggle`,
@@ -397,17 +425,21 @@ if ($('#schedule_later').is(':checked')) {
             },
             success: function(response) {
                 if(response.success) {
+                    statusLabel.text(isActive ? 'Active' : 'Inactive');
+                    
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
                         text: response.message,
                         timer: 1500
-                    }).then(() => {
-                        location.reload();
                     });
                 }
             },
             error: function() {
+                // Revert the switch if there's an error
+                toggleSwitch.prop('checked', !isActive);
+                statusLabel.text(!isActive ? 'Active' : 'Inactive');
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',

@@ -58,25 +58,29 @@
                              class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
                     </button>
                     <div x-show="open" @click.outside="open = false"
-                         class="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg z-50 p-3">
-                        <p class="text-sm font-semibold mb-2">Hello, {{ Auth::user()->full_name ?? 'User' }}</p>
+                         class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-50 p-3">
+                        <p class="text-sm font-semibold mb-2 text-gray-800">Hello, {{ Auth::user()->full_name ?? 'User' }}</p>
                         <hr>
                         <div class="mt-2 space-y-1 text-sm">
                             @if (Auth::user()->role === 'admin')
-                                <a href="{{ route('admin.dashboard') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Admin Panel</a>
-                                <button @click="adminProfileModal = true; open = false" type="button" class="w-full text-left hover:bg-gray-100 px-2 py-1 rounded">
+                                <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Admin Panel</a>
+                                <button @click="adminProfileModal = true; open = false" type="button" class="w-full text-left text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
                                     Profile
                                 </button>
+                            @elseif (Auth::user()->role === 'trainer')
+                                <a href="{{ route('trainer.profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Profile</a>
+                                <a href="{{ route('community') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Community</a>
+                                <a href="{{ route('orders') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Orders</a>
                             @else
-                                <a href="{{ route('account.settings') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Account Settings</a>
-                                <a href="{{ Auth::user()->role === 'trainer' ? route('trainer.profile') : route('profile') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Profile</a>
-                                <a href="{{ route('community') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">Community</a>
-                                <a href="{{ route('orders') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Orders</a>
-                                <a href="{{ route('subscription.history') }}" class="block hover:bg-gray-100 px-2 py-1 rounded">My Subscriptions</a>
+                                <a href="{{ route('account.settings') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Account Settings</a>
+                                <a href="{{ route('profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Profile</a>
+                                <a href="{{ route('community') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Community</a>
+                                <a href="{{ route('orders') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Orders</a>
+                                <a href="{{ route('subscription.history') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Subscriptions</a>
                             @endif
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <button class="w-full text-left hover:bg-gray-100 px-2 py-1 rounded">Logout</button>
+                                <button class="w-full text-left text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Logout</button>
                             </form>
                         </div>
                     </div>

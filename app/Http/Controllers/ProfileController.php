@@ -116,7 +116,8 @@ class ProfileController extends Controller
     public function showQrCode()
     {
         $user = Auth::user();
-        return view('profile.show_qr', compact('user'));
+        $role = $user->role; // Add role to pass to the view
+        return view('profile.show_qr', compact('user', 'role'));
     }
     
     /**

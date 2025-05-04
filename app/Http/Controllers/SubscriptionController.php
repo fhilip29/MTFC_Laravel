@@ -28,6 +28,9 @@ class SubscriptionController extends Controller
                 'type' => 'required|string|in:gym,boxing,muay,jiu',
                 'plan' => 'required|string|in:daily,monthly,quarterly,annual',
                 'amount' => 'required|numeric|min:0',
+                'payment_method' => 'nullable|string',
+                'payment_status' => 'nullable|string',
+                'waiver_accepted' => 'nullable|boolean'
             ]);
 
             // Get plan details to determine subscription duration
@@ -47,6 +50,12 @@ class SubscriptionController extends Controller
                     $endDate = now()->addYear();
                     break;
             }
+            
+            // Determine if the subscription should be active based on payment status
+            $isActive = true;
+            if (isset($validated['payment_status']) && $validated['payment_status'] === 'pending') {
+                $isActive = false; // For cash payments, subscription is not active until payment is confirmed
+            }
 
             // Create subscription
             $subscription = Subscription::create([
@@ -56,7 +65,10 @@ class SubscriptionController extends Controller
                 'price' => $validated['amount'],
                 'start_date' => now(),
                 'end_date' => $endDate,
-                'is_active' => true,
+                'is_active' => $isActive,
+                'payment_method' => $request->payment_method ?? 'unknown',
+                'payment_status' => $request->payment_status ?? 'completed',
+                'waiver_accepted' => $request->waiver_accepted ?? false
             ]);
 
             // Generate invoice
@@ -64,17 +76,24 @@ class SubscriptionController extends Controller
             $this->invoiceController->storeSubscriptionInvoice(
                 Auth::id(),
                 $subscriptionDetails,
-                $validated['amount']
+                $validated['amount'],
+                $request->payment_status ?? 'completed'
             );
 
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Subscription activated successfully!'
+                    'message' => $isActive ? 
+                        'Subscription activated successfully!' : 
+                        'Subscription created successfully! Please complete payment at the counter to activate.'
                 ]);
             }
-
-            return redirect()->back()->with('success', 'Subscription activated successfully!');
+            
+            $message = $isActive ? 
+                'Subscription activated successfully!' : 
+                'Subscription created successfully! Please complete payment at the counter to activate.';
+                
+            return redirect()->route('profile')->with('success', $message);
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([

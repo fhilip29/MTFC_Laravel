@@ -89,20 +89,21 @@ class TrainerController extends Controller
         // Log the incoming request for debugging
         \Log::info('Trainer store request received', [
             'has_file' => $request->hasFile('profile_image'),
-            'all_files' => $request->allFiles(),
-            'all_inputs' => $request->except(['password']), // Don't log password
+            'has_base64' => $request->has('profile_image_base64'),
+            'all_inputs' => $request->except(['password', 'profile_image_base64']), // Don't log sensitive data
         ]);
 
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8',
-            'mobile_number' => 'nullable|string|max:15',
+            'mobile_number' => 'nullable|string|max:15|unique:users,mobile_number',
             'specialization' => 'required|string|max:255',
-            'hourly_rate' => 'required|numeric|min:0',
             'instructor_for' => 'required|string',
             'short_intro' => 'nullable|string',
             'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
+            'profile_image_base64' => 'nullable|string',
+            'other_gender' => 'nullable|string|required_if:gender,other',
         ]);
 
         if ($validator->fails()) {
@@ -124,20 +125,48 @@ class TrainerController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->mobile_number = $request->mobile_number;
+            
+            // Handle gender - store additional info if 'other' is selected
             $user->gender = $request->has('gender') ? $request->gender : null;
+            if ($request->gender === 'other' && $request->has('other_gender')) {
+                $user->other_gender = $request->other_gender;
+            }
+            
             $user->role = 'trainer';
             $user->is_agreed_to_terms = true; // Setting as true since admin is creating
+            
+            // Generate QR code for the trainer
+            try {
+                // Generate a unique identifier for the QR code
+                $uniqueId = uniqid('trainer_', true);
+                
+                // Create QR code data (e.g., user ID, name, and unique identifier)
+                $qrData = json_encode([
+                    'id' => $uniqueId,
+                    'email' => $request->email,
+                    'created_at' => now()->format('Y-m-d H:i:s')
+                ]);
+                
+                // Encrypt QR data for security
+                $encryptedData = base64_encode($qrData);
+                
+                // Set the QR code value
+                $user->qr_code = $encryptedData;
+            } catch (\Exception $e) {
+                \Log::error('Error generating QR code: ' . $e->getMessage());
+                // Continue even if QR code generation fails
+            }
+            
             $user->save();
 
             // Create trainer profile
             $trainer = new Trainer();
             $trainer->user_id = $user->id;
             $trainer->specialization = $request->specialization;
-            $trainer->hourly_rate = $request->hourly_rate;
             $trainer->instructor_for = $request->instructor_for;
             $trainer->short_intro = $request->short_intro;
             
-            // Handle profile image upload if provided
+            // Handle profile image upload
             if ($request->hasFile('profile_image')) {
                 try {
                     $file = $request->file('profile_image');
@@ -151,9 +180,30 @@ class TrainerController extends Controller
                 } catch (\Exception $e) {
                     \Log::error('Error handling profile image: ' . $e->getMessage());
                     \Log::error($e->getTraceAsString());
+                }
+            } 
+            // Handle cropped base64 image
+            elseif ($request->has('profile_image_base64')) {
+                try {
+                    $base64Image = $request->profile_image_base64;
                     
-                    // Continue with the save, just log the error
-                    // We don't want to block the trainer creation because of an image issue
+                    // Extract the actual base64 string
+                    if (strpos($base64Image, ';base64,') !== false) {
+                        list(, $base64Image) = explode(';base64,', $base64Image);
+                    }
+                    
+                    // Generate a unique filename
+                    $filename = 'cropped_' . time() . '.jpg';
+                    $path = 'uploads/profiles/' . $filename;
+                    
+                    // Store the file
+                    \Storage::disk('public')->put($path, base64_decode($base64Image));
+                    $trainer->profile_url = 'storage/' . $path;
+                    
+                    \Log::info('Saved cropped profile image at: ' . $trainer->profile_url);
+                } catch (\Exception $e) {
+                    \Log::error('Error handling cropped profile image: ' . $e->getMessage());
+                    \Log::error($e->getTraceAsString());
                 }
             }
             
@@ -198,8 +248,8 @@ class TrainerController extends Controller
         \Log::info('Trainer update request received', [
             'id' => $id,
             'has_file' => $request->hasFile('profile_image'),
-            'all_files' => $request->allFiles(),
-            'all_inputs' => $request->except(['password']), // Don't log password
+            'has_base64' => $request->has('profile_image_base64'),
+            'all_inputs' => $request->except(['password', 'profile_image_base64']), // Don't log sensitive data
         ]);
 
         $trainer = Trainer::findOrFail($id);
@@ -207,12 +257,13 @@ class TrainerController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $trainer->user_id,
-            'mobile_number' => 'nullable|string|max:15',
+            'mobile_number' => 'nullable|string|max:15|unique:users,mobile_number,' . $trainer->user_id,
             'specialization' => 'required|string|max:255',
-            'hourly_rate' => 'required|numeric|min:0',
             'instructor_for' => 'required|string',
             'short_intro' => 'nullable|string',
             'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
+            'profile_image_base64' => 'nullable|string',
+            'other_gender' => 'nullable|string|required_if:gender,other',
         ]);
 
         if ($validator->fails()) {
@@ -233,17 +284,48 @@ class TrainerController extends Controller
             $user->full_name = $request->full_name;
             $user->email = $request->email;
             $user->mobile_number = $request->mobile_number;
+            
+            // Handle gender - store additional info if 'other' is selected
             if ($request->has('gender')) {
                 $user->gender = $request->gender;
+                
+                if ($request->gender === 'other' && $request->has('other_gender')) {
+                    $user->other_gender = $request->other_gender;
+                }
             }
+            
             if ($request->filled('password')) {
                 $user->password = Hash::make($request->password);
             }
+            
+            // Check if user has a QR code, if not, generate one
+            if (empty($user->qr_code)) {
+                try {
+                    // Generate a unique identifier for the QR code
+                    $uniqueId = uniqid('trainer_', true);
+                    
+                    // Create QR code data
+                    $qrData = json_encode([
+                        'id' => $uniqueId,
+                        'email' => $user->email,
+                        'created_at' => now()->format('Y-m-d H:i:s')
+                    ]);
+                    
+                    // Encrypt QR data for security
+                    $encryptedData = base64_encode($qrData);
+                    
+                    // Set the QR code value
+                    $user->qr_code = $encryptedData;
+                } catch (\Exception $e) {
+                    \Log::error('Error generating QR code during update: ' . $e->getMessage());
+                    // Continue even if QR code generation fails
+                }
+            }
+            
             $user->save();
 
             // Update trainer profile
             $trainer->specialization = $request->specialization;
-            $trainer->hourly_rate = $request->hourly_rate;
             $trainer->instructor_for = $request->instructor_for;
             $trainer->short_intro = $request->short_intro;
             
@@ -261,9 +343,30 @@ class TrainerController extends Controller
                 } catch (\Exception $e) {
                     \Log::error('Error handling profile image: ' . $e->getMessage());
                     \Log::error($e->getTraceAsString());
+                }
+            }
+            // Handle cropped base64 image
+            elseif ($request->has('profile_image_base64')) {
+                try {
+                    $base64Image = $request->profile_image_base64;
                     
-                    // Continue with the save, just log the error
-                    // We don't want to block the trainer creation because of an image issue
+                    // Extract the actual base64 string
+                    if (strpos($base64Image, ';base64,') !== false) {
+                        list(, $base64Image) = explode(';base64,', $base64Image);
+                    }
+                    
+                    // Generate a unique filename
+                    $filename = 'cropped_' . time() . '.jpg';
+                    $path = 'uploads/profiles/' . $filename;
+                    
+                    // Store the file
+                    \Storage::disk('public')->put($path, base64_decode($base64Image));
+                    $trainer->profile_url = 'storage/' . $path;
+                    
+                    \Log::info('Saved cropped profile image at: ' . $trainer->profile_url);
+                } catch (\Exception $e) {
+                    \Log::error('Error handling cropped profile image: ' . $e->getMessage());
+                    \Log::error($e->getTraceAsString());
                 }
             }
             
@@ -361,5 +464,124 @@ class TrainerController extends Controller
         });
         
         return view('trainers', compact('trainers'));
+    }
+    
+    /**
+     * Show the trainer's profile dashboard
+     */
+    public function showProfile()
+    {
+        // Get the current trainer
+        $user = auth()->user();
+        $trainer = $user->trainer;
+        
+        if (!$trainer) {
+            return redirect()->route('home')->with('error', 'Trainer profile not found');
+        }
+        
+        // Get the trainer's schedule
+        $schedules = $trainer->schedules;
+        
+        // Format weekly schedule
+        $weeklySchedule = [];
+        foreach ($schedules as $schedule) {
+            $day = $schedule->day_of_week; // Full day name
+            $startTime = date('g:i A', strtotime($schedule->start_time));
+            $endTime = date('g:i A', strtotime($schedule->end_time));
+            $weeklySchedule[$day] = [
+                'start' => $startTime,
+                'end' => $endTime
+            ];
+        }
+        
+        // Get next 5 sessions based on schedule (upcoming sessions)
+        $upcomingSessions = [];
+        $today = now();
+        $daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        $todayIndex = $today->dayOfWeek;
+        
+        // Convert to 1-7 (Monday-Sunday) instead of 0-6 (Sunday-Saturday)
+        $todayIndex = $todayIndex == 0 ? 7 : $todayIndex;
+        
+        // Restructure schedules by day of week
+        $schedulesByDay = [];
+        foreach ($schedules as $schedule) {
+            $dayIndex = array_search($schedule->day_of_week, $daysOfWeek) + 1;
+            $schedulesByDay[$dayIndex] = [
+                'start_time' => $schedule->start_time,
+                'end_time' => $schedule->end_time,
+                'day_name' => $schedule->day_of_week
+            ];
+        }
+        
+        // Get next 5 days that have sessions
+        $count = 0;
+        $currentDay = $today->copy();
+        
+        while ($count < 5) {
+            $dayOfWeekIndex = $currentDay->dayOfWeek;
+            $dayOfWeekIndex = $dayOfWeekIndex == 0 ? 7 : $dayOfWeekIndex;
+            
+            if (isset($schedulesByDay[$dayOfWeekIndex])) {
+                $schedule = $schedulesByDay[$dayOfWeekIndex];
+                $startTime = new \DateTime($schedule['start_time']);
+                $endTime = new \DateTime($schedule['end_time']);
+                
+                // Only include future sessions for today
+                if ($currentDay->format('Y-m-d') != $today->format('Y-m-d') || 
+                    $today->format('H:i:s') < $schedule['start_time']) {
+                    
+                    $upcomingSessions[] = [
+                        'date' => $currentDay->format('F j, Y'),
+                        'day' => $schedule['day_name'],
+                        'start_time' => $startTime->format('g:i A'),
+                        'end_time' => $endTime->format('g:i A'),
+                    ];
+                    $count++;
+                }
+            }
+            
+            $currentDay->addDay();
+        }
+        
+        // Get members subscribed to the trainer's specialties
+        $instructorTypes = explode(',', $trainer->instructor_for);
+        $instructorTypes = array_map('trim', $instructorTypes);
+        
+        $members = User::where('role', 'member')
+            ->where('is_archived', false)
+            ->whereHas('subscriptions', function($query) use ($instructorTypes) {
+                $query->where('is_active', true)
+                      ->where(function($q) {
+                           // Either end_date is null or end_date is in the future
+                           $q->whereNull('end_date')
+                             ->orWhere('end_date', '>', now());
+                      })
+                      ->whereIn('type', $instructorTypes);
+            })
+            ->with(['subscriptions' => function($query) use ($instructorTypes) {
+                $query->where('is_active', true)
+                      ->where(function($q) {
+                           $q->whereNull('end_date')
+                             ->orWhere('end_date', '>', now());
+                      })
+                      ->whereIn('type', $instructorTypes);
+            }])
+            ->get();
+            
+        // Count active members
+        $activeMembers = $members->count();
+        
+        // Calculate the number of new students (joined in the last 30 days)
+        $newStudents = User::where('role', 'member')
+            ->where('is_archived', false)
+            ->whereHas('subscriptions', function($query) use ($instructorTypes) {
+                $query->where('is_active', true)
+                      ->whereIn('type', $instructorTypes)
+                      ->where('created_at', '>=', now()->subDays(30));
+            })
+            ->count();
+        
+        return view('trainer.profile', compact('trainer', 'weeklySchedule', 'upcomingSessions', 'members', 'activeMembers', 'newStudents'));
     }
 }

@@ -3,6 +3,47 @@
 @section('title', 'Account Settings')
 
 @section('content')
+<!-- Add Cropper.js library -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<style>
+    .image-cropper-container {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .cropper-container {
+        margin-bottom: 15px;
+    }
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
+    .preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+    /* Hide the cropper modal by default */
+    #cropperModal {
+        display: none;
+    }
+    /* Additional styles for cropper responsiveness */
+    @media (max-height: 700px) {
+        .image-cropper-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        #cropperContainer {
+            max-height: 400px;
+            overflow: hidden;
+        }
+    }
+</style>
+
 <div class="min-h-screen bg-[#121212] py-8 px-4 text-white">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
@@ -57,7 +98,8 @@
                             <div class="flex flex-col space-y-2">
                                 <label class="bg-[#374151] hover:bg-[#4B5563] text-white px-4 py-2 rounded-lg cursor-pointer text-center transition-colors inline-block">
                                     <i class="fas fa-camera mr-2"></i> Change Photo
-                                    <input type="file" class="hidden" name="profile_image" accept="image/*" onchange="previewImage(event)">
+                                    <input type="file" id="profile_image" class="hidden" name="profile_image" accept="image/*">
+                                    <input type="hidden" id="cropped_image" name="cropped_image">
                                 </label>
                                 <span class="text-xs text-gray-400">JPEG, PNG, GIF up to 4MB</span>
                                 @error('profile_image')
@@ -97,7 +139,7 @@
 
                             <div>
                                 <label class="block text-gray-300 text-sm mb-1">Gender</label>
-                                <select name="gender" class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                <select name="gender" id="gender" class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
                                     <option value="">Select Gender</option>
                                     <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Male</option>
                                     <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Female</option>
@@ -106,6 +148,14 @@
                                 @error('gender')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                            </div>
+                            
+                            <!-- Custom gender field, hidden by default -->
+                            <div id="otherGenderField" class="mt-2 {{ old('gender', $user->gender) == 'other' ? '' : 'hidden' }}">
+                                <label class="block text-gray-300 text-sm mb-1">Specify Gender</label>
+                                <input type="text" name="other_gender" value="{{ old('other_gender', $user->other_gender) }}"
+                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white"
+                                    placeholder="Please specify your gender">
                             </div>
 
                             <div class="md:col-span-2">
@@ -179,20 +229,168 @@
     </div>
 </div>
 
-<script>
-function previewImage(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('preview-image').src = e.target.result;
-        }
-        reader.readAsDataURL(file);
-    }
-}
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center overflow-y-auto">
+    <div class="bg-[#1F2937] rounded-xl shadow-xl border border-[#374151] w-full max-w-2xl max-h-[90vh] overflow-y-auto my-4 mx-2">
+        <div class="p-6 border-b border-[#374151] sticky top-0 bg-[#1F2937] z-10">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Crop Profile Image</h3>
+                <button type="button" id="closeCropperModal" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="image-cropper-container p-6">
+            <div id="cropperContainer" class="mb-4">
+                <img id="cropperImage" src="" class="max-w-full">
+            </div>
+            
+            <div class="preview mb-6"></div>
+            
+            <div class="flex justify-end space-x-3 sticky bottom-0 pt-4 pb-2 bg-[#1F2937] border-t border-[#374151]">
+                <button type="button" id="cancelCrop" class="px-5 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="applyCrop" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Apply Crop
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-// Tab navigation
+<script>
+// Gender field toggle
 document.addEventListener('DOMContentLoaded', function() {
+    const genderSelect = document.getElementById('gender');
+    const otherGenderField = document.getElementById('otherGenderField');
+    
+    // Initialize based on current value
+    if (genderSelect.value === 'other') {
+        otherGenderField.classList.remove('hidden');
+    } else {
+        otherGenderField.classList.add('hidden');
+    }
+    
+    // Add change event listener
+    genderSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+            otherGenderField.classList.remove('hidden');
+        } else {
+            otherGenderField.classList.add('hidden');
+        }
+    });
+    
+    // Image Cropper
+    let cropper;
+    const profileImageInput = document.getElementById('profile_image');
+    const previewImage = document.getElementById('preview-image');
+    const croppedImageInput = document.getElementById('cropped_image');
+    const cropperModal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+    const closeCropperModal = document.getElementById('closeCropperModal');
+    const cancelCrop = document.getElementById('cancelCrop');
+    const applyCrop = document.getElementById('applyCrop');
+    
+    // Initialize - hide the cropper modal
+    cropperModal.style.display = 'none';
+    
+    // Handle file selection
+    profileImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file) {
+            // File size validation (4MB max)
+            if (file.size > 4 * 1024 * 1024) {
+                alert('File size should not exceed 4MB');
+                profileImageInput.value = '';
+                return;
+            }
+            
+            // Create a FileReader to read the image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Set the image source for the cropper
+                cropperImage.src = e.target.result;
+                
+                // Show the cropper modal
+                cropperModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // Initialize Cropper.js after the image has loaded
+                setTimeout(() => {
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: 1, // 1:1 ratio for profile picture
+                        viewMode: 1,     // Restrict the crop box to not exceed the size of the canvas
+                        guides: true,    // Show the dashed lines for guiding
+                        center: true,    // Show the center indicator for guiding
+                        minContainerWidth: 250,
+                        minContainerHeight: 250,
+                        dragMode: 'move',
+                        preview: '.preview',
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false
+                    });
+                }, 200);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Handle closing the cropper modal
+    closeCropperModal.addEventListener('click', closeCropperDialog);
+    cancelCrop.addEventListener('click', closeCropperDialog);
+    
+    function closeCropperDialog() {
+        cropperModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        
+        // Reset the file input
+        profileImageInput.value = '';
+    }
+    
+    // Handle applying the crop
+    applyCrop.addEventListener('click', function() {
+        if (!cropper) return;
+        
+        // Get the cropped canvas
+        const canvas = cropper.getCroppedCanvas({
+            width: 300,
+            height: 300,
+            minWidth: 100,
+            minHeight: 100,
+            maxWidth: 4096,
+            maxHeight: 4096,
+            fillColor: '#fff',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+        
+        // Convert canvas to data URL
+        const croppedImageData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Set the cropped image data to the hidden input
+        croppedImageInput.value = croppedImageData;
+        
+        // Update the preview image
+        previewImage.src = croppedImageData;
+        
+        // Close the cropper dialog
+        closeCropperDialog();
+    });
+
+    // Tab navigation
     const navLinks = document.querySelectorAll('nav a');
     
     navLinks.forEach(link => {

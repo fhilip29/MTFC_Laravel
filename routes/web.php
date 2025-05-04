@@ -26,6 +26,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\HomeController;
 
 
@@ -117,6 +118,19 @@ Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym
 Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
 Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
 Route::get('/pricing/jiu', [PricingController::class, 'jiu'])->name('pricing.jiu');
+
+// ===================
+// PAYMENT ROUTES
+// ===================
+Route::get('/payment-method', [PaymentController::class, 'showPaymentMethods'])->name('payment-method');
+Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
+Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::get('/payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
+Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
+Route::post('/payment/cash/qr', [PaymentController::class, 'generateCashQr'])->name('payment.cash.qr');
+Route::get('/payment/cash/qr/{reference}', [PaymentController::class, 'showCashQr'])->name('payment.cash.qr.show');
+Route::post('/payment/cash/verify', [PaymentController::class, 'verifyCashPayment'])->name('payment.cash.verify');
+
 // ===================
 // TERMS / POLICIES
 // ===================
@@ -138,7 +152,6 @@ Route::view('/notifications', 'notifications')->name('notifications');
 
 
 
-Route::view('/payment-method', 'payment-method')->name('payment-method');
 Route::get('/profile/settings', [AccountController::class, 'index'])->name('profile.settings');
 Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync');
 
@@ -158,8 +171,8 @@ Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendan
 // ===================
 // TRAINER ROUTES
 // ===================
-Route::middleware(['auth', 'role:trainer'])->group(function () {
-Route::view('/trainer/profile', 'trainer-profile')->name('trainer.profile');
+Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':trainer'])->group(function () {
+    Route::get('/trainer/profile', [TrainerController::class, 'showProfile'])->name('trainer.profile');
 });
 
 

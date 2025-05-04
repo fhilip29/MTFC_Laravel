@@ -6,6 +6,46 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<!-- Cropper.js for image cropping -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+<style>
+    .image-cropper-container {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    .cropper-container {
+        margin-bottom: 15px;
+    }
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
+    .preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+    /* Hide the cropper modal by default */
+    #cropperModal {
+        display: none;
+    }
+    /* Additional styles for cropper responsiveness */
+    @media (max-height: 700px) {
+        .image-cropper-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        #cropperContainer {
+            max-height: 400px;
+            overflow: hidden;
+        }
+    }
+</style>
 
 <div class="container mx-auto px-4 py-4">
     <div class="bg-[#111827] p-6 rounded-xl shadow-md mb-8 border border-[#374151]">
@@ -167,17 +207,22 @@
                             <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender *</label>
                             <div class="flex space-x-4">
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" value="male" class="text-blue-500" checked>
+                                    <input type="radio" name="gender" value="male" class="text-blue-500 gender-radio" checked>
                                     <span class="ml-2 text-white">Male</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" value="female" class="text-pink-500">
+                                    <input type="radio" name="gender" value="female" class="text-pink-500 gender-radio">
                                     <span class="ml-2 text-white">Female</span>
                                 </label>
                                 <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" value="other" class="text-purple-500">
+                                    <input type="radio" name="gender" value="other" class="text-purple-500 gender-radio">
                                     <span class="ml-2 text-white">Other</span>
                                 </label>
+                            </div>
+                            <!-- Custom gender field, hidden by default -->
+                            <div id="otherGenderField" class="mt-3 hidden">
+                                <input type="text" name="other_gender" placeholder="Please specify gender" 
+                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-2 focus:outline-none focus:border-[#9CA3AF]">
                             </div>
                         </div>
                     </div>
@@ -189,11 +234,6 @@
                         <div class="mb-4">
                             <label for="specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization *</label>
                             <input type="text" id="specialization" name="specialization" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="hourly_rate" class="block text-[#9CA3AF] text-sm font-medium mb-2">Hourly Rate (₱) *</label>
-                            <input type="number" id="hourly_rate" name="hourly_rate" min="0" step="0.01" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
                         </div>
                         
                         <div class="mb-4">
@@ -219,7 +259,7 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="short_intro" class="block text-[#9CA3AF] text-sm font-medium mb-2">Short Introduction</label>
+                            <label for="short_intro" class="block text-[#9CA3AF] text-sm font-medium mb-2">Bio</label>
                             <textarea id="short_intro" name="short_intro" rows="3" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"></textarea>
                         </div>
                         
@@ -307,40 +347,27 @@
                         
                         <div class="mb-4">
                             <label for="edit_full_name" class="block text-[#9CA3AF] text-sm font-medium mb-2">Full Name *</label>
-                            <input type="text" id="edit_full_name" name="full_name" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <input type="text" id="edit_full_name" name="full_name" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
                         </div>
                         
                         <div class="mb-4">
                             <label for="edit_email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email *</label>
-                            <input type="email" id="edit_email" name="email" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <input type="email" id="edit_email" name="email" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_password" class="block text-[#9CA3AF] text-sm font-medium mb-2">Password (leave blank to keep current)</label>
-                            <input type="password" id="edit_password" name="password" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="edit_mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number</label>
+                            <label for="edit_mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number *</label>
                             <input type="text" id="edit_mobile_number" name="mobile_number" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender *</label>
-                            <div class="flex space-x-4">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" id="edit_gender_male" value="male" class="text-blue-500">
-                                    <span class="ml-2 text-white">Male</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" id="edit_gender_female" value="female" class="text-pink-500">
-                                    <span class="ml-2 text-white">Female</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" id="edit_gender_other" value="other" class="text-purple-500">
-                                    <span class="ml-2 text-white">Other</span>
-                                </label>
-                            </div>
+                            <label for="edit_gender" class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender *</label>
+                            <select id="edit_gender" name="gender" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
                     </div>
                     
@@ -350,38 +377,16 @@
                         
                         <div class="mb-4">
                             <label for="edit_specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization *</label>
-                            <input type="text" id="edit_specialization" name="specialization" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <input type="text" id="edit_specialization" name="specialization" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_hourly_rate" class="block text-[#9CA3AF] text-sm font-medium mb-2">Hourly Rate (₱) *</label>
-                            <input type="number" id="edit_hourly_rate" name="hourly_rate" min="0" step="0.01" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <label for="edit_instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
+                            <input type="text" id="edit_instructor_for" name="instructor_for" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="edit_instructor_gym" name="instructor_for[]" value="gym" class="text-blue-500">
-                                    <span class="ml-2 text-white">Gym</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="edit_instructor_boxing" name="instructor_for[]" value="boxing" class="text-red-500">
-                                    <span class="ml-2 text-white">Boxing</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="edit_instructor_muaythai" name="instructor_for[]" value="muay-thai" class="text-yellow-500">
-                                    <span class="ml-2 text-white">Muay Thai</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" id="edit_instructor_jiujitsu" name="instructor_for[]" value="jiu-jitsu" class="text-green-500">
-                                    <span class="ml-2 text-white">Jiu Jitsu</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="edit_short_intro" class="block text-[#9CA3AF] text-sm font-medium mb-2">Short Introduction</label>
+                            <label for="edit_short_intro" class="block text-[#9CA3AF] text-sm font-medium mb-2">Bio</label>
                             <textarea id="edit_short_intro" name="short_intro" rows="3" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"></textarea>
                         </div>
                         
@@ -453,6 +458,37 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Image Cropper Modal -->
+<div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center overflow-y-auto">
+    <div class="bg-[#1F2937] rounded-xl shadow-xl border border-[#374151] w-full max-w-2xl max-h-[90vh] overflow-y-auto my-4 mx-2">
+        <div class="p-6 border-b border-[#374151] sticky top-0 bg-[#1F2937] z-10">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Crop Profile Image</h3>
+                <button type="button" id="closeCropperModal" class="text-[#9CA3AF] hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="image-cropper-container p-6">
+            <div id="cropperContainer" class="mb-4">
+                <img id="cropperImage" src="" class="max-w-full">
+            </div>
+            
+            <div class="preview mb-6"></div>
+            
+            <div class="flex justify-end space-x-3 sticky bottom-0 pt-4 pb-2 bg-[#1F2937] border-t border-[#374151]">
+                <button type="button" id="cancelCrop" class="px-5 py-2 bg-[#4B5563] text-white rounded-lg hover:bg-[#6B7280] transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="applyCrop" class="px-5 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors">
+                    Apply Crop
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -583,10 +619,16 @@ function editTrainer(trainerId) {
                 }
             });
             
+            // Handle custom gender if needed
+            if (data.user.gender === 'other') {
+                document.getElementById('editOtherGenderField').classList.remove('hidden');
+                document.getElementById('edit_other_gender').value = data.user.other_gender || '';
+            } else {
+                document.getElementById('editOtherGenderField').classList.add('hidden');
+            }
+            
             // Professional info
             document.getElementById('edit_specialization').value = data.specialization || '';
-            document.getElementById('edit_hourly_rate').value = data.hourly_rate || '';
-            document.getElementById('edit_short_intro').value = data.short_intro || '';
             
             // Set profile image if available
             const currentImage = document.getElementById('currentImage');
@@ -679,102 +721,201 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Image upload elements for add form
+    // Gender field toggle handling
+    const genderRadios = document.querySelectorAll('.gender-radio');
+    const otherGenderField = document.getElementById('otherGenderField');
+    
+    genderRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'other' && this.checked) {
+                otherGenderField.classList.remove('hidden');
+            } else {
+                otherGenderField.classList.add('hidden');
+            }
+        });
+    });
+    
+    // Edit form gender toggle
+    const editGenderRadios = document.querySelectorAll('.edit-gender-radio');
+    const editOtherGenderField = document.getElementById('editOtherGenderField');
+    
+    editGenderRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'other' && this.checked) {
+                editOtherGenderField.classList.remove('hidden');
+            } else {
+                editOtherGenderField.classList.add('hidden');
+            }
+        });
+    });
+
+    // Cropper.js setup
+    let cropper;
+    const cropperModal = document.getElementById('cropperModal');
+    const cropperImage = document.getElementById('cropperImage');
+    const closeCropperModal = document.getElementById('closeCropperModal');
+    const cancelCrop = document.getElementById('cancelCrop');
+    const applyCrop = document.getElementById('applyCrop');
+    
+    // Variables to store the active input and preview elements
+    let activeImageInput;
+    let activeImagePreview;
+    let activeImagePreviewContainer;
+    let activeUploadPlaceholder;
+    let activeCroppedImageData;
+    
+    // Profile image input handling for add form
     const profileImageInput = document.getElementById('profile_image');
     const imagePreview = document.getElementById('imagePreview');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-    const selectedFileName = document.getElementById('selectedFileName');
     
-    // Image upload elements for edit form
+    if (profileImageInput) {
+        profileImageInput.addEventListener('change', function(e) {
+            handleImageSelection(e, this, imagePreview, imagePreviewContainer, uploadPlaceholder);
+        });
+    }
+    
+    // Profile image input handling for edit form
     const editProfileImageInput = document.getElementById('edit_profile_image');
     const editImagePreview = document.getElementById('editImagePreview');
     const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
     const editUploadPlaceholder = document.getElementById('editUploadPlaceholder');
-    const editSelectedFileName = document.getElementById('editSelectedFileName');
     
-    // Handle image upload for add form
-    if (profileImageInput) {
-        profileImageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                // File size validation (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.fire({
-                        title: 'File Too Large',
-                        text: 'File size should not exceed 5MB',
-                        icon: 'error',
-                        background: '#1F2937',
-                        color: '#ffffff'
-                    });
-                    profileImageInput.value = '';
-                    return;
-                }
-                
-                // Show file name
-                selectedFileName.textContent = file.name;
-                
-                // Show image preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    imagePreview.src = e.target.result;
-                    uploadPlaceholder.classList.add('hidden');
-                    imagePreviewContainer.classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                // Reset preview
-                selectedFileName.textContent = '';
-                uploadPlaceholder.classList.remove('hidden');
-                imagePreviewContainer.classList.add('hidden');
-            }
-        });
-    }
-    
-    // Handle image upload for edit form
     if (editProfileImageInput) {
         editProfileImageInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            
-            if (file) {
-                // File size validation (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.fire({
-                        title: 'File Too Large',
-                        text: 'File size should not exceed 5MB',
-                        icon: 'error',
-                        background: '#1F2937',
-                        color: '#ffffff'
-                    });
-                    editProfileImageInput.value = '';
-                    return;
-                }
-                
-                // Show file name
-                editSelectedFileName.textContent = file.name;
-                
-                // Show image preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    editImagePreview.src = e.target.result;
-                    editUploadPlaceholder.classList.add('hidden');
-                    editImagePreviewContainer.classList.remove('hidden');
-                }
-                reader.readAsDataURL(file);
-            } else {
-                // Reset preview
-                editSelectedFileName.textContent = '';
-                editUploadPlaceholder.classList.remove('hidden');
-                editImagePreviewContainer.classList.add('hidden');
-            }
+            handleImageSelection(e, this, editImagePreview, editImagePreviewContainer, editUploadPlaceholder);
         });
     }
     
+    function handleImageSelection(e, inputElement, previewElement, previewContainer, placeholderElement) {
+        const file = e.target.files[0];
+        
+        if (file) {
+            // File size validation (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                Swal.fire({
+                    title: 'File Too Large',
+                    text: 'File size should not exceed 5MB',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                });
+                inputElement.value = '';
+                return;
+            }
+            
+            // Store references to active elements
+            activeImageInput = inputElement;
+            activeImagePreview = previewElement;
+            activeImagePreviewContainer = previewContainer;
+            activeUploadPlaceholder = placeholderElement;
+            
+            // Create a FileReader to read the image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Set the image source for the cropper
+                cropperImage.src = e.target.result;
+                
+                // Show the cropper modal
+                cropperModal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                // Initialize Cropper.js after the image has loaded
+                setTimeout(() => {
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+                    
+                    cropper = new Cropper(cropperImage, {
+                        aspectRatio: 1, // 1:1 ratio for profile picture
+                        viewMode: 1,     // Restrict the crop box to not exceed the size of the canvas
+                        guides: true,    // Show the dashed lines for guiding
+                        center: true,    // Show the center indicator for guiding
+                        minContainerWidth: 250,
+                        minContainerHeight: 250,
+                        dragMode: 'move',
+                        preview: '.preview',
+                        cropBoxMovable: true,
+                        cropBoxResizable: true,
+                        toggleDragModeOnDblclick: false
+                    });
+                }, 200);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Handle closing the cropper modal
+    closeCropperModal.addEventListener('click', closeCropperDialog);
+    cancelCrop.addEventListener('click', closeCropperDialog);
+    
+    function closeCropperDialog() {
+        cropperModal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+        
+        // Reset the file input
+        if (activeImageInput) {
+            activeImageInput.value = '';
+        }
+    }
+    
+    // Handle applying the crop
+    applyCrop.addEventListener('click', function() {
+        if (!cropper) return;
+        
+        // Get the cropped canvas
+        const canvas = cropper.getCroppedCanvas({
+            width: 300,
+            height: 300,
+            minWidth: 100,
+            minHeight: 100,
+            maxWidth: 4096,
+            maxHeight: 4096,
+            fillColor: '#fff',
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+        
+        // Convert canvas to data URL
+        const croppedImageData = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Store the cropped image data for form submission
+        activeCroppedImageData = croppedImageData;
+        
+        // Update the preview
+        activeImagePreview.src = croppedImageData;
+        activeUploadPlaceholder.classList.add('hidden');
+        activeImagePreviewContainer.classList.remove('hidden');
+        
+        // Create a hidden input to store the cropped image data
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = activeImageInput.name + '_cropped';
+        hiddenInput.value = croppedImageData;
+        
+        // Remove any existing hidden input for this field
+        const existingHiddenInput = document.querySelector(`input[name="${activeImageInput.name}_cropped"]`);
+        if (existingHiddenInput) {
+            existingHiddenInput.remove();
+        }
+        
+        // Add the hidden input to the form
+        activeImageInput.parentNode.appendChild(hiddenInput);
+        
+        // Close the cropper dialog
+        closeCropperDialog();
+    });
+
     // Add Trainer button event
     document.getElementById('addTrainerBtn').addEventListener('click', openAddTrainerModal);
     
-    // Form submission handlers
+    // Form submission handlers - Add validation for mobile number and email
     document.getElementById('addTrainerForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -788,6 +929,16 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('File size:', fileInput.files[0].size);
         } else {
             console.log('No file selected');
+        }
+        
+        // If we have cropped image data, use it instead of the file
+        const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
+        if (croppedInput && croppedInput.value) {
+            // Remove the original file input from the formData
+            formData.delete('profile_image');
+            
+            // Add the cropped image data
+            formData.set('profile_image_base64', croppedInput.value);
         }
         
         // Handle instructor_for checkboxes
@@ -809,6 +960,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.delete(`schedule[${day}][end]`);
             }
         });
+        
+        // Add other gender if selected
+        if (form.querySelector('input[name="gender"]:checked').value === 'other') {
+            const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
+            formData.set('other_gender', otherGenderValue);
+        }
         
         // Show loading state
         Swal.fire({
@@ -886,6 +1043,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData(form);
         const trainerId = document.getElementById('edit_trainer_id').value;
         
+        // If we have cropped image data, use it instead of the file
+        const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
+        if (croppedInput && croppedInput.value) {
+            // Remove the original file input from the formData
+            formData.delete('profile_image');
+            
+            // Add the cropped image data
+            formData.set('profile_image_base64', croppedInput.value);
+        }
+        
         // Handle instructor_for checkboxes
         const instructorCheckboxes = form.querySelectorAll('input[name="instructor_for[]"]:checked');
         if (instructorCheckboxes.length > 0) {
@@ -905,6 +1072,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 formData.delete(`schedule[${day}][end]`);
             }
         });
+        
+        // Add other gender if selected
+        if (form.querySelector('input[name="gender"]:checked').value === 'other') {
+            const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
+            formData.set('other_gender', otherGenderValue);
+        }
         
         // Add method spoofing for PUT
         formData.append('_method', 'PUT');

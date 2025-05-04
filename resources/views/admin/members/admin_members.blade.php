@@ -11,6 +11,7 @@
     showSubscriptionModal: false, 
     currentMemberId: null, 
     subscriptions: [],
+    showQrScannerModal: false,
     setEditFormValues(subscription) {
         // Set form data for edit - only type and plan now
         document.getElementById('edit-type').value = subscription.type;
@@ -138,6 +139,15 @@
                 <a href="{{ route('admin.members.admin_members') }}" class="ml-3 bg-[#374151] hover:bg-[#4B5563] text-white px-3 py-1 rounded-md text-sm">
                     Show Active
                 </a>
+            </div>
+            @else
+            <div class="flex items-center gap-2">
+                <button
+                    @click="showQrScannerModal = true"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center"
+                >
+                    <i class="fas fa-qrcode mr-2"></i> Scan Payment QR
+                </button>
             </div>
             @endif
         </div>
@@ -855,6 +865,80 @@
             </div>
         </div>
     </div>
+    
+    <!-- QR Scanner Modal -->
+    <div 
+        x-show="showQrScannerModal" 
+        x-cloak
+        class="fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div @click="showQrScannerModal = false" class="fixed inset-0 bg-black opacity-50"></div>
+            
+            <div class="relative bg-[#1F2937] rounded-lg max-w-xl w-full mx-auto shadow-xl z-50 border border-[#374151]">
+                <div class="p-6">
+                    <div class="flex justify-between items-center border-b border-[#374151] pb-4">
+                        <h3 class="text-xl font-bold text-white">Scan Payment QR Code</h3>
+                        <button @click="showQrScannerModal = false" class="text-[#9CA3AF] hover:text-white">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="py-4">
+                        <!-- Camera feed container -->
+                        <div id="scanner-container" class="relative bg-black rounded-lg overflow-hidden mb-4 aspect-square">
+                            <video id="scanner-video" class="w-full h-full object-cover"></video>
+                            <canvas id="scanner-canvas" class="hidden absolute top-0 left-0"></canvas>
+                            <div id="scanner-overlay" class="absolute inset-0 border-2 border-transparent flex items-center justify-center">
+                                <div class="w-2/3 h-2/3 border-2 border-blue-500 relative">
+                                    <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-blue-500"></div>
+                                    <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-blue-500"></div>
+                                    <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-blue-500"></div>
+                                    <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-blue-500"></div>
+                                </div>
+                            </div>
+                            <div id="scan-animation" class="absolute top-0 left-0 w-full h-1 bg-blue-500 opacity-75"></div>
+                        </div>
+                        
+                        <!-- Success message (initially hidden) -->
+                        <div id="payment-success-message" class="hidden bg-green-600 text-white p-4 rounded-lg mb-4 animate-pulse">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-2xl mr-2"></i>
+                                <div>
+                                    <h4 class="font-bold">Payment Confirmed!</h4>
+                                    <p class="text-sm" id="payment-success-details"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Error message (initially hidden) -->
+                        <div id="payment-error-message" class="hidden bg-red-600 text-white p-4 rounded-lg mb-4 animate-pulse">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
+                                <div>
+                                    <h4 class="font-bold">Payment Error</h4>
+                                    <p class="text-sm" id="payment-error-details"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Scanner message -->
+                        <div id="scanner-message" class="text-[#9CA3AF] text-sm text-center mt-2">
+                            Position the QR code within the frame
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-between">
+                        <button id="toggle-camera-btn" class="px-4 py-2 bg-[#374151] text-white rounded hover:bg-[#4B5563] transition-colors">
+                            <i class="fas fa-camera-rotate mr-1"></i> Switch Camera
+                        </button>
+                        <button @click="showQrScannerModal = false" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -883,6 +967,24 @@
     .overflow-auto {
         scrollbar-width: thin;
         scrollbar-color: #4B5563 #374151;
+    }
+    
+    /* QR scanner animation */
+    @keyframes scanning {
+        0% { transform: translateY(0); opacity: 0.5; }
+        50% { transform: translateY(100px); opacity: 0.8; }
+        100% { transform: translateY(0); opacity: 0.5; }
+    }
+    
+    .scanning-line {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: rgba(59, 130, 246, 0.8);
+        box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+        animation: scanning 2s infinite;
     }
 </style>
 
@@ -914,5 +1016,281 @@
             }
         }
     }
+    
+    // QR scanner code
+    document.addEventListener('DOMContentLoaded', function() {
+        let video = null;
+        let canvasElement = null;
+        let canvas = null;
+        let scanning = false;
+        let stream = null;
+        let animationId = null;
+        
+        // Function to initialize the scanner
+        function initScanner() {
+            // Initialize DOM elements
+            video = document.getElementById('scanner-video');
+            canvasElement = document.getElementById('scanner-canvas');
+            canvas = canvasElement.getContext('2d');
+            const scanMessage = document.getElementById('scanner-message');
+            const scanAnimation = document.getElementById('scan-animation');
+            
+            // Reset messages
+            document.getElementById('payment-success-message').classList.add('hidden');
+            document.getElementById('payment-error-message').classList.add('hidden');
+            
+            // Load jsQR library
+            if (typeof jsQR === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+                script.onload = function() {
+                    startCamera();
+                };
+                script.onerror = function() {
+                    showErrorMessage('Failed to load QR scanner library. Please try again.');
+                };
+                document.body.appendChild(script);
+            } else {
+                startCamera();
+            }
+            
+            // Start the scan animation
+            startScanAnimation();
+        }
+        
+        // Function to start the camera
+        function startCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "environment",
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 } 
+                    } 
+                })
+                .then(function(mediaStream) {
+                    stream = mediaStream;
+                    video.srcObject = mediaStream;
+                    video.setAttribute("playsinline", true); // iOS Safari
+                    video.play();
+                    scanning = true;
+                    requestAnimationFrame(tick);
+                })
+                .catch(function(err) {
+                    showErrorMessage('Camera error: ' + err.message);
+                    console.error('Camera error:', err);
+                });
+            } else {
+                showErrorMessage('Camera access not supported in this browser');
+            }
+        }
+        
+        // Process each video frame
+        function tick() {
+            if (!scanning) return;
+            
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvasElement.hidden = false;
+                canvasElement.height = video.videoHeight;
+                canvasElement.width = video.videoWidth;
+                canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                
+                const imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                
+                if (code) {
+                    // QR code found
+                    console.log("QR code detected:", code.data);
+                    scanning = false;
+                    
+                    // Flash the scanner overlay
+                    const overlay = document.getElementById('scanner-overlay');
+                    overlay.style.borderColor = 'rgba(34, 197, 94, 0.8)';
+                    setTimeout(() => {
+                        overlay.style.borderColor = 'transparent';
+                    }, 300);
+                    
+                    // Process the QR code
+                    processPaymentQR(code.data);
+                    return;
+                }
+            }
+            
+            // Continue scanning
+            animationId = requestAnimationFrame(tick);
+        }
+        
+        // Process the QR code data
+        function processPaymentQR(qrData) {
+            const scanMessage = document.getElementById('scanner-message');
+            scanMessage.textContent = 'Processing payment QR code...';
+            
+            // Show loading indicator
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Verifying payment QR code',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Send data to server for verification
+            fetch('{{ route("payment.cash.verify") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    qr_data: qrData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Close loading indicator
+                Swal.close();
+                
+                if (data.success) {
+                    // Show success message
+                    const successMsg = document.getElementById('payment-success-message');
+                    const successDetails = document.getElementById('payment-success-details');
+                    
+                    successDetails.innerHTML = `Payment confirmed for ${data.user.name} (${data.subscription.type} - ${data.subscription.plan})`;
+                    successMsg.classList.remove('hidden');
+                    
+                    // Hide error message if visible
+                    document.getElementById('payment-error-message').classList.add('hidden');
+                    
+                    // Update member status if the member is visible in the table
+                    if (data.user && data.user.id) {
+                        updateMemberStatusBadge(data.user.id, true);
+                    }
+                    
+                    // Close modal after 3 seconds
+                    setTimeout(() => {
+                        document.querySelector('[x-data]').__x.$data.showQrScannerModal = false;
+                        stopScanner();
+                        
+                        // Show final success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Payment Successful!',
+                            text: `Subscription activated for ${data.user.name}`,
+                            confirmButtonColor: '#3B82F6',
+                            background: '#1F2937',
+                            color: '#FFFFFF',
+                            customClass: {
+                                popup: 'rounded-lg border border-[#374151]',
+                                title: 'text-white text-xl',
+                                htmlContainer: 'text-[#9CA3AF]',
+                                confirmButton: 'rounded-md px-4 py-2'
+                            }
+                        });
+                    }, 3000);
+                } else {
+                    // Show error message
+                    const errorMsg = document.getElementById('payment-error-message');
+                    const errorDetails = document.getElementById('payment-error-details');
+                    
+                    errorDetails.textContent = data.message || 'Failed to process payment';
+                    errorMsg.classList.remove('hidden');
+                    
+                    // Hide success message if visible
+                    document.getElementById('payment-success-message').classList.add('hidden');
+                    
+                    // Resume scanning
+                    scanning = true;
+                    requestAnimationFrame(tick);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.close();
+                
+                // Show error message
+                showErrorMessage('Error connecting to server. Please try again.');
+                
+                // Resume scanning
+                scanning = true;
+                requestAnimationFrame(tick);
+            });
+        }
+        
+        // Function to show error message
+        function showErrorMessage(message) {
+            const errorMsg = document.getElementById('payment-error-message');
+            const errorDetails = document.getElementById('payment-error-details');
+            
+            errorDetails.textContent = message;
+            errorMsg.classList.remove('hidden');
+            
+            // Hide success message if visible
+            document.getElementById('payment-success-message').classList.add('hidden');
+        }
+        
+        // Start scan animation
+        function startScanAnimation() {
+            const scanLine = document.getElementById('scan-animation');
+            let position = -10;
+            let direction = 1;
+            
+            function animate() {
+                if (!scanning) return;
+                
+                position += 2 * direction;
+                if (position > 100) {
+                    direction = -1;
+                } else if (position < -10) {
+                    direction = 1;
+                }
+                
+                scanLine.style.transform = `translateY(${position}%)`;
+                requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // Stop the scanner
+        function stopScanner() {
+            scanning = false;
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                stream = null;
+            }
+        }
+        
+        // Handle toggle camera button
+        document.getElementById('toggle-camera-btn').addEventListener('click', function() {
+            stopScanner();
+            setTimeout(initScanner, 500);
+        });
+        
+        // Initialize scanner when modal opens
+        document.addEventListener('alpinejs:initialized', () => {
+            const appData = document.querySelector('[x-data]').__x.$data;
+            
+            // Watch for changes to showQrScannerModal
+            appData.$watch('showQrScannerModal', (isOpen) => {
+                if (isOpen) {
+                    // Initialize scanner when modal is opened
+                    setTimeout(initScanner, 500);
+                } else {
+                    // Stop scanner when modal is closed
+                    stopScanner();
+                }
+            });
+        });
+    });
 </script>
 @endsection

@@ -55,7 +55,7 @@ class InvoiceController extends Controller
     /**
      * Store a subscription invoice
      */
-    public function storeSubscriptionInvoice($userId, $subscriptionDetails, $amount)
+    public function storeSubscriptionInvoice($userId, $subscriptionDetails, $amount, $paymentStatus = 'completed')
     {
         $invoice = Invoice::create([
             'invoice_number' => (string) Str::uuid(),
@@ -63,6 +63,7 @@ class InvoiceController extends Controller
             'type' => 'subscription',
             'total_amount' => $amount,
             'invoice_date' => now()->format('Y-m-d'),
+            'payment_status' => $paymentStatus
         ]);
 
         InvoiceItem::create([

@@ -26,6 +26,9 @@
                     <span class="text-gray-400">Type:</span>
                     <span id="type-display">{{ request()->query('type') }}</span>
                 </div>
+                <div id="order-items" class="mt-2 pt-2 border-t border-gray-700">
+                    <!-- Order items will be displayed here -->
+                </div>
                 <div class="flex justify-between font-medium mt-2 pt-2 border-t border-gray-700">
                     <span>Total:</span>
                     <span id="amount-display">₱{{ number_format(request()->query('amount', 0), 2) }}</span>
@@ -45,6 +48,7 @@
                     <input type="hidden" name="waiver_accepted" value="{{ request()->query('waiver_accepted', 0) }}">
                     <input type="hidden" name="payment_method" value="cash">
                     <input type="hidden" name="payment_status" value="pending">
+                    <input type="hidden" name="order_data" id="order-data-cash">
                     
                     <button type="submit" class="w-full bg-[#1e1e1e] hover:bg-[#252525] transition-colors duration-200 p-4 rounded-lg flex items-center justify-between group">
                         <div class="flex items-center space-x-4">
@@ -71,6 +75,7 @@
                     <input type="hidden" name="billing_name" value="{{ auth()->user()->name ?? 'Guest User' }}">
                     <input type="hidden" name="billing_email" value="{{ auth()->user()->email ?? '' }}">
                     <input type="hidden" name="billing_phone" value="{{ auth()->user()->mobile_number ?? '' }}">
+                    <input type="hidden" name="order_data" id="order-data-paymongo">
                     
                     <button type="submit" class="w-full bg-[#1e1e1e] hover:bg-[#252525] transition-colors duration-200 p-4 rounded-lg flex items-center justify-between group">
                         <div class="flex items-center space-x-4">
@@ -97,4 +102,48 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get order data from sessionStorage
+    const orderDataStr = sessionStorage.getItem('orderData');
+    if (orderDataStr) {
+        const orderData = JSON.parse(orderDataStr);
+        
+        // Set hidden form fields with order data
+        document.getElementById('order-data-cash').value = orderDataStr;
+        document.getElementById('order-data-paymongo').value = orderDataStr;
+        
+        // Show order items in summary
+        const orderItemsContainer = document.getElementById('order-items');
+        if (orderItemsContainer && orderData.items && orderData.items.length > 0) {
+            // Clear existing content
+            orderItemsContainer.innerHTML = '';
+            
+            // Add items heading
+            const heading = document.createElement('div');
+            heading.className = 'text-sm text-gray-400 mb-2';
+            heading.textContent = 'Items:';
+            orderItemsContainer.appendChild(heading);
+            
+            // Add each item
+            orderData.items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'flex justify-between text-sm mb-1 pl-2';
+                
+                const nameElement = document.createElement('span');
+                nameElement.className = 'text-gray-300';
+                nameElement.textContent = `${item.name} x${item.quantity}`;
+                
+                const priceElement = document.createElement('span');
+                priceElement.textContent = `₱${(parseFloat(item.price) * item.quantity).toFixed(2)}`;
+                
+                itemElement.appendChild(nameElement);
+                itemElement.appendChild(priceElement);
+                orderItemsContainer.appendChild(itemElement);
+            });
+        }
+    }
+});
+</script>
 @endsection

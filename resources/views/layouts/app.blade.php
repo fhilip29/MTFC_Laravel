@@ -132,7 +132,7 @@
         </div>
 
         <!-- Cart Items with Scrollable Container -->
-        <div class="flex-1 overflow-hidden relative">
+        <div id="cartItems" class="p-4 space-y-4 overflow-y-auto h-full max-h-[calc(100vh-220px)]">
             <!-- Empty Cart Message -->
             <div id="emptyCartMessage" class="p-8 text-center text-gray-500">
                 <i class="fas fa-shopping-cart text-4xl mb-4 block"></i>
@@ -174,10 +174,8 @@
                 cart[index].quantity++;
                 localStorage.setItem('cart', JSON.stringify(cart));
                 
-                // If we're on a page with cart rendering
-                if (typeof renderCart === 'function') {
-                    renderCart();
-                }
+                // Always render cart to update UI immediately
+                renderCart();
                 
                 // Update cart badge
                 updateCartBadge();
@@ -194,10 +192,8 @@
                 cart[index].quantity--;
                 localStorage.setItem('cart', JSON.stringify(cart));
                 
-                // If we're on a page with cart rendering
-                if (typeof renderCart === 'function') {
-                    renderCart();
-                }
+                // Always render cart to update UI immediately
+                renderCart();
                 
                 // Update cart badge
                 updateCartBadge();
@@ -223,10 +219,8 @@
                     cart.splice(index, 1);
                     localStorage.setItem('cart', JSON.stringify(cart));
                     
-                    // If we're on a page with cart rendering
-                    if (typeof renderCart === 'function') {
-                        renderCart();
-                    }
+                    // Always render cart to update UI immediately
+                    renderCart();
                     
                     // Update cart badge
                     updateCartBadge();
@@ -272,6 +266,7 @@
             const cartFooter = document.getElementById('cartFooter');
             const cartTotalQuantity = document.getElementById('cartTotalQuantity');
             const cartTotalPrice = document.getElementById('cartTotalPrice');
+            const cartScrollTopBtn = document.getElementById('cartScrollTopBtn');
 
             // Initialize the cart from local storage or create a new one
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
@@ -292,6 +287,7 @@
                             cart = serverCart;
                             localStorage.setItem('cart', JSON.stringify(cart));
                             updateCartBadge();
+                            renderCart(); // Update UI after syncing
                         }
                     }
                 })
@@ -326,8 +322,33 @@
                 });
             }
 
+            // Set up scrolling features for cart items container
+            if (cartItems) {
+                cartItems.addEventListener('scroll', function() {
+                    if (this.scrollTop > 100 && cartScrollTopBtn) {
+                        cartScrollTopBtn.classList.remove('hidden');
+                    } else if (cartScrollTopBtn) {
+                        cartScrollTopBtn.classList.add('hidden');
+                    }
+                });
+            }
+
+            if (cartScrollTopBtn) {
+                cartScrollTopBtn.addEventListener('click', function() {
+                    if (cartItems) {
+                        cartItems.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                });
+            }
+
             // Function to render cart items
             window.renderCart = function() {
+                // Get latest cart data
+                cart = JSON.parse(localStorage.getItem('cart')) || [];
+                
+                // Make sure cart items element exists
+                if (!cartItems) return;
+                
                 // Update cart items count
                 const cartTotalItems = document.getElementById('cartTotalItems');
                 if (cartTotalItems) {
@@ -340,18 +361,21 @@
                 
                 if (cart.length === 0) {
                     // Show empty cart message
-                    emptyCartMessage.classList.remove('hidden');
-                    cartFooter.classList.add('hidden');
+                    if (emptyCartMessage) emptyCartMessage.classList.remove('hidden');
+                    if (cartFooter) cartFooter.classList.add('hidden');
                     return;
                 }
                 
                 // Hide empty cart message and show footer
-                emptyCartMessage.classList.add('hidden');
-                cartFooter.classList.remove('hidden');
+                if (emptyCartMessage) emptyCartMessage.classList.add('hidden');
+                if (cartFooter) cartFooter.classList.remove('hidden');
                 
                 // Calculate totals
                 let totalQuantity = 0;
                 let totalPrice = 0;
+                
+                // Create document fragment for better performance
+                const fragment = document.createDocumentFragment();
                 
                 // Render each cart item
                 cart.forEach((item, index) => {
@@ -366,14 +390,14 @@
                             <h4 class="text-md font-semibold">${item.name}</h4>
                             <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
                             <div class="flex items-center space-x-2 mt-2">
-                                <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="decreaseQuantity(${index})">
+                                <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" data-index="${index}">
                                     <i class="fas fa-minus text-xs"></i>
                                 </button>
                                 <span class="quantity-value text-center w-6">${item.quantity}</span>
-                                <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" onclick="increaseQuantity(${index})">
+                                <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" data-index="${index}">
                                     <i class="fas fa-plus text-xs"></i>
                                 </button>
-                                <button type="button" class="ml-2 text-red-500 hover:text-red-700" onclick="confirmRemoveFromCart(${index})">
+                                <button type="button" class="ml-2 text-red-500 hover:text-red-700" data-index="${index}">
                                     <i class="fas fa-trash-alt"></i>
                                 </button>
                             </div>
@@ -382,20 +406,38 @@
                             <span class="text-lg font-semibold text-black">₱${(item.price * item.quantity).toFixed(2)}</span>
                         </div>
                     `;
-                    cartItems.appendChild(itemElement);
+                    
+                    // Add event listeners directly to the new elements
+                    const decreaseBtn = itemElement.querySelector('.decrease-btn');
+                    if (decreaseBtn) {
+                        decreaseBtn.addEventListener('click', function() {
+                            decreaseQuantity(index);
+                        });
+                    }
+                    
+                    const increaseBtn = itemElement.querySelector('.increase-btn');
+                    if (increaseBtn) {
+                        increaseBtn.addEventListener('click', function() {
+                            increaseQuantity(index);
+                        });
+                    }
+                    
+                    const removeBtn = itemElement.querySelector('.fa-trash-alt').closest('button');
+                    if (removeBtn) {
+                        removeBtn.addEventListener('click', function() {
+                            confirmRemoveFromCart(index);
+                        });
+                    }
+                    
+                    fragment.appendChild(itemElement);
                 });
                 
-                // Update total quantity and price in the footer
-                cartTotalQuantity.textContent = totalQuantity;
-                cartTotalPrice.textContent = `₱${totalPrice.toFixed(2)}`;
+                // Add all items at once for better performance
+                cartItems.appendChild(fragment);
                 
-                // Scroll to top button visibility
-                const scrollToTopButton = document.getElementById('cartScrollTopBtn');
-                if (cartItems.scrollTop > 100) {
-                    scrollToTopButton.classList.remove('hidden');
-                } else {
-                    scrollToTopButton.classList.add('hidden');
-                }
+                // Update total quantity and price in the footer
+                if (cartTotalQuantity) cartTotalQuantity.textContent = totalQuantity;
+                if (cartTotalPrice) cartTotalPrice.textContent = `₱${totalPrice.toFixed(2)}`;
             }
         });
     </script>

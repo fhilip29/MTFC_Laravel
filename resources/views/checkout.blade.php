@@ -96,35 +96,19 @@
 
                 <!-- Payment Methods -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h2 class="text-xl font-semibold mb-6">Payment Method</h2>
+                    <h2 class="text-xl font-semibold mb-6">Shipping Notes</h2>
                     <div class="space-y-4">
                         <div>
-                            <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-2">Select Payment Method</label>
-                            <div class="relative">
-                                <select id="payment_method" name="payment_method" class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500 bg-white">
-                                    <option value="" disabled selected>Choose a payment method</option>
-                                    <option value="cod">Cash on Delivery</option>
-                                    <option value="gcash">GCash</option>
-                                    <option value="bank">Bank Transfer</option>
-                                    <option value="credit">Credit/Debit Card</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <i class="fas fa-chevron-down"></i>
-                                </div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
+                            <textarea id="notes" name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500" placeholder="Special delivery instructions, preferred delivery time, etc."></textarea>
+                        </div>
+
+                        <!-- Payment Security Notice -->
+                        <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div class="flex items-center space-x-2 text-sm text-gray-600">
+                                <i class="fas fa-info-circle"></i>
+                                <span>You'll select your payment method in the next step</span>
                             </div>
-                        </div>
-                        
-                        <!-- Additional information based on selected payment -->
-                        <div id="payment-details" class="hidden space-y-4 mt-4 p-4 bg-gray-50 rounded-md border border-gray-200">
-                            <!-- Content will be dynamically inserted based on selection -->
-                        </div>
-                        
-                        <!-- Add new payment method button -->
-                        <div class="mt-4">
-                            <button type="button" id="addNewPaymentBtn" class="flex items-center text-red-600 hover:text-red-800 transition-colors">
-                                <i class="fas fa-plus-circle mr-2"></i>
-                                <span>Add New Payment Method</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -172,7 +156,7 @@
 
                 <!-- Place Order Button -->
                 <button id="placeOrderBtn" class="w-full bg-red-600 text-white py-3 rounded-md font-semibold hover:bg-red-700 transition-colors duration-200">
-                    Place Order
+                    Proceed to Payment
                 </button>
             </div>
         </div>
@@ -197,9 +181,6 @@
         const shippingElement = document.getElementById('shipping');
         const totalElement = document.getElementById('total');
         const placeOrderBtn = document.getElementById('placeOrderBtn');
-        const paymentMethodSelect = document.getElementById('payment_method');
-        const paymentDetails = document.getElementById('payment-details');
-        const addNewPaymentBtn = document.getElementById('addNewPaymentBtn');
         
         // Get cart data - from server or localStorage
         let cart = [];
@@ -410,319 +391,60 @@
                 }
             }
         }
-        
-        // Setup payment method dropdown
-        if (paymentMethodSelect) {
-            paymentMethodSelect.addEventListener('change', function() {
-                const selectedMethod = this.value;
-                
-                // Show payment details section
-                paymentDetails.classList.remove('hidden');
-                
-                // Update payment details based on selection
-                switch(selectedMethod) {
-                    case 'cod':
-                        paymentDetails.innerHTML = `
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                <p>You'll pay the delivery person when you receive your order.</p>
-                            </div>
-                        `;
-                        break;
-                    case 'gcash':
-                        paymentDetails.innerHTML = `
-                            <div class="space-y-3">
-                                <div class="flex items-center text-gray-700">
-                                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                    <p>Pay using your GCash account.</p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
-                                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                                        <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        break;
-                    case 'bank':
-                        paymentDetails.innerHTML = `
-                            <div class="space-y-3">
-                                <div class="flex items-center text-gray-700">
-                                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                    <p>Make a direct bank transfer to our account.</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Bank</label>
-                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                        <option value="">Select a bank</option>
-                                        <option value="bdo">BDO</option>
-                                        <option value="bpi">BPI</option>
-                                        <option value="metrobank">Metrobank</option>
-                                        <option value="unionbank">Unionbank</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                            </div>
-                        `;
-                        break;
-                    case 'credit':
-                        paymentDetails.innerHTML = `
-                            <div class="space-y-3">
-                                <div class="flex items-center text-gray-700">
-                                    <i class="fas fa-info-circle text-blue-500 mr-2"></i>
-                                    <p>Pay securely with your credit or debit card.</p>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                    <input type="text" placeholder="XXXX XXXX XXXX XXXX" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                                <div class="flex space-x-2">
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                        <input type="text" placeholder="MM / YY" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                        <input type="text" placeholder="XXX" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        break;
-                    default:
-                        paymentDetails.classList.add('hidden');
-                }
-            });
-        }
-        
-        // Handle "Add New Payment Method" button
-        if (addNewPaymentBtn) {
-            addNewPaymentBtn.addEventListener('click', function() {
-                // Create modal for adding new payment method
-                const modal = document.createElement('div');
-                modal.className = 'fixed inset-0 z-50 flex items-center justify-center';
-                modal.innerHTML = `
-                    <div class="fixed inset-0 bg-black opacity-50" id="modalOverlay"></div>
-                    <div class="bg-white rounded-lg shadow-xl p-6 max-w-md w-full relative z-10">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-semibold">Add New Payment Method</h3>
-                            <button id="closeModal" class="text-gray-500 hover:text-gray-800">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Payment Type</label>
-                                <select id="newPaymentType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    <option value="gcash">GCash</option>
-                                    <option value="bank">Bank Account</option>
-                                    <option value="credit">Credit/Debit Card</option>
-                                </select>
-                            </div>
-                            
-                            <div id="newPaymentFields" class="space-y-3">
-                                <!-- Fields will be dynamically updated based on selection -->
-                            </div>
-                            
-                            <div class="flex justify-end space-x-2 mt-6">
-                                <button id="cancelAddPayment" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">
-                                    Cancel
-                                </button>
-                                <button id="saveNewPayment" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
-                                    Save Payment Method
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                
-                // Setup new payment type change event
-                const newPaymentType = document.getElementById('newPaymentType');
-                const newPaymentFields = document.getElementById('newPaymentFields');
-                
-                // Initial content based on default selection
-                updateNewPaymentFields(newPaymentType.value);
-                
-                newPaymentType.addEventListener('change', function() {
-                    updateNewPaymentFields(this.value);
-                });
-                
-                // Close modal functions
-                document.getElementById('closeModal').addEventListener('click', closeModal);
-                document.getElementById('cancelAddPayment').addEventListener('click', closeModal);
-                document.getElementById('modalOverlay').addEventListener('click', closeModal);
-                
-                // Save new payment method
-                document.getElementById('saveNewPayment').addEventListener('click', function() {
-                    // Here you would typically save the payment method to the user's account
-                    alert('New payment method saved successfully!');
-                    closeModal();
-                    
-                    // Add the new payment to the dropdown
-                    const newOption = document.createElement('option');
-                    newOption.value = newPaymentType.value + '_saved';
-                    newOption.text = getPaymentMethodName(newPaymentType.value) + ' (Saved)';
-                    paymentMethodSelect.appendChild(newOption);
-                    
-                    // Select the new option
-                    paymentMethodSelect.value = newOption.value;
-                    
-                    // Trigger change event to update payment details
-                    const event = new Event('change');
-                    paymentMethodSelect.dispatchEvent(event);
-                });
-                
-                function updateNewPaymentFields(type) {
-                    switch(type) {
-                        case 'gcash':
-                            newPaymentFields.innerHTML = `
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                            `;
-                            break;
-                        case 'bank':
-                            newPaymentFields.innerHTML = `
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Bank Name</label>
-                                    <select class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                        <option value="bdo">BDO</option>
-                                        <option value="bpi">BPI</option>
-                                        <option value="metrobank">Metrobank</option>
-                                        <option value="unionbank">Unionbank</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Number</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                            `;
-                            break;
-                        case 'credit':
-                            newPaymentFields.innerHTML = `
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                    <input type="text" placeholder="XXXX XXXX XXXX XXXX" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                                    <input type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                </div>
-                                <div class="flex space-x-2">
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                        <input type="text" placeholder="MM / YY" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                    <div class="w-1/2">
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                        <input type="text" placeholder="XXX" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
-                                    </div>
-                                </div>
-                            `;
-                            break;
-                    }
-                }
-                
-                function closeModal() {
-                    document.body.removeChild(modal);
-                }
-                
-                function getPaymentMethodName(type) {
-                    switch(type) {
-                        case 'gcash': return 'GCash';
-                        case 'bank': return 'Bank Account';
-                        case 'credit': return 'Credit/Debit Card';
-                        default: return 'Payment Method';
-                    }
-                }
-            });
-        }
-        
+
         // Place order button
-        placeOrderBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Get selected items
-            const selectedItems = Array.from(checkboxes)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => {
-                    const index = parseInt(checkbox.dataset.index);
-                    return cart[index];
-                });
-            
-            if (selectedItems.length === 0) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'No Items Selected',
-                    text: 'Please select at least one item to order'
-                });
-                return;
-            }
-            
-            // Get selected payment method
-            const selectedPayment = document.getElementById('payment_method');
-            if (!selectedPayment || !selectedPayment.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Payment Method Required',
-                    text: 'Please select a payment method'
-                });
-                return;
-            }
-            
-            // Get form data
-            const firstName = document.querySelector('input[name="first_name"]').value;
-            const lastName = document.querySelector('input[name="last_name"]').value;
-            const street = document.querySelector('input[name="street"]').value;
-            const barangay = document.querySelector('input[name="barangay"]').value;
-            const city = document.querySelector('input[name="city"]').value;
-            const postalCode = document.querySelector('input[name="postal_code"]').value;
-            const phoneNumber = document.querySelector('input[name="phone_number"]').value;
-            
-            // Validate form fields
-            if (!firstName || !lastName || !street || !barangay || !city || !postalCode || !phoneNumber) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Missing Information',
-                    text: 'Please fill in all delivery address fields'
-                });
-                return;
-            }
-            
-            // Show confirmation dialog
-            Swal.fire({
-                title: 'Confirm Your Order',
-                text: 'Are you sure you want to place this order?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, place order!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Prepare order data
-                    const orderData = {
+        if (placeOrderBtn) {
+            placeOrderBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Get selected items
+                const selectedItems = Array.from(checkboxes)
+                    .filter(checkbox => checkbox.checked)
+                    .map(checkbox => {
+                        const index = parseInt(checkbox.dataset.index);
+                        return cart[index];
+                    });
+                
+                if (selectedItems.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No Items Selected',
+                        text: 'Please select at least one item to order'
+                    });
+                    return;
+                }
+                
+                // Get form data
+                const firstName = document.querySelector('input[name="first_name"]').value;
+                const lastName = document.querySelector('input[name="last_name"]').value;
+                const street = document.querySelector('input[name="street"]').value;
+                const barangay = document.querySelector('input[name="barangay"]').value;
+                const city = document.querySelector('input[name="city"]').value;
+                const postalCode = document.querySelector('input[name="postal_code"]').value;
+                const phoneNumber = document.querySelector('input[name="phone_number"]').value;
+                const notes = document.getElementById('notes').value;
+                
+                // Validate form fields
+                if (!firstName || !lastName || !street || !barangay || !city || !postalCode || !phoneNumber) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Missing Information',
+                        text: 'Please fill in all delivery address fields'
+                    });
+                    return;
+                }
+                
+                // Calculate total
+                const subtotalText = document.getElementById('subtotal').textContent;
+                const subtotal = parseFloat(subtotalText.replace('₱', '').replace(',', ''));
+                const shippingText = document.getElementById('shipping').textContent;
+                const shipping = parseFloat(shippingText.replace('₱', '').replace(',', ''));
+                const total = subtotal + shipping;
+                
+                // Store order data in session storage
+                const orderData = {
+                    items: selectedItems,
+                    shipping: {
                         first_name: firstName,
                         last_name: lastName,
                         street: street,
@@ -730,92 +452,23 @@
                         city: city,
                         postal_code: postalCode,
                         phone_number: phoneNumber,
-                        payment_method: selectedPayment.value,
-                        items: selectedItems.map(item => ({
-                            id: item.id,
-                            quantity: item.quantity,
-                            price: item.price
-                        }))
-                    };
-                    
-                    // Show loading state
-                    Swal.fire({
-                        title: 'Processing Order',
-                        text: 'Please wait while we process your order...',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-                    
-                    // Submit order to server
-                    fetch('{{ route("orders.store") }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify(orderData)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            if (response.status === 401) {
-                                throw new Error('You must be logged in to place an order');
-                            }
-                            throw new Error('Server error');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (data.success) {
-                            // Show success message
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Order Placed Successfully!',
-                                text: 'Your order has been confirmed and is now being processed.',
-                                confirmButtonColor: '#dc2626',
-                                confirmButtonText: 'OK',
-                                showDenyButton: true,
-                                denyButtonText: 'View Order',
-                                denyButtonColor: '#1F2937'
-                            }).then((result) => {
-                                if (result.isDenied) {
-                                    // Redirect to orders page
-                                    window.location.href = '{{ route("orders") }}';
-                                } else {
-                                    // Clear cart and redirect to home
-                                    localStorage.removeItem('cart');
-                                    window.location.href = '{{ route("home") }}';
-                                }
-                            });
-                        } else {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Order Failed',
-                                text: data.message || 'There was an error processing your order.'
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Order Failed',
-                            text: error.message || 'There was an error processing your order.'
-                        });
-                        
-                        // If authentication error, redirect to login
-                        if (error.message === 'You must be logged in to place an order') {
-                            localStorage.setItem('cart_redirect', 'checkout');
-                            setTimeout(() => {
-                                window.location.href = '{{ route("login.form") }}';
-                            }, 2000);
-                        }
-                    });
-                }
+                        notes: notes
+                    },
+                    amount: total
+                };
+                
+                // Store order data in sessionStorage for retrieval in payment page
+                sessionStorage.setItem('orderData', JSON.stringify(orderData));
+                
+                // Redirect to payment method page
+                window.location.href = '{{ route("payment-method") }}' + 
+                    '?type=product' + 
+                    '&plan=one-time' + 
+                    '&amount=' + total + 
+                    '&waiver_accepted=1' +
+                    '&order_id=' + Date.now().toString();
             });
-        });
+        }
     });
 </script>
 

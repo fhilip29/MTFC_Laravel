@@ -285,7 +285,7 @@
                 </a>
             </div>
             <div class="nav-button profile" x-data="{ open: false }">
-                <i class="fas fa-user" @click="open = !open"></i>
+                <i class="fas fa-user" @click="open = !open" title="Profile Options"></i>
                 <div :class="{'active': open}" class="dropdown-menu" @click.away="open = false">
                     <div class="dropdown-item">
                         <i class="fas fa-user-circle"></i>

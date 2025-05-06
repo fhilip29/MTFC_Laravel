@@ -56,7 +56,7 @@
                         @elseif($isTrainer)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
-                            <button onclick="openWaiverModal('muay', 'monthly', '100.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                            <button onclick="openWaiverModal('muay', 'monthly', '3200.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
                                 Join Now
                             </button>
                         @endif
@@ -87,14 +87,14 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$20 / session</span>
+                    <span class="text-lg font-semibold text-gray-800">₱350 / session</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
                         @elseif($isTrainer)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
-                            <button onclick="openWaiverModal('muay', 'daily', '20.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                            <button onclick="openWaiverModal('muay', 'per-session', '350.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
                                 Join Now
                             </button>
                         @endif

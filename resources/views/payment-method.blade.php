@@ -333,16 +333,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         try {
-            const paymentData = JSON.parse(decodedText);
-            
-            // Verify payment data
-            if (!paymentData.reference || !paymentData.amount) {
-                showError('Invalid QR code format');
+            // Get order data from sessionStorage
+            const orderDataStr = sessionStorage.getItem('orderData');
+            if (!orderDataStr) {
+                showError('Order data not found');
                 return;
             }
             
+            const orderData = JSON.parse(orderDataStr);
+            
+            // Try to parse the QR code as JSON if it's in JSON format
+            let qrData;
+            try {
+                qrData = JSON.parse(decodedText);
+            } catch (e) {
+                // If not JSON, use the raw text
+                qrData = { code: decodedText };
+            }
+            
+            // Create payment data to send to server
+            const paymentData = {
+                qr_code: decodedText,
+                reference: qrData.reference || qrData.code || decodedText,
+                amount: orderData.amount,
+                order_data: orderData,
+                payment_method: 'cash'
+            };
+            
+            showMessage('Processing payment...');
+            
             // Send payment verification request
-            fetch('/admin/verify-payment', {
+            fetch('/payment/process-cash', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -350,26 +371,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify(paymentData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
-                    showSuccess(data.message);
-                    // Reload page after 2 seconds
+                    showSuccess(data.message || 'Payment successful!');
+                    
+                    // Clear order data from sessionStorage
+                    sessionStorage.removeItem('orderData');
+                    
+                    // Redirect to orders page after a short delay
                     setTimeout(() => {
-                        window.location.reload();
+                        window.location.href = '{{ route("orders") }}?success=true';
                     }, 2000);
                 } else {
-                    showError(data.message);
+                    showError(data.message || 'Payment verification failed');
                 }
             })
             .catch(error => {
-                showError('Failed to verify payment');
                 console.error('Error:', error);
+                showError('Failed to process payment. Please try again.');
             });
             
         } catch (error) {
-            showError('Invalid QR code format');
-            console.error('Error parsing QR code:', error);
+            console.error('Error processing QR code:', error);
+            showError('Invalid QR code or order data format');
         }
     }
     

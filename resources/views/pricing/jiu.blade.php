@@ -52,14 +52,14 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$100 / month</span>
+                    <span class="text-lg font-semibold text-gray-800">₱3,500 / month</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
                         @elseif($isTrainer)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
-                            <button onclick="openWaiverModal('jiu', 'monthly', '100.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                            <button onclick="openWaiverModal('jiu-jitsu', 'monthly', '3500.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
                                 Join Now
                             </button>
                         @endif
@@ -87,14 +87,14 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">$20 / day</span>
+                    <span class="text-lg font-semibold text-gray-800">₱400 / session</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
                         @elseif($isTrainer)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
-                            <button onclick="openWaiverModal('jiu', 'daily', '20.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
+                            <button onclick="openWaiverModal('jiu-jitsu', 'per-session', '400.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
                                 Join Now
                             </button>
                         @endif

@@ -113,7 +113,7 @@ Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers
 // ===================
 // PRICING ROUTES
 // ===================
-Route::view('/pricing', 'pricing')->name('pricing');
+Route::redirect('/pricing', '/pricing/gym')->name('pricing');
 Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym');
 Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
 Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
@@ -123,13 +123,14 @@ Route::get('/pricing/jiu', [PricingController::class, 'jiu'])->name('pricing.jiu
 // PAYMENT ROUTES
 // ===================
 Route::get('/payment-method', [PaymentController::class, 'showPaymentMethods'])->name('payment-method');
-Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
+Route::post('/payment/process', [PaymentController::class, 'processPayment'])->name('payment.process');
 Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
-Route::post('/payment/cash/qr', [PaymentController::class, 'generateCashQr'])->name('payment.cash.qr');
+Route::post('/payment/cash/qr', [PaymentController::class, 'generateQRCode'])->name('payment.cash.qr');
 Route::get('/payment/cash/qr/{reference}', [PaymentController::class, 'showCashQr'])->name('payment.cash.qr.show');
 Route::post('/payment/cash/verify', [PaymentController::class, 'verifyCashPayment'])->name('payment.cash.verify');
+Route::post('/payment/process-cash', [PaymentController::class, 'processCashPayment'])->name('payment.process.cash');
 
 // ===================
 // TERMS / POLICIES
@@ -319,8 +320,10 @@ Route::post('/account-settings/profile', [AccountController::class, 'updateProfi
 Route::post('/account-settings/password', [AccountController::class, 'updatePassword'])->name('password.update');
 
 // Admin routes
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    // Payment verification route
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    
+    // Add the verify-payment route with the admin prefix
     Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');
 });
 

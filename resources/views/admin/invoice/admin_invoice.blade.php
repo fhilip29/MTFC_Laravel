@@ -13,6 +13,9 @@
                 <a href="{{ route('admin.invoice.export') }}" class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
                     <i class="fas fa-file-export"></i> <span class="sm:inline">Export</span>
                 </a>
+                <button onclick="openScanner()" class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
+                    <i class="fas fa-qrcode"></i> <span class="sm:inline">Scan Payment</span>
+                </button>
             </div>
         </div>
 
@@ -104,7 +107,349 @@
     </div>
 </div>
 
+<!-- Payment Scanner Modal -->
+<div id="scannerModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeScanner()"></div>
+        
+        <div class="relative bg-[#1F2937] rounded-lg max-w-md w-full mx-auto shadow-xl z-50 border border-[#374151]">
+            <div class="flex items-center justify-between p-4 border-b border-[#374151]">
+                <h3 class="text-xl font-bold text-white">Scan Payment QR Code</h3>
+                <button onclick="closeScanner()" class="text-[#9CA3AF] hover:text-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Success message (initially hidden) -->
+                <div id="payment-success-message" class="hidden bg-green-600 text-white p-4 rounded-lg mb-4 animate-pulse">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="font-bold">Payment Confirmed!</h4>
+                            <p class="text-sm" id="payment-success-details"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Error message (initially hidden) -->
+                <div id="payment-error-message" class="hidden bg-red-600 text-white p-4 rounded-lg mb-4 animate-pulse">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="font-bold">Payment Error</h4>
+                            <p class="text-sm" id="payment-error-details"></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Scanner container -->
+                <div class="relative mb-4">
+                    <video id="scanner" class="w-full h-96 bg-black rounded-lg"></video>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <div class="w-64 h-64 border-2 border-white rounded-lg"></div>
+                    </div>
+                </div>
+                
+                <!-- Scanner controls - moved outside the scanner frame -->
+                <div class="flex justify-center space-x-3 mb-4">
+                    <button id="startScanner" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+                        <i class="fas fa-play mr-2"></i> Start Scanner
+                    </button>
+                    <button id="switchCamera" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i> Switch Camera
+                    </button>
+                    <button id="toggleFrontCamera" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+                        <i class="fas fa-camera mr-2"></i> Front Camera
+                    </button>
+                </div>
+                
+                <!-- Scanner message -->
+                <div id="scanner-message" class="text-[#9CA3AF] text-sm text-center mt-2">
+                    Position the QR code within the frame
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include QR Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <script>
+    let html5QrcodeScanner = null;
+    let currentCameraId = null;
+    let availableCameras = [];
+    let isFrontCamera = false;
+    
+    // Initialize buttons on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initially hide the switch camera button until we know there are multiple cameras
+        document.getElementById('switchCamera').style.display = 'none';
+        
+        // Add event listeners to buttons
+        document.getElementById('startScanner').addEventListener('click', function() {
+            startScanner();
+        });
+        
+        document.getElementById('switchCamera').addEventListener('click', function() {
+            switchCamera();
+        });
+
+        document.getElementById('toggleFrontCamera').addEventListener('click', function() {
+            isFrontCamera = !isFrontCamera;
+            this.classList.toggle('bg-purple-600');
+            this.classList.toggle('bg-purple-800');
+            if (html5QrcodeScanner) {
+                startScanner();
+            }
+        });
+    });
+    
+    function openScanner() {
+        document.getElementById('scannerModal').classList.remove('hidden');
+        // Show the start button by default
+        document.getElementById('startScanner').style.display = 'flex';
+    }
+    
+    function closeScanner() {
+        document.getElementById('scannerModal').classList.add('hidden');
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop();
+        }
+    }
+    
+    async function startScanner() {
+        try {
+            // Get available cameras
+            const devices = await Html5Qrcode.getCameras();
+            availableCameras = devices;
+            
+            if (availableCameras.length === 0) {
+                showError('No cameras found');
+                return;
+            }
+
+            // Log available cameras for debugging
+            console.log("Available cameras:", availableCameras);
+
+            // Filter cameras based on front/back preference
+            let filteredCameras = availableCameras.filter(camera => {
+                const label = (camera.label || '').toLowerCase();
+                if (isFrontCamera) {
+                    return label.includes('front') || label.includes('user') || label.includes('webcam');
+                } else {
+                    return label.includes('back') || label.includes('environment') || label.includes('rear');
+                }
+            });
+
+            // If no cameras match our filter, use all available cameras
+            if (filteredCameras.length === 0) {
+                console.log("No matching cameras found, using all available cameras");
+                filteredCameras = availableCameras;
+                showMessage(`Using all available cameras`);
+            }
+            
+            // Use the first camera by default or continue with current if switching
+            if (!currentCameraId || !filteredCameras.find(cam => cam.id === currentCameraId)) {
+                currentCameraId = filteredCameras[0].id;
+            }
+            
+            // Show switch camera button only if multiple cameras are available
+            document.getElementById('switchCamera').style.display = 
+                filteredCameras.length > 1 ? 'flex' : 'none';
+            
+            // Initialize scanner
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop();
+            }
+
+            console.log(`Using camera with ID: ${currentCameraId}`);
+            
+            // Create new scanner instance with HTML5QrcodeScanner
+            html5QrcodeScanner = new Html5Qrcode("scanner");
+            
+            const qrConfig = {
+                fps: 10,
+                qrbox: { width: 300, height: 300 },
+                aspectRatio: 1.0
+            };
+            
+            await html5QrcodeScanner.start(
+                { deviceId: { exact: currentCameraId } },
+                qrConfig,
+                onScanSuccess,
+                onScanFailure
+            );
+            
+            showMessage(`Scanner started with camera: ${filteredCameras.find(cam => cam.id === currentCameraId)?.label || 'Unknown'}`);
+            
+        } catch (error) {
+            showError('Failed to start scanner: ' + error.message);
+            console.error('Error starting scanner:', error);
+            
+            // Try with default camera as fallback
+            try {
+                if (html5QrcodeScanner) {
+                    html5QrcodeScanner.stop();
+                }
+                
+                html5QrcodeScanner = new Html5Qrcode("scanner");
+                
+                const qrConfig = {
+                    fps: 10,
+                    qrbox: { width: 300, height: 300 }
+                };
+                
+                await html5QrcodeScanner.start(
+                    { facingMode: isFrontCamera ? "user" : "environment" },
+                    qrConfig,
+                    onScanSuccess,
+                    onScanFailure
+                );
+                
+                showMessage("Scanner started with fallback method");
+                
+            } catch (fallbackError) {
+                console.error('Fallback error:', fallbackError);
+                showError('Scanner initialization failed. Please try a different browser or device.');
+            }
+        }
+    }
+    
+    function switchCamera() {
+        if (availableCameras.length <= 1) {
+            showError('No additional cameras available');
+            return;
+        }
+        
+        // Filter cameras based on front/back preference
+        let filteredCameras = availableCameras.filter(camera => {
+            const label = (camera.label || '').toLowerCase();
+            if (isFrontCamera) {
+                return label.includes('front') || label.includes('user') || label.includes('webcam');
+            } else {
+                return label.includes('back') || label.includes('environment') || label.includes('rear');
+            }
+        });
+
+        // If no cameras match our filter, use all available cameras
+        if (filteredCameras.length === 0) {
+            filteredCameras = availableCameras;
+        }
+
+        if (filteredCameras.length <= 1) {
+            showError('No additional cameras available');
+            return;
+        }
+        
+        // Find current camera index
+        const currentIndex = filteredCameras.findIndex(camera => camera.id === currentCameraId);
+        // Switch to next camera
+        const nextIndex = (currentIndex + 1) % filteredCameras.length;
+        currentCameraId = filteredCameras[nextIndex].id;
+        
+        // Show which camera is being used
+        showMessage(`Switched to camera ${nextIndex + 1}/${filteredCameras.length}: ${filteredCameras[nextIndex].label || 'Unknown'}`);
+        
+        // Restart scanner with new camera
+        startScanner();
+    }
+    
+    function showMessage(message) {
+        const messageElement = document.getElementById('scanner-message');
+        messageElement.textContent = message;
+        messageElement.classList.remove('text-[#9CA3AF]');
+        messageElement.classList.add('text-white');
+        
+        // Reset message after 3 seconds
+        setTimeout(() => {
+            messageElement.textContent = 'Position the QR code within the frame';
+            messageElement.classList.add('text-[#9CA3AF]');
+            messageElement.classList.remove('text-white');
+        }, 3000);
+    }
+    
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop scanner
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop();
+        }
+        
+        try {
+            const paymentData = JSON.parse(decodedText);
+            
+            // Verify payment data
+            if (!paymentData.reference || !paymentData.amount) {
+                showError('Invalid QR code format');
+                return;
+            }
+            
+            // Send payment verification request
+            fetch('/admin/verify-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(paymentData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showSuccess(data.message);
+                    // Reload page after 2 seconds
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                showError('Failed to verify payment');
+                console.error('Error:', error);
+            });
+            
+        } catch (error) {
+            showError('Invalid QR code format');
+            console.error('Error parsing QR code:', error);
+        }
+    }
+    
+    function onScanFailure(error) {
+        // Handle scan failure silently
+        console.warn(`QR Code scan failure: ${error}`);
+    }
+    
+    function showSuccess(message) {
+        const successMessage = document.getElementById('payment-success-message');
+        const successDetails = document.getElementById('payment-success-details');
+        const errorMessage = document.getElementById('payment-error-message');
+        
+        successDetails.textContent = message;
+        successMessage.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+    }
+    
+    function showError(message) {
+        const successMessage = document.getElementById('payment-success-message');
+        const errorMessage = document.getElementById('payment-error-message');
+        const errorDetails = document.getElementById('payment-error-details');
+        
+        errorDetails.textContent = message;
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        
+        // Restart scanner after 3 seconds
+        setTimeout(() => {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop();
+            }
+            startScanner();
+        }, 3000);
+    }
+
     // Client-side search and filtering
     document.addEventListener('DOMContentLoaded', function() {
         const searchInput = document.getElementById('searchInput');
@@ -156,3 +501,4 @@
     });
 </script>
 @endsection
+

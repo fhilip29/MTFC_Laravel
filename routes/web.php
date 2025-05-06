@@ -318,4 +318,10 @@ Route::get('/account-settings', [AccountController::class, 'index'])->name('acco
 Route::post('/account-settings/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
 Route::post('/account-settings/password', [AccountController::class, 'updatePassword'])->name('password.update');
 
+// Admin routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    // Payment verification route
+    Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');
+});
+
 

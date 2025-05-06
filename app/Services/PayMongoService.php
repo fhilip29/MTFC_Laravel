@@ -98,4 +98,30 @@ class PayMongoService
 
         return $response->json();
     }
+
+    public function verifyPayment($reference)
+    {
+        try {
+            $response = Http::withHeaders([
+                'Accept' => 'application/json',
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Basic ' . base64_encode(config('services.paymongo.secret_key'))
+            ])->get('https://api.paymongo.com/v1/payments/' . $reference);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                return [
+                    'status' => $data['data']['attributes']['status'],
+                    'amount' => $data['data']['attributes']['amount'] / 100, // Convert from cents to dollars
+                    'currency' => $data['data']['attributes']['currency'],
+                    'created_at' => $data['data']['attributes']['created_at']
+                ];
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            \Log::error('PayMongo payment verification error: ' . $e->getMessage());
+            return null;
+        }
+    }
 }

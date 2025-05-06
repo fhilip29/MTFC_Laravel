@@ -151,6 +151,7 @@
             color: white;
             padding: 0.25rem;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .nav-button:hover {
@@ -175,6 +176,63 @@
             width: 0;
             height: 0;
             overflow: hidden;
+        }
+        
+        /* Dropdown menu styles */
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: 2rem;
+            width: 220px;
+            background-color: #1F2937;
+            border: 1px solid #4B5563;
+            border-radius: 0.375rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            transform-origin: top right;
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-menu.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #D1D5DB;
+            border-bottom: 1px solid #374151;
+            transition: all 0.2s ease;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #374151;
+            color: white;
+        }
+        
+        .dropdown-item i {
+            width: 1.25rem;
+            text-align: center;
+        }
+        
+        .dropdown-item.danger {
+            color: #EF4444;
+        }
+        
+        .dropdown-item.danger:hover {
+            background-color: #991B1B;
+            color: white;
         }
 
         @media (max-width: 768px) {
@@ -221,13 +279,27 @@
             <a href="/" class="nav-button home" title="Go to Home">
                 <i class="fas fa-home"></i>
             </a>
-            <a href="/profile" class="nav-button profile" title="Go to Profile">
-                <i class="fas fa-user"></i>
-            </a>
             <div class="logo-container">
                 <a href="/admin/dashboard" title="Go to Dashboard">
                     <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="MTFC Logo">
                 </a>
+            </div>
+            <div class="nav-button profile" x-data="{ open: false }">
+                <i class="fas fa-user" @click="open = !open"></i>
+                <div :class="{'active': open}" class="dropdown-menu" @click.away="open = false">
+                    <div class="dropdown-item">
+                        <i class="fas fa-user-circle"></i>
+                        <span>{{ Auth::user()->name ?? 'Admin' }}</span>
+                    </div>
+                    <a href="/admin/profile" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Account Settings</span>
+                    </a>
+                    <button type="button" onclick="confirmAdminLogout()" class="dropdown-item danger w-full text-left">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
             </div>
             <button class="toggle-btn" id="sidebarToggle">
                 <i class="fas fa-chevron-left"></i>
@@ -270,32 +342,16 @@
                 <i class="fas fa-box"></i>
                 <span>Product Management</span>
             </a>
-            
-            <div class="mt-auto pt-8 border-t border-[#374151] mt-4">
-                <a href="javascript:void(0)" onclick="confirmAdminLogout()" class="nav-link text-red-400 hover:text-red-300">
-                    <i class="fas fa-sign-out-alt"></i>
-                    <span>Logout</span>
-                </a>
-                
-                <!-- Alternative direct logout link -->
-                <form action="{{ route('logout') }}" method="POST" class="mt-2">
-                    @csrf
-                    <button type="submit" class="nav-link w-full text-left text-yellow-500 hover:text-yellow-400">
-                        <i class="fas fa-power-off"></i>
-                        <span>Direct Logout</span>
-                    </button>
-                </form>
-            </div>
-            
-            <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                @csrf
-            </form>
         </div>
     </nav>
 
     <main class="main-content" id="mainContent">
         @yield('content')
     </main>
+
+    <form id="admin-logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+        @csrf
+    </form>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {

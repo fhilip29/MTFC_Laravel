@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Sessions; // Import the Sessions model
+use App\Services\PayMongoService;
 
 class AdminController extends Controller
 {
@@ -175,5 +176,61 @@ class AdminController extends Controller
             'attendanceLabels',
             'attendanceData'
         ));
+    }
+
+    public function verifyPayment(Request $request)
+    {
+        try {
+            $paymentData = $request->validate([
+                'reference' => 'required|string',
+                'amount' => 'required|numeric',
+                'type' => 'required|in:product,subscription',
+                'plan' => 'required_if:type,subscription|string',
+                'order_id' => 'required_if:type,product|string'
+            ]);
+
+            // Verify payment with PayMongo
+            $paymongoService = new PayMongoService();
+            $payment = $paymongoService->verifyPayment($paymentData['reference']);
+
+            if (!$payment || $payment['status'] !== 'paid') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment verification failed'
+                ]);
+            }
+
+            // Handle based on payment type
+            if ($paymentData['type'] === 'subscription') {
+                // Update subscription status
+                $subscription = Subscription::where('payment_reference', $paymentData['reference'])->first();
+                if ($subscription) {
+                    $subscription->update([
+                        'status' => 'active',
+                        'payment_status' => 'paid'
+                    ]);
+                }
+            } else {
+                // Update order status
+                $order = Order::where('id', $paymentData['order_id'])->first();
+                if ($order) {
+                    $order->update([
+                        'status' => 'completed',
+                        'payment_status' => 'paid'
+                    ]);
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment verified successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error verifying payment: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

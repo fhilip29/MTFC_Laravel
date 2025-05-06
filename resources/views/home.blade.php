@@ -93,9 +93,9 @@
                     <div class="carousel-inner">
                     @foreach ($chunks as $chunkIndex => $chunk)
     <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-        <div class="d-flex justify-content-center gap-4">
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
             @foreach ($chunk as $product)
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden" style="width: 16rem;">
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4" style="width: 16rem; max-width: 100%;">
                     <!-- Display Product Image -->
                     <img src="{{ asset($product->image) }}" class="w-full h-40 object-cover" alt="{{ $product->name }}">
 
@@ -112,6 +112,7 @@
                                 <i class="fas fa-eye"></i>
                                 <span>View</span>
                             </button>
+                            @auth
                             <button @click="addToCart({
                                 id: {{ $product->id }},
                                 name: '{{ $product->name }}',
@@ -121,6 +122,12 @@
                                 <i class="fas fa-shopping-cart"></i>
                                 <span>Add</span>
                             </button>
+                            @else
+                            <button @click="showLoginPrompt()" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span>Add</span>
+                            </button>
+                            @endauth
                         </div>
                     </div>
                 </div>
@@ -169,9 +176,15 @@
                                         <p class="text-sm text-gray-500 mb-2">Product Details:</p>
                                         <p class="text-sm text-gray-700 mb-4">High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.</p>
                                         <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
+                                        @auth
                                         <button @click="addToCart(activeProduct); modalOpen = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
                                             Add to Cart
                                         </button>
+                                        @else
+                                        <button @click="showLoginPrompt()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                                            Login to Add to Cart
+                                        </button>
+                                        @endauth
                                     </div>
                                 </div>
                             </div>
@@ -241,6 +254,7 @@
         activeProduct: null,
 
         addToCart(product) {
+            @auth
             const existing = this.cartItems.find(item => item.id === product.id);
             if (existing) {
                 existing.quantity += 1;
@@ -248,6 +262,25 @@
                 this.cartItems.push({ ...product, quantity: 1 });
             }
             this.syncCart();
+            @else
+            this.showLoginPrompt();
+            @endauth
+        },
+
+        showLoginPrompt() {
+            Swal.fire({
+                title: 'Login Required',
+                text: 'Please login or sign up to add items to your cart',
+                icon: 'info',
+                confirmButtonColor: '#EF4444',
+                showCancelButton: true,
+                confirmButtonText: 'Login',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '{{ route("login") }}';
+                }
+            });
         },
 
         syncCart() {

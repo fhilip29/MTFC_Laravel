@@ -16,6 +16,7 @@ let cartItems = [];
 window.addToCart = function(product) {
     console.log('Adding to cart:', product);
     
+    @auth
     // Get existing cart from localStorage
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     
@@ -75,8 +76,22 @@ window.addToCart = function(product) {
     });
     
     // Sync with server if user is authenticated
-    @auth
     syncCartWithServer(cart);
+    @else
+    // Show login prompt for non-authenticated users
+    Swal.fire({
+        title: 'Login Required',
+        text: 'Please login or sign up to add items to your cart',
+        icon: 'info',
+        confirmButtonColor: '#EF4444',
+        showCancelButton: true,
+        confirmButtonText: 'Login',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{{ route("login") }}';
+        }
+    });
     @endauth
 }
 
@@ -105,21 +120,38 @@ function syncCartWithServer(cart) {
 let currentProduct = null;
 
 // Function to show product modal
-function showProductModal(id, name, price, image, description, stock, category) {
+function showProductModal(id, name, price, image, description, stock, category, discount = 0) {
     currentProduct = {
         id: id,
         name: name,
         price: price,
+        originalPrice: price,
         image: image,
         description: description,
         stock: stock,
         category: category,
-        quantity: 1
+        quantity: 1,
+        discount: discount
     };
     
     // Set product details to modal
     document.getElementById('modalProductName').textContent = name;
-    document.getElementById('modalProductPrice').textContent = `₱${parseFloat(price).toFixed(2)}`;
+    
+    // Show discounted price if applicable
+    const modalPriceElement = document.getElementById('modalProductPrice');
+    if (discount > 0) {
+        const discountedPrice = (price * (1 - discount/100)).toFixed(2);
+        modalPriceElement.innerHTML = `
+            <span class="line-through text-gray-400 text-sm">₱${parseFloat(price).toFixed(2)}</span>
+            <span>₱${discountedPrice}</span>
+            <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">${discount}% OFF</span>
+        `;
+        // Update the product's price to discounted price for cart
+        currentProduct.price = discountedPrice;
+    } else {
+        modalPriceElement.textContent = `₱${parseFloat(price).toFixed(2)}`;
+    }
+    
     document.getElementById('modalProductImage').src = image || '{{ asset("assets/default-product.jpg") }}';
     document.getElementById('modalProductImage').alt = name;
     document.getElementById('modalProductDescription').textContent = description || 'No description available';
@@ -152,6 +184,7 @@ function decreaseQuantity() {
     const currentValue = parseInt(quantityInput.value);
     if (currentValue > 1) {
         quantityInput.value = currentValue - 1;
+        updateModalQuantity();
     }
 }
 
@@ -163,6 +196,15 @@ function increaseQuantity() {
     
     if (currentValue < maxStock) {
         quantityInput.value = currentValue + 1;
+        updateModalQuantity();
+    }
+}
+
+// Function to update quantity in modal
+function updateModalQuantity() {
+    if (currentProduct) {
+        const quantity = parseInt(document.getElementById('modalQuantityInput').value);
+        currentProduct.quantity = quantity;
     }
 }
 
@@ -197,55 +239,64 @@ function addToCartFromModal() {
     <div id="productModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
             <div class="fixed inset-0 transition-opacity bg-black bg-opacity-60" onclick="closeProductModal()"></div>
-            <div class="relative bg-white rounded-xl max-w-2xl w-full mx-auto shadow-2xl transform transition-all">
+            <div class="relative bg-white rounded-xl w-full max-w-md md:max-w-2xl mx-auto shadow-2xl transform transition-all">
                 <!-- Modal header -->
-                <div class="flex items-center justify-between p-5 border-b">
-                    <h3 class="text-xl font-bold" id="modalProductName">Product Details</h3>
+                <div class="flex items-center justify-between p-4 md:p-5 border-b">
+                    <h3 class="text-lg md:text-xl font-bold" id="modalProductName">Product Details</h3>
                     <button onclick="closeProductModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-opacity-50 rounded-full p-1">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
                 <!-- Modal body -->
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row gap-6">
-                        <div class="md:w-1/2">
-                            <div class="w-full h-72 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
+                <div class="p-4 md:p-6">
+                    <div class="flex flex-col md:flex-row gap-4 md:gap-6">
+                        <div class="w-full md:w-1/2">
+                            <div class="w-full h-56 md:h-72 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
                                 <img id="modalProductImage" class="w-full h-full object-contain rounded-lg p-2 transition-all duration-300 hover:scale-105" src="" alt="Product image">
                             </div>
-                            <div class="mt-4" id="modalCategoryContainer">
+                            <div class="mt-3" id="modalCategoryContainer">
                                 <span class="inline-block bg-gray-200 text-gray-800 text-sm px-3 py-1 rounded-full" id="modalProductCategory"></span>
                             </div>
                         </div>
-                        <div class="md:w-1/2 space-y-5">
-                            <p class="text-3xl font-bold text-red-600" id="modalProductPrice"></p>
+                        <div class="w-full md:w-1/2 space-y-3 md:space-y-4">
+                            <p class="text-2xl md:text-3xl font-bold text-red-600" id="modalProductPrice">
+                                <!-- Price will be set dynamically by JavaScript -->
+                            </p>
                             <div class="flex items-center space-x-2">
                                 <span class="text-sm font-medium text-gray-500">Available Quantity:</span>
                                 <span id="modalProductStock" class="text-sm font-medium"></span>
                             </div>
                             <div class="py-2">
                                 <h4 class="text-sm font-medium text-gray-500 mb-1">Description:</h4>
-                                <p class="text-gray-700" id="modalProductDescription">Loading description...</p>
+                                <p class="text-gray-700 text-sm md:text-base" id="modalProductDescription">Loading description...</p>
                             </div>
                             <div id="modalQuantitySection" class="flex flex-col space-y-2">
                                 <div class="flex items-center space-x-3">
                                     <label class="text-sm font-medium text-gray-500">Quantity:</label>
                                     <div class="flex items-center">
-                                        <button onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-l-md w-9 h-9 flex items-center justify-center focus:outline-none">
+                                        <button type="button" onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-l-md w-9 h-9 flex items-center justify-center focus:outline-none">
                                             <i class="fas fa-minus"></i>
                                         </button>
-                                        <input type="number" id="modalQuantityInput" min="1" value="1" class="w-12 h-9 text-center border-gray-200 focus:ring-0 focus:outline-none" />
-                                        <button onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-r-md w-9 h-9 flex items-center justify-center focus:outline-none">
+                                        <input type="number" id="modalQuantityInput" min="1" value="1" class="w-12 h-9 text-center border-gray-200 focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" oninput="updateModalQuantity()" />
+                                        <button type="button" onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-r-md w-9 h-9 flex items-center justify-center focus:outline-none">
                                             <i class="fas fa-plus"></i>
                                         </button>
                                     </div>
                                 </div>
-                                <button id="modalAddToCartBtn" onclick="addToCartFromModal()" class="w-full bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                @auth
+                                <button id="modalAddToCartBtn" onclick="addToCartFromModal()" class="w-full bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add to Cart</span>
                                 </button>
+                                @else
+                                <button id="modalLoginBtn" onclick="showLoginPrompt()" class="w-full bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Login to Add to Cart</span>
+                                </button>
+                                @endauth
                             </div>
                             <div id="modalOutOfStockSection" class="pt-2 hidden">
-                                <button class="w-full bg-gray-400 text-white px-6 py-3 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 shadow-md opacity-70">
+                                <button class="w-full bg-gray-400 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg cursor-not-allowed flex items-center justify-center gap-2 shadow-md opacity-70">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Out of Stock</span>
                                 </button>
@@ -254,8 +305,8 @@ function addToCartFromModal() {
                     </div>
                 </div>
                 <!-- Modal footer -->
-                <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-                    <button onclick="closeProductModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
+                <div class="px-4 md:px-6 py-3 md:py-4 border-t border-gray-200 flex justify-end">
+                    <button onclick="closeProductModal()" class="px-3 py-2 md:px-4 md:py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50">
                         Close
                     </button>
                 </div>
@@ -283,18 +334,18 @@ function addToCartFromModal() {
     </section>
 
     <!-- Category Navigation and Search -->
-    <div class="bg-white sticky top-0 z-30 shadow-md py-4 border-b">
+    <div class="bg-white sticky top-0 z-30 shadow-md py-3 md:py-4 border-b">
         <div class="container mx-auto px-4">
             <div class="flex justify-center items-center">
-                <div class="flex justify-center space-x-4 overflow-x-auto pb-1 flex-nowrap">
-                    <a href="#equipment-section" class="whitespace-nowrap px-5 py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-sm">
-                        <i class="fas fa-dumbbell mr-2"></i>Equipment
+                <div class="flex justify-center space-x-2 md:space-x-4 overflow-x-auto pb-1 flex-nowrap w-full">
+                    <a href="#equipment-section" class="whitespace-nowrap px-3 md:px-5 py-1 md:py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-xs md:text-sm">
+                        <i class="fas fa-dumbbell mr-1 md:mr-2"></i>Equipment
                     </a>
-                    <a href="#merchandise-section" class="whitespace-nowrap px-5 py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-sm">
-                        <i class="fas fa-tshirt mr-2"></i>Merchandise
+                    <a href="#merchandise-section" class="whitespace-nowrap px-3 md:px-5 py-1 md:py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-xs md:text-sm">
+                        <i class="fas fa-tshirt mr-1 md:mr-2"></i>Merchandise
                     </a>
-                    <a href="#drinks-section" class="whitespace-nowrap px-5 py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-sm">
-                        <i class="fas fa-wine-bottle mr-2"></i>Drinks & Supplements
+                    <a href="#drinks-section" class="whitespace-nowrap px-3 md:px-5 py-1 md:py-2 rounded-full border border-gray-200 hover:border-red-500 hover:text-red-600 transition font-medium text-xs md:text-sm">
+                        <i class="fas fa-wine-bottle mr-1 md:mr-2"></i>Drinks & Supplements
                     </a>
                 </div>
             </div>
@@ -340,11 +391,19 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @if(isset($product->discount) && $product->discount > 0)
+                                    <div class="mb-1">
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                    </div>
+                                @else
+                                    <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @endif
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}')"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -352,10 +411,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->price }},
+                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
+                                    originalPrice: {{ $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
-                                    stock: {{ $product->stock }}
+                                    stock: {{ $product->stock }},
+                                    discount: {{ $product->discount ?? 0 }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
@@ -391,11 +452,19 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @if(isset($product->discount) && $product->discount > 0)
+                                    <div class="mb-1">
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                    </div>
+                                @else
+                                    <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @endif
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}')"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -403,10 +472,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->price }},
+                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
+                                    originalPrice: {{ $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
-                                    stock: {{ $product->stock }}
+                                    stock: {{ $product->stock }},
+                                    discount: {{ $product->discount ?? 0 }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
@@ -442,11 +513,19 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @if(isset($product->discount) && $product->discount > 0)
+                                    <div class="mb-1">
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                    </div>
+                                @else
+                                    <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
+                                @endif
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}')"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -454,10 +533,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->price }},
+                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
+                                    originalPrice: {{ $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
-                                    stock: {{ $product->stock }}
+                                    stock: {{ $product->stock }},
+                                    discount: {{ $product->discount ?? 0 }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
@@ -525,6 +606,38 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+});
+</script>
+
+<script>
+// Show login prompt for non-authenticated users
+function showLoginPrompt() {
+    Swal.fire({
+        title: 'Login Required',
+        text: 'Please login or sign up to add items to your cart',
+        icon: 'info',
+        confirmButtonColor: '#EF4444',
+        showCancelButton: true,
+        confirmButtonText: 'Login',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{{ route("login") }}';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Update product buttons for non-authenticated users
+    @guest
+    const addButtons = document.querySelectorAll('.product-item button:nth-child(2)');
+    addButtons.forEach(button => {
+        button.removeAttribute('onclick');
+        button.addEventListener('click', showLoginPrompt);
+    });
+    @endguest
+    
+    // ... existing code ...
 });
 </script>
 

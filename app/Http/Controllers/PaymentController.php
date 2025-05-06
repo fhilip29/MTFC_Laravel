@@ -174,7 +174,7 @@ class PaymentController extends Controller
         $subscriptionData = session('subscription_data', []);
         
         if (empty($referenceNumber) || empty($subscriptionData)) {
-            return redirect()->route('pricing')->with('error', 'Payment reference not found');
+            return redirect()->route('pricing.gym')->with('error', 'Payment reference not found');
         }
         
         try {
@@ -212,7 +212,15 @@ class PaymentController extends Controller
             
         } catch (\Exception $e) {
             Log::error('Subscription creation error: ' . $e->getMessage());
-            return redirect()->route('pricing')->with('error', 'Your payment was successful, but we encountered an error while activating your subscription. Please contact support.');
+            $type = $subscriptionData['type'] ?? 'gym';
+            $route = 'pricing.' . $type;
+            
+            // Default to gym if the route doesn't exist
+            if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+                $route = 'pricing.gym';
+            }
+            
+            return redirect()->route($route)->with('error', 'Your payment was successful, but we encountered an error while activating your subscription. Please contact support.');
         }
     }
 
@@ -221,10 +229,20 @@ class PaymentController extends Controller
      */
     public function failed(Request $request)
     {
+        // Get subscription type from session
+        $subscriptionData = session('subscription_data', []);
+        $type = $subscriptionData['type'] ?? 'gym';
+        $route = 'pricing.' . $type;
+        
+        // Default to gym if the route doesn't exist
+        if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+            $route = 'pricing.gym';
+        }
+        
         // Clear payment reference from session
         session()->forget(['payment_reference', 'subscription_data']);
         
-        return redirect()->route('pricing')->with('error', 'Payment was not successful. Please try again.');
+        return redirect()->route($route)->with('error', 'Payment was not successful. Please try again.');
     }
 
     /**
@@ -283,39 +301,40 @@ class PaymentController extends Controller
     }
 
     /**
-     * Generate QR code for cash payment
+     * Generate Cash QR Code
      */
-    public function generateCashQr(Request $request)
+    public function generateQRCode(Request $request)
     {
-        // Validate the request
+        // Validate request
         $validated = $request->validate([
             'type' => 'required|string',
             'plan' => 'required|string',
             'amount' => 'required|numeric',
             'waiver_accepted' => 'required',
             'payment_method' => 'required|in:cash',
-            'payment_status' => 'required|in:pending'
+            'order_data' => 'nullable'
         ]);
-
-        // Generate a unique reference number for this transaction
-        $referenceNumber = 'MTFC-CASH-' . strtoupper(Str::random(8));
         
-        // Store payment information in session
-        session(['cash_payment_data' => [
-            'type' => $request->type,
-            'plan' => $request->plan,
-            'amount' => $request->amount,
-            'waiver_accepted' => $request->waiver_accepted,
-            'payment_method' => $request->payment_method,
-            'payment_status' => $request->payment_status,
-            'reference' => $referenceNumber,
-            'user_id' => auth()->id(),
-            'user_name' => auth()->user()->name,
-            'created_at' => now()->timestamp
-        ]]);
-        
-        // Redirect to QR code display page
-        return redirect()->route('payment.cash.qr.show', ['reference' => $referenceNumber]);
+        try {
+            // Generate a unique reference number
+            $referenceNumber = 'MTFC-' . strtoupper(Str::random(8));
+            
+            // Store the reference in the session
+            session(['payment_reference' => $referenceNumber]);
+            session(['order_data' => $request->order_data ?? null]);
+            session(['subscription_data' => [
+                'type' => $request->type,
+                'plan' => $request->plan,
+                'amount' => $request->amount,
+                'waiver_accepted' => $request->waiver_accepted,
+            ]]);
+            
+            return redirect()->route('payment.cash.qr.show', $referenceNumber);
+            
+        } catch (\Exception $e) {
+            Log::error('Cash QR generation error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to generate payment QR code');
+        }
     }
     
     /**
@@ -324,24 +343,48 @@ class PaymentController extends Controller
     public function showCashQr($reference)
     {
         // Get payment data from session
-        $paymentData = session('cash_payment_data');
+        $paymentReference = session('payment_reference');
+        $subscriptionData = session('subscription_data');
+        $orderData = session('order_data');
         
         // Check if payment reference exists and matches
-        if (!$paymentData || $paymentData['reference'] !== $reference) {
-            return redirect()->route('pricing')->with('error', 'Invalid payment reference');
+        if (!$paymentReference || $paymentReference !== $reference) {
+            return redirect()->route('pricing.gym')->with('error', 'Invalid payment reference');
+        }
+        
+        // Determine the type of payment (subscription or product)
+        $paymentType = isset($orderData['items']) ? 'product' : 'subscription';
+        $userId = auth()->id();
+        $userName = auth()->user()->name;
+        
+        // Create payment data
+        $paymentData = [
+            'reference' => $reference,
+            'user_id' => $userId,
+            'user_name' => $userName,
+            'created_at' => now()->timestamp
+        ];
+        
+        if ($paymentType === 'subscription') {
+            $paymentData = array_merge($paymentData, [
+                'type' => $subscriptionData['type'] ?? 'gym',
+                'plan' => $subscriptionData['plan'] ?? 'monthly',
+                'amount' => $subscriptionData['amount'] ?? 0,
+                'waiver_accepted' => $subscriptionData['waiver_accepted'] ?? true,
+            ]);
+        } else {
+            // Product purchase data
+            $paymentData = array_merge($paymentData, [
+                'type' => 'product',
+                'amount' => $orderData['amount'] ?? 0,
+                'items' => $orderData['items'] ?? []
+            ]);
         }
         
         // Pass data to view
         return view('payment.cash-qr', [
             'paymentData' => $paymentData,
-            'qrContent' => json_encode([
-                'reference' => $reference,
-                'user_id' => $paymentData['user_id'],
-                'type' => $paymentData['type'],
-                'plan' => $paymentData['plan'],
-                'amount' => $paymentData['amount'],
-                'timestamp' => $paymentData['created_at']
-            ])
+            'qrContent' => json_encode($paymentData)
         ]);
     }
     
@@ -441,6 +484,137 @@ class PaymentController extends Controller
                 'success' => false,
                 'message' => 'Error verifying payment: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    /**
+     * Process cash payment from client-side QR scanning
+     */
+    public function processCashPayment(Request $request)
+    {
+        try {
+            // Validate request data
+            $validated = $request->validate([
+                'qr_code' => 'required|string',
+                'reference' => 'required|string',
+                'amount' => 'required|numeric',
+                'order_data' => 'required',
+                'payment_method' => 'required|string'
+            ]);
+            
+            $orderData = $request->order_data;
+            
+            // For product purchases
+            if (isset($orderData['items']) && is_array($orderData['items']) && count($orderData['items']) > 0) {
+                // Create a new order
+                $order = new \App\Models\Order([
+                    'user_id' => auth()->id(),
+                    'order_date' => now(),
+                    'status' => 'Pending',
+                    'total_amount' => $request->amount,
+                    'payment_method' => 'Cash',
+                    'payment_status' => 'Paid',
+                    'reference_no' => 'ORD-' . strtoupper(Str::random(8)),
+                    'street' => $orderData['shipping']['street'] ?? '',
+                    'barangay' => $orderData['shipping']['barangay'] ?? '',
+                    'city' => $orderData['shipping']['city'] ?? '',
+                    'postal_code' => $orderData['shipping']['postal_code'] ?? '',
+                    'phone_number' => $orderData['shipping']['phone_number'] ?? '',
+                    'notes' => $orderData['shipping']['notes'] ?? '',
+                ]);
+                
+                $order->save();
+                
+                // Add order items
+                foreach ($orderData['items'] as $item) {
+                    $orderItem = new \App\Models\OrderItem([
+                        'order_id' => $order->id,
+                        'product_id' => $item['id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                        'discount' => $item['discount'] ?? 0
+                    ]);
+                    
+                    $orderItem->save();
+                }
+                
+                // Create invoice
+                $invoice = new Invoice([
+                    'user_id' => auth()->id(),
+                    'type' => 'product',
+                    'amount' => $request->amount,
+                    'description' => 'Order #' . $order->reference_no,
+                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
+                    'payment_status' => 'paid',
+                    'payment_method' => 'Cash',
+                    'payment_reference' => $request->reference,
+                    'paid_at' => now(),
+                    'invoice_date' => now()
+                ]);
+                
+                $invoice->save();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment successful. Your order has been placed!',
+                    'order_id' => $order->id,
+                    'reference' => $order->reference_no
+                ]);
+            }
+            // For subscriptions
+            else if (isset($orderData['type']) && isset($orderData['plan'])) {
+                // Create subscription
+                $subscription = new Subscription([
+                    'user_id' => auth()->id(),
+                    'type' => $orderData['type'],
+                    'plan' => $orderData['plan'],
+                    'is_active' => true,
+                    'start_date' => now(),
+                    'end_date' => $this->calculateEndDate($orderData['plan']),
+                    'amount' => $request->amount,
+                    'payment_reference' => $request->reference,
+                    'payment_status' => 'paid',
+                    'waiver_accepted' => $orderData['waiver_accepted'] ?? false
+                ]);
+                
+                $subscription->save();
+                
+                // Create invoice
+                $invoice = new Invoice([
+                    'user_id' => auth()->id(),
+                    'subscription_id' => $subscription->id,
+                    'type' => 'subscription',
+                    'amount' => $request->amount,
+                    'description' => "{$orderData['type']} - {$orderData['plan']} Plan",
+                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
+                    'payment_status' => 'paid',
+                    'payment_method' => 'Cash',
+                    'payment_reference' => $request->reference,
+                    'paid_at' => now(),
+                    'invoice_date' => now()
+                ]);
+                
+                $invoice->save();
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Payment successful. Your subscription has been activated!',
+                    'subscription_id' => $subscription->id
+                ]);
+            }
+            else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid order data format'
+                ], 400);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Cash payment processing error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process payment: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

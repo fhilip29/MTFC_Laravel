@@ -13,7 +13,7 @@
                 <a href="{{ route('admin.invoice.export') }}" class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
                     <i class="fas fa-file-export"></i> <span class="sm:inline">Export</span>
                 </a>
-                <button onclick="openScanner()" class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
+                <button id="openScannerBtn" class="bg-[#374151] hover:bg-[#4B5563] text-white font-semibold flex items-center gap-2 px-4 py-2 rounded-lg shadow transition-colors w-full sm:w-auto justify-center">
                     <i class="fas fa-qrcode"></i> <span class="sm:inline">Scan Payment</span>
                 </button>
             </div>
@@ -108,284 +108,244 @@
 </div>
 
 <!-- Payment Scanner Modal -->
-<div id="scannerModal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-modal="true">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeScanner()"></div>
-        
-        <div class="relative bg-[#1F2937] rounded-lg max-w-md w-full mx-auto shadow-xl z-50 border border-[#374151]">
-            <div class="flex items-center justify-between p-4 border-b border-[#374151]">
-                <h3 class="text-xl font-bold text-white">Scan Payment QR Code</h3>
-                <button onclick="closeScanner()" class="text-[#9CA3AF] hover:text-white">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+<div id="scannerModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div id="scannerModalOverlay" class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-black opacity-75"></div>
+        </div>
+        <div class="inline-block align-bottom bg-[#1F2937] rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full border border-[#374151]">
+            <div class="bg-[#1F2937] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between relative z-10">
+                            <span>Payment QR Scanner</span>
+                            <button id="closeScanner" class="text-[#9CA3AF] hover:text-white transition-colors">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </h3>
+                        
+                        <!-- Success message (initially hidden) -->
+                        <div id="payment-success-message" class="hidden bg-green-600 text-white p-4 rounded-lg mt-4 mb-4 animate-pulse">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-2xl mr-2"></i>
+                                <div>
+                                    <h4 class="font-bold">Payment Confirmed!</h4>
+                                    <p class="text-sm" id="payment-success-details"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Error message (initially hidden) -->
+                        <div id="payment-error-message" class="hidden bg-red-600 text-white p-4 rounded-lg mt-4 mb-4 animate-pulse">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
+                                <div>
+                                    <h4 class="font-bold">Payment Error</h4>
+                                    <p class="text-sm" id="payment-error-details"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Scanner container -->
+                        <div class="relative mt-6 mb-6">
+                            <div id="reader" class="w-full h-[400px] rounded-lg mx-auto"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="p-6">
-                <!-- Success message (initially hidden) -->
-                <div id="payment-success-message" class="hidden bg-green-600 text-white p-4 rounded-lg mb-4 animate-pulse">
-                    <div class="flex items-center">
-                        <i class="fas fa-check-circle text-2xl mr-2"></i>
-                        <div>
-                            <h4 class="font-bold">Payment Confirmed!</h4>
-                            <p class="text-sm" id="payment-success-details"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Error message (initially hidden) -->
-                <div id="payment-error-message" class="hidden bg-red-600 text-white p-4 rounded-lg mb-4 animate-pulse">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
-                        <div>
-                            <h4 class="font-bold">Payment Error</h4>
-                            <p class="text-sm" id="payment-error-details"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Scanner container -->
-                <div class="relative mb-4">
-                    <video id="scanner" class="w-full h-96 bg-black rounded-lg"></video>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="w-64 h-64 border-2 border-white rounded-lg"></div>
-                    </div>
-                </div>
-                
-                <!-- Scanner controls - moved outside the scanner frame -->
-                <div class="flex justify-center space-x-3 mb-4">
-                    <button id="startScanner" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
-                        <i class="fas fa-play mr-2"></i> Start Scanner
-                    </button>
-                    <button id="switchCamera" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
-                        <i class="fas fa-sync-alt mr-2"></i> Switch Camera
-                    </button>
-                    <button id="toggleFrontCamera" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
-                        <i class="fas fa-camera mr-2"></i> Front Camera
-                    </button>
-                </div>
-                
-                <!-- Scanner message -->
-                <div id="scanner-message" class="text-[#9CA3AF] text-sm text-center mt-2">
-                    Position the QR code within the frame
-                </div>
+            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-10">
+                <button id="cancelScanner" class="mt-3 w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
+                </button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Include QR Scanner Library -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- Import Html5QrcodeScanner library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!-- Import SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    let html5QrcodeScanner = null;
-    let currentCameraId = null;
-    let availableCameras = [];
-    let isFrontCamera = false;
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize elements
+    const openScannerBtn = document.getElementById('openScannerBtn');
+    const scannerModal = document.getElementById('scannerModal');
+    const closeScanner = document.getElementById('closeScanner');
+    const cancelScanner = document.getElementById('cancelScanner');
+    const scannerModalOverlay = document.getElementById('scannerModalOverlay');
+    const successMessage = document.getElementById('payment-success-message');
+    const successDetails = document.getElementById('payment-success-details');
+    const errorMessage = document.getElementById('payment-error-message');
+    const errorDetails = document.getElementById('payment-error-details');
     
-    // Initialize buttons on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initially hide the switch camera button until we know there are multiple cameras
-        document.getElementById('switchCamera').style.display = 'none';
-        
-        // Add event listeners to buttons
-        document.getElementById('startScanner').addEventListener('click', function() {
-            startScanner();
-        });
-        
-        document.getElementById('switchCamera').addEventListener('click', function() {
-            switchCamera();
-        });
-
-        document.getElementById('toggleFrontCamera').addEventListener('click', function() {
-            isFrontCamera = !isFrontCamera;
-            this.classList.toggle('bg-purple-600');
-            this.classList.toggle('bg-purple-800');
-            if (html5QrcodeScanner) {
-                startScanner();
-            }
-        });
+    let html5QrCode = null;
+    let isScanning = false;
+    
+    // Open scanner modal
+    openScannerBtn.addEventListener('click', function() {
+        scannerModal.classList.remove('hidden');
+        startScanner();
     });
     
-    function openScanner() {
-        document.getElementById('scannerModal').classList.remove('hidden');
-        // Show the start button by default
-        document.getElementById('startScanner').style.display = 'flex';
+    // Close scanner modal
+    function closeModal() {
+        scannerModal.classList.add('hidden');
+        stopScanner();
     }
     
-    function closeScanner() {
-        document.getElementById('scannerModal').classList.add('hidden');
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop();
+    closeScanner.addEventListener('click', closeModal);
+    cancelScanner.addEventListener('click', closeModal);
+    
+    // Close modal when clicking on overlay
+    scannerModalOverlay.addEventListener('click', function(e) {
+        if (e.target === scannerModalOverlay) {
+            closeModal();
         }
-    }
+    });
     
-    async function startScanner() {
-        try {
-            // Get available cameras
-            const devices = await Html5Qrcode.getCameras();
-            availableCameras = devices;
-            
-            if (availableCameras.length === 0) {
-                showError('No cameras found');
-                return;
+    // Start the scanner
+    function startScanner() {
+        if (isScanning) return;
+        
+        // Clear any previous messages
+        successMessage.classList.add('hidden');
+        errorMessage.classList.add('hidden');
+        
+        // Calculate optimal QR box size
+        const readerElement = document.getElementById('reader');
+        const readerWidth = readerElement.clientWidth;
+        const readerHeight = readerElement.clientHeight;
+        const qrboxSize = Math.min(readerWidth, readerHeight) * 0.7; // 70% of the smaller dimension
+        
+        const config = {
+            fps: 10,
+            qrbox: { width: qrboxSize, height: qrboxSize },
+            rememberLastUsedCamera: true,
+            aspectRatio: 1.0,
+            videoConstraints: {
+                facingMode: "environment",
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 }
             }
-
-            // Log available cameras for debugging
-            console.log("Available cameras:", availableCameras);
-
-            // Filter cameras based on front/back preference
-            let filteredCameras = availableCameras.filter(camera => {
-                const label = (camera.label || '').toLowerCase();
-                if (isFrontCamera) {
-                    return label.includes('front') || label.includes('user') || label.includes('webcam');
-                } else {
-                    return label.includes('back') || label.includes('environment') || label.includes('rear');
-                }
-            });
-
-            // If no cameras match our filter, use all available cameras
-            if (filteredCameras.length === 0) {
-                console.log("No matching cameras found, using all available cameras");
-                filteredCameras = availableCameras;
-                showMessage(`Using all available cameras`);
+        };
+        
+        html5QrCode = new Html5Qrcode("reader");
+        
+        // This method will trigger camera selection and QR scanning
+        html5QrCode.start(
+            { facingMode: "environment" }, // Prefer back camera
+            config,
+            onScanSuccess,
+            onScanFailure
+        )
+        .then(() => {
+            isScanning = true;
+            console.log("QR Code scanning started");
+            
+            // Apply some styling to the scanner
+            const scannerElement = document.getElementById('reader');
+            if (scannerElement) {
+                // Override some of the default styling
+                scannerElement.style.border = "none";
+                
+                // Target internal elements with more specific selectors
+                setTimeout(() => {
+                    // Get all video elements inside the reader and style them
+                    const videoElement = scannerElement.querySelector('video');
+                    if (videoElement) {
+                        videoElement.style.width = '100%';
+                        videoElement.style.height = '100%';
+                        videoElement.style.objectFit = 'cover';
+                        videoElement.style.borderRadius = '0.5rem';
+                    }
+                    
+                    // Style the scanning region if it exists
+                    const scanRegion = document.getElementById('reader__scan_region');
+                    if (scanRegion) {
+                        scanRegion.style.display = 'flex';
+                        scanRegion.style.justifyContent = 'center';
+                        scanRegion.style.alignItems = 'center';
+                    }
+                    
+                    // Adjust canvas position if it exists
+                    const canvas = scannerElement.querySelector('canvas');
+                    if (canvas) {
+                        canvas.style.position = 'absolute';
+                        canvas.style.left = '50%';
+                        canvas.style.top = '50%';
+                        canvas.style.transform = 'translate(-50%, -50%)';
+                    }
+                }, 500);
             }
+        })
+        .catch((err) => {
+            console.error("Error starting QR Code scanner:", err);
+            showError("Could not start camera: " + err.message);
             
-            // Use the first camera by default or continue with current if switching
-            if (!currentCameraId || !filteredCameras.find(cam => cam.id === currentCameraId)) {
-                currentCameraId = filteredCameras[0].id;
-            }
-            
-            // Show switch camera button only if multiple cameras are available
-            document.getElementById('switchCamera').style.display = 
-                filteredCameras.length > 1 ? 'flex' : 'none';
-            
-            // Initialize scanner
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop();
-            }
-
-            console.log(`Using camera with ID: ${currentCameraId}`);
-            
-            // Create new scanner instance with HTML5QrcodeScanner
-            html5QrcodeScanner = new Html5Qrcode("scanner");
-            
-            const qrConfig = {
-                fps: 10,
-                qrbox: { width: 300, height: 300 },
-                aspectRatio: 1.0
-            };
-            
-            await html5QrcodeScanner.start(
-                { deviceId: { exact: currentCameraId } },
-                qrConfig,
+            // Try with a more generic config as fallback
+            html5QrCode.start(
+                { facingMode: { exact: "environment" } },
+                { fps: 10, qrbox: qrboxSize },
                 onScanSuccess,
                 onScanFailure
-            );
-            
-            showMessage(`Scanner started with camera: ${filteredCameras.find(cam => cam.id === currentCameraId)?.label || 'Unknown'}`);
-            
-        } catch (error) {
-            showError('Failed to start scanner: ' + error.message);
-            console.error('Error starting scanner:', error);
-            
-            // Try with default camera as fallback
-            try {
-                if (html5QrcodeScanner) {
-                    html5QrcodeScanner.stop();
-                }
-                
-                html5QrcodeScanner = new Html5Qrcode("scanner");
-                
-                const qrConfig = {
-                    fps: 10,
-                    qrbox: { width: 300, height: 300 }
-                };
-                
-                await html5QrcodeScanner.start(
-                    { facingMode: isFrontCamera ? "user" : "environment" },
-                    qrConfig,
-                    onScanSuccess,
-                    onScanFailure
-                );
-                
-                showMessage("Scanner started with fallback method");
-                
-            } catch (fallbackError) {
-                console.error('Fallback error:', fallbackError);
-                showError('Scanner initialization failed. Please try a different browser or device.');
-            }
-        }
-    }
-    
-    function switchCamera() {
-        if (availableCameras.length <= 1) {
-            showError('No additional cameras available');
-            return;
-        }
-        
-        // Filter cameras based on front/back preference
-        let filteredCameras = availableCameras.filter(camera => {
-            const label = (camera.label || '').toLowerCase();
-            if (isFrontCamera) {
-                return label.includes('front') || label.includes('user') || label.includes('webcam');
-            } else {
-                return label.includes('back') || label.includes('environment') || label.includes('rear');
-            }
+            )
+            .then(() => {
+                isScanning = true;
+                console.log("QR Code scanning started with fallback config");
+            })
+            .catch((err) => {
+                console.error("Error starting QR Code scanner with fallback:", err);
+                showError("Failed to start camera. Please ensure camera permissions are granted and try again.");
+            });
         });
-
-        // If no cameras match our filter, use all available cameras
-        if (filteredCameras.length === 0) {
-            filteredCameras = availableCameras;
-        }
-
-        if (filteredCameras.length <= 1) {
-            showError('No additional cameras available');
-            return;
-        }
-        
-        // Find current camera index
-        const currentIndex = filteredCameras.findIndex(camera => camera.id === currentCameraId);
-        // Switch to next camera
-        const nextIndex = (currentIndex + 1) % filteredCameras.length;
-        currentCameraId = filteredCameras[nextIndex].id;
-        
-        // Show which camera is being used
-        showMessage(`Switched to camera ${nextIndex + 1}/${filteredCameras.length}: ${filteredCameras[nextIndex].label || 'Unknown'}`);
-        
-        // Restart scanner with new camera
-        startScanner();
     }
     
-    function showMessage(message) {
-        const messageElement = document.getElementById('scanner-message');
-        messageElement.textContent = message;
-        messageElement.classList.remove('text-[#9CA3AF]');
-        messageElement.classList.add('text-white');
-        
-        // Reset message after 3 seconds
-        setTimeout(() => {
-            messageElement.textContent = 'Position the QR code within the frame';
-            messageElement.classList.add('text-[#9CA3AF]');
-            messageElement.classList.remove('text-white');
-        }, 3000);
+    // Stop the scanner
+    function stopScanner() {
+        if (html5QrCode && isScanning) {
+            html5QrCode.stop()
+                .then(() => {
+                    isScanning = false;
+                    console.log("QR Code scanning stopped");
+                })
+                .catch((err) => {
+                    console.error("Error stopping QR Code scanner:", err);
+                });
+        }
     }
     
+    // QR Code scan success callback
     function onScanSuccess(decodedText, decodedResult) {
-        // Stop scanner
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.stop();
-        }
+        console.log("QR Code detected:", decodedText);
+        
+        // Stop scanning once a QR code is found
+        stopScanner();
         
         try {
-            const paymentData = JSON.parse(decodedText);
-            
-            // Verify payment data
-            if (!paymentData.reference || !paymentData.amount) {
-                showError('Invalid QR code format');
-                return;
+            // Try to parse the QR code as JSON
+            let paymentData;
+            try {
+                paymentData = JSON.parse(decodedText);
+            } catch (e) {
+                // If not JSON, just use the string
+                paymentData = { qr_code: decodedText };
             }
             
-            // Send payment verification request
+            // Show processing message
+            Swal.fire({
+                title: 'Processing...',
+                text: 'Verifying payment information',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Send to server for processing
             fetch('/admin/verify-payment', {
                 method: 'POST',
                 headers: {
@@ -396,109 +356,152 @@
             })
             .then(response => response.json())
             .then(data => {
+                Swal.close();
                 if (data.success) {
-                    showSuccess(data.message);
-                    // Reload page after 2 seconds
+                    showSuccess(data.message || "Payment verified successfully!");
+                    
+                    // Reload page after a delay
                     setTimeout(() => {
                         window.location.reload();
                     }, 2000);
                 } else {
-                    showError(data.message);
+                    showError(data.message || "Error verifying payment");
                 }
             })
             .catch(error => {
-                showError('Failed to verify payment');
-                console.error('Error:', error);
+                Swal.close();
+                console.error("Error:", error);
+                showError("Network error. Please try again.");
             });
-            
         } catch (error) {
-            showError('Invalid QR code format');
-            console.error('Error parsing QR code:', error);
+            console.error("Error processing QR code:", error);
+            showError("Invalid QR code format");
         }
     }
     
+    // QR Code scan failure callback
     function onScanFailure(error) {
-        // Handle scan failure silently
-        console.warn(`QR Code scan failure: ${error}`);
+        // Silent failure, no need to show errors for each frame
+        console.debug(`QR scan error: ${error}`);
     }
     
+    // Show success message
     function showSuccess(message) {
-        const successMessage = document.getElementById('payment-success-message');
-        const successDetails = document.getElementById('payment-success-details');
-        const errorMessage = document.getElementById('payment-error-message');
-        
         successDetails.textContent = message;
         successMessage.classList.remove('hidden');
         errorMessage.classList.add('hidden');
     }
     
+    // Show error message
     function showError(message) {
-        const successMessage = document.getElementById('payment-success-message');
-        const errorMessage = document.getElementById('payment-error-message');
-        const errorDetails = document.getElementById('payment-error-details');
-        
         errorDetails.textContent = message;
         errorMessage.classList.remove('hidden');
         successMessage.classList.add('hidden');
-        
-        // Restart scanner after 3 seconds
-        setTimeout(() => {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop();
-            }
-            startScanner();
-        }, 3000);
     }
-
+    
     // Client-side search and filtering
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('searchInput');
-        const filterType = document.getElementById('filterType');
-        const dateFilter = document.getElementById('dateFilter');
-        const rows = document.querySelectorAll('#invoiceTable tbody tr');
+    const searchInput = document.getElementById('searchInput');
+    const filterType = document.getElementById('filterType');
+    const dateFilter = document.getElementById('dateFilter');
+    const rows = document.querySelectorAll('#invoiceTable tbody tr');
+    
+    const filterTable = () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        const typeFilter = filterType.value.toLowerCase();
+        const dateValue = dateFilter.value;
         
-        const filterTable = () => {
-            const searchTerm = searchInput.value.toLowerCase();
-            const typeFilter = filterType.value.toLowerCase();
-            const dateValue = dateFilter.value;
+        rows.forEach(row => {
+            const invoiceNumber = row.cells[0].textContent.toLowerCase();
+            const clientName = row.cells[1].textContent.toLowerCase();
+            const type = row.cells[2].textContent.toLowerCase();
+            const date = row.cells[4].textContent;
             
-            rows.forEach(row => {
-                const invoiceNumber = row.cells[0].textContent.toLowerCase();
-                const clientName = row.cells[1].textContent.toLowerCase();
-                const type = row.cells[2].textContent.toLowerCase();
-                const date = row.cells[4].textContent;
+            // Parse the date for comparison
+            let shouldShow = true;
+            
+            // Check search term
+            if (searchTerm && !invoiceNumber.includes(searchTerm) && !clientName.includes(searchTerm)) {
+                shouldShow = false;
+            }
+            
+            // Check type filter
+            if (typeFilter && !type.includes(typeFilter)) {
+                shouldShow = false;
+            }
+            
+            // Check date filter (simplified)
+            if (dateValue) {
+                const rowDate = new Date(date);
+                const filterDate = new Date(dateValue);
                 
-                // Parse the date for comparison
-                let shouldShow = true;
-                
-                // Check search term
-                if (searchTerm && !invoiceNumber.includes(searchTerm) && !clientName.includes(searchTerm)) {
+                if (rowDate.toDateString() !== filterDate.toDateString()) {
                     shouldShow = false;
                 }
-                
-                // Check type filter
-                if (typeFilter && !type.includes(typeFilter)) {
-                    shouldShow = false;
-                }
-                
-                // Check date filter (simplified)
-                if (dateValue) {
-                    const rowDate = new Date(date);
-                    const filterDate = new Date(dateValue);
-                    
-                    if (rowDate.toDateString() !== filterDate.toDateString()) {
-                        shouldShow = false;
-                    }
-                }
-                
-                row.style.display = shouldShow ? '' : 'none';
-            });
-        };
-        
-        searchInput.addEventListener('input', filterTable);
-        filterType.addEventListener('change', filterTable);
-        dateFilter.addEventListener('input', filterTable);
-    });
+            }
+            
+            row.style.display = shouldShow ? '' : 'none';
+        });
+    };
+    
+    // Add event listeners for filtering
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (filterType) filterType.addEventListener('change', filterTable);
+    if (dateFilter) dateFilter.addEventListener('input', filterTable);
+});
 </script>
+
+<style>
+/* QR Scanner styling */
+#reader {
+    border: none !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: 0.5rem;
+    background-color: black;
+    overflow: hidden;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+#reader video {
+    object-fit: cover !important;
+    border-radius: 0.5rem;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#reader__dashboard {
+    padding: 0 !important;
+}
+
+#reader__scan_region {
+    background: transparent !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    min-height: 300px !important;
+}
+
+#reader__scan_region img {
+    display: none !important;
+}
+
+/* Center the scan region */
+#reader canvas {
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
+/* Success/Error message animation */
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 1; }
+    100% { opacity: 0.8; }
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+</style>
 @endsection
 

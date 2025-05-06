@@ -147,6 +147,7 @@
             <div class="relative w-full sm:w-2/3 md:w-1/2 lg:w-1/3">
                 <input 
                     type="text" 
+                    id="search-member"
                     placeholder="Search members..." 
                     class="w-full pl-10 pr-4 py-3 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF]"
                 >
@@ -177,7 +178,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#374151] text-[#9CA3AF]">
-                        @foreach($members as $member)
+                        @foreach($members->where('role', 'member') as $member)
                             <tr id="member-row-{{ $member->id }}" class="hover:bg-[#374151] transition-colors">
                                 <td class="px-4 py-3 text-white">
                                     <div class="flex items-center gap-3">
@@ -888,6 +889,28 @@
 </style>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('search-member');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const rows = document.querySelectorAll('tbody tr');
+                
+                rows.forEach(row => {
+                    const name = row.querySelector('td:first-child').textContent.toLowerCase();
+                    const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    
+                    if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    });
+
     function filterMembers(status) {
         if (status === 'archived') {
             window.location.href = "{{ route('admin.members.admin_members') }}?show_archived=1";

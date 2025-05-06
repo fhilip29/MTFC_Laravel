@@ -49,7 +49,7 @@
                 <li><a href="/about" class="text-black relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">About</a></li>
                 <li><a href="/classes" class="text-black relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Classes</a></li>
                 <li><a href="/trainer" class="text-black relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Trainer</a></li>
-                <li><a href="/pricing" class="text-black relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Pricing</a></li>
+                <li><a href="/pricing/gym" class="text-black relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Pricing</a></li>
             </ul>
         </div>
     </div>

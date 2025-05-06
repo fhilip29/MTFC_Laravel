@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="{{ asset('css/home.css') }}">
      <!-- SwiperJS CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <!-- Add CSRF token meta tag for AJAX requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
 
@@ -56,7 +59,11 @@
                     <p>Welcome to the ActiveGym community, Sarah! We're thrilled to have you. Don't hesitate to reach out if you have any questions.</p>
                 </div>
             </div>
-            <button class="community-button bg-red-900 text-white hover:bg-red-800 transition">Join the Community Now!</button>
+            <a href="{{ route('community') }}">
+                <button class="community-button bg-red-900 text-white hover:bg-red-800 transition">
+                Join the Community Now!
+                </button>
+            </a>
         </div>
     </div>
 </section>
@@ -71,7 +78,11 @@
             <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1">
             <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2">
         </div>
-        <button class="about-button bg-red-900 text-white hover:bg-red-800 transition">Learn more</button>
+        <a href="{{ route('about') }}">
+            <button class="about-button bg-red-900 text-white hover:bg-red-800 transition">
+            Learn more
+            </button>
+        </a>
     </div>
 </section>
 
@@ -82,7 +93,7 @@
 @endphp
 
 <div class="bg-[#121212] mb-0 pb-16">
-    <section class="products-section py-16 pb-16" data-animate x-data="{ modalOpen: false, activeProduct: {} }" x-init="$watch('cartItems', value => console.log(value))">
+    <section class="products-section py-16 pb-16" x-data="cartHandler">
         <div class="container mx-auto my-10">
             <h2 class="text-center mb-8 text-white">Most Purchased Products</h2>
 
@@ -91,60 +102,45 @@
             @else
                 <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
                     <div class="carousel-inner">
-                    @foreach ($chunks as $chunkIndex => $chunk)
-    <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-        <div class="d-flex justify-content-center gap-4 flex-wrap">
-            @foreach ($chunk as $product)
-                <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4" style="width: 16rem; max-width: 100%;">
-                    <!-- Display Product Image -->
-                    <img src="{{ asset($product->image) }}" class="w-full h-40 object-cover" alt="{{ $product->name }}">
+                        @foreach ($chunks as $chunkIndex => $chunk)
+                            <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
+                                <div class="d-flex justify-content-center gap-4 flex-wrap">
+                                    @foreach ($chunk as $product)
+                                        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4" style="width: 16rem; max-width: 100%;">
+                                            <img src="{{ asset($product->image) }}" class="w-full h-40 object-cover" alt="{{ $product->name }}">
 
-                    <div class="p-3">
-                        <h3 class="text-md font-semibold mb-1">{{ $product->name }}</h3>
-                        <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product->price, 2) }}</p>
-                        <div class="flex justify-between items-center">
-                            <button @click="modalOpen = true; activeProduct = {
-                                id: {{ $product->id }},
-                                name: '{{ $product->name }}',
-                                price: {{ $product->price }},
-                                imgUrl: '{{ asset($product->image) }}'
-                            }" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
-                                <i class="fas fa-eye"></i>
-                                <span>View</span>
-                            </button>
-                            @auth
-                            <button @click="addToCart({
-                                id: {{ $product->id }},
-                                name: '{{ $product->name }}',
-                                price: {{ $product->price }},
-                                imgUrl: '{{ asset($product->image) }}'
-                            })" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>Add</span>
-                            </button>
-                            @else
-                            <button @click="showLoginPrompt()" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span>Add</span>
-                            </button>
-                            @endauth
-                        </div>
-                    </div>
-                </div>
-            @endforeach
-        </div>
-    </div>
-@endforeach
+                                            <div class="p-3">
+                                                <h3 class="text-md font-semibold mb-1">{{ $product->name }}</h3>
+                                                <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product->price, 2) }}</p>
+                                                <div class="flex justify-between items-center">
+                                                    <button @click="showProductModal({
+                                                        id: {{ $product->id }},
+                                                        name: '{{ addslashes($product->name) }}',
+                                                        price: {{ $product->price }},
+                                                        image: '{{ asset($product->image) }}',
+                                                        description: '{{ addslashes($product->description) }}',
+                                                        stock: {{ $product->stock }}
+                                                    })" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
+                                                        <i class="fas fa-eye"></i>
+                                                        <span>View</span>
+                                                    </button>
 
-
-                    <div class="flex justify-center mt-8 gap-3">
-                        @foreach ($chunks as $index => $chunk)
-                            <button type="button" 
-                                data-bs-target="#topItemsCarousel" 
-                                data-bs-slide-to="{{ $index }}" 
-                                class="{{ $index === 0 ? 'w-4 h-4 rounded-full bg-red-600' : 'w-4 h-4 rounded-full bg-gray-300' }} hover:bg-red-400 transition-all duration-300"
-                                aria-label="Slide {{ $index + 1 }}" 
-                                {{ $index === 0 ? 'aria-current="true"' : '' }}></button>
+                                                    <button @click="addToCart({
+                                                        id: {{ $product->id }},
+                                                        name: '{{ addslashes($product->name) }}',
+                                                        price: {{ $product->price }},
+                                                        image: '{{ asset($product->image) }}',
+                                                        stock: {{ $product->stock }}
+                                                    })" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
+                                                        <i class="fas fa-shopping-cart"></i>
+                                                        <span>Add</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
                         @endforeach
                     </div>
                 </div>
@@ -170,11 +166,11 @@
                                 </div>
                                 <div class="mt-2 flex flex-col md:flex-row gap-4">
                                     <div class="md:w-1/3">
-                                        <img :src="activeProduct?.imgUrl" class="w-full rounded-lg" :alt="activeProduct?.name">
+                                        <img :src="activeProduct?.image" class="w-full rounded-lg" :alt="activeProduct?.name">
                                     </div>
                                     <div class="md:w-2/3">
                                         <p class="text-sm text-gray-500 mb-2">Product Details:</p>
-                                        <p class="text-sm text-gray-700 mb-4">High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.</p>
+                                        <p class="text-sm text-gray-700 mb-4" x-text="activeProduct?.description || 'High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.'"></p>
                                         <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
                                         @auth
                                         <button @click="addToCart(activeProduct); modalOpen = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
@@ -193,116 +189,155 @@
                 </div>
             </div>
         </div>
+
+        <!-- Toast Notification -->
+        <div x-show="toastVisible" x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 translate-x-10"
+             x-transition:enter-end="opacity-100 translate-x-0"
+             x-transition:leave="transition ease-in duration-200 transform"
+             x-transition:leave-start="opacity-100 translate-x-0"
+             x-transition:leave-end="opacity-0 translate-x-10"
+             class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+            Item added to cart!
+        </div>
     </section>
 </div>
 
-
-
-    
-
-<!-- Scripts -->
 <script>
-    // Animate on Scroll
-    document.addEventListener('DOMContentLoaded', function () {
-        const elements = document.querySelectorAll('[data-animate]');
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                }
-            });
-        }, { threshold: 0.2 });
-
-        elements.forEach((el) => observer.observe(el));
-    });
-
-    // Hero Text Typing Animation
-    document.addEventListener('DOMContentLoaded', () => {
-        const heroText = document.querySelector('.hero-content h1');
-        let text = heroText.textContent;
-        heroText.textContent = '';
-        let index = 0;
-
-        function typeText() {
-            if (index < text.length) {
-                heroText.textContent += text[index];
-                index++;
-                setTimeout(typeText, 100);
-            }
-        }
-
-        typeText();
-    });
-
-    // Buttons
-    document.querySelector('.community-button').addEventListener('click', () => {
-        window.location.href = '{{ url("community") }}';
-    });
-
-    document.querySelector('.about-button').addEventListener('click', () => {
-        window.location.href = '{{ url("about") }}';
-    });
-
-    document.querySelector('.products-button')?.addEventListener('click', () => {
-        window.location.href = '{{ url("products") }}';
-    });
-
     document.addEventListener('alpine:init', () => {
-    Alpine.data('cartHandler', () => ({
-        cartItems: [],
-        modalOpen: false,
-        activeProduct: null,
+        Alpine.data('cartHandler', () => ({
+            cartItems: JSON.parse(localStorage.getItem('cart')) || [],
+            toastVisible: false,
+            modalOpen: false,
+            activeProduct: null,
 
-        addToCart(product) {
-            @auth
-            const existing = this.cartItems.find(item => item.id === product.id);
-            if (existing) {
-                existing.quantity += 1;
-            } else {
-                this.cartItems.push({ ...product, quantity: 1 });
+            // Show product modal
+            showProductModal(product) {
+                this.activeProduct = product;
+                this.modalOpen = true;
+            },
+
+            // Add item to cart
+            addToCart(product) {
+                @auth
+                // Get existing cart from localStorage
+                let cart = JSON.parse(localStorage.getItem('cart')) || [];
+                
+                // Check if product already exists in cart
+                const existingItemIndex = cart.findIndex(item => item.id === product.id);
+                
+                if (existingItemIndex > -1) {
+                    // Product exists, increase quantity
+                    cart[existingItemIndex].quantity += product.quantity || 1;
+                } else {
+                    // Product doesn't exist, add new item
+                    cart.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        image: product.image,
+                        quantity: product.quantity || 1,
+                        stock: product.stock
+                    });
+                }
+                
+                // Save updated cart to localStorage
+                localStorage.setItem('cart', JSON.stringify(cart));
+                
+                // Update cart badge count
+                const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+                const cartBadge = document.getElementById('cartCount');
+                if (cartBadge) {
+                    cartBadge.textContent = cartCount;
+                }
+                
+                // Update cart UI if renderCart function exists
+                if (typeof window.renderCart === 'function') {
+                    window.renderCart();
+                }
+                
+                // Show confirmation message
+                Swal.fire({
+                    title: 'Added to Cart!',
+                    text: `${product.name} has been added to your cart.`,
+                    icon: 'success',
+                    confirmButtonColor: '#EF4444',
+                    timer: 2000,
+                    showConfirmButton: true,
+                    confirmButtonText: 'View Cart'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Open cart drawer instead of redirecting
+                        const cartDrawer = document.getElementById('cartDrawer');
+                        if (cartDrawer) {
+                            cartDrawer.classList.remove('translate-x-full');
+                            if (typeof window.renderCart === 'function') {
+                                window.renderCart();
+                            }
+                        }
+                    }
+                });
+                
+                // Sync with server
+                this.syncCartWithServer(cart);
+                @else
+                // Show login prompt for non-authenticated users
+                Swal.fire({
+                    title: 'Login Required',
+                    text: 'Please login or sign up to add items to your cart',
+                    icon: 'info',
+                    confirmButtonColor: '#EF4444',
+                    showCancelButton: true,
+                    confirmButtonText: 'Login',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route("login") }}';
+                    }
+                });
+                @endauth
+            },
+
+            // Sync cart with server
+            syncCartWithServer(cart) {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]');
+                if (!csrfToken) return;
+                
+                fetch('{{ route('cart.sync') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken.content
+                    },
+                    body: JSON.stringify({
+                        items: cart
+                    })
+                }).catch(error => console.error('Error syncing cart:', error));
+            },
+
+            // Show login prompt
+            showLoginPrompt() {
+                Swal.fire({
+                    title: 'Login Required',
+                    text: 'Please login or sign up to add items to your cart',
+                    icon: 'info',
+                    confirmButtonColor: '#EF4444',
+                    showCancelButton: true,
+                    confirmButtonText: 'Login',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = '{{ route("login") }}';
+                    }
+                });
             }
-            this.syncCart();
-            @else
-            this.showLoginPrompt();
-            @endauth
-        },
-
-        showLoginPrompt() {
-            Swal.fire({
-                title: 'Login Required',
-                text: 'Please login or sign up to add items to your cart',
-                icon: 'info',
-                confirmButtonColor: '#EF4444',
-                showCancelButton: true,
-                confirmButtonText: 'Login',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '{{ route("login") }}';
-                }
-            });
-        },
-
-        syncCart() {
-            fetch("{{ route('cart.sync') }}", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ items: this.cartItems })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
-                    alert("Cart sync failed: " + data.message);
-                }
-            });
-        }
-    }));
-});
-
+        }));
+    });
 </script>
+
+
+
+
 
 @endsection
 

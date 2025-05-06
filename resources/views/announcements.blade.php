@@ -9,24 +9,34 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-4">Announcements</h1>
         <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
             <!-- Search Bar -->
-            <div class="relative w-full sm:w-96">
-                <input 
-                    type="text" 
-                    id="searchAnnouncement" 
-                    placeholder="Search announcements..." 
-                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                >
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            </div>
-            
+            <form action="{{ route('announcements') }}" method="GET" class="flex w-full sm:w-96 relative">
+    <input 
+        type="text" 
+        name="search"
+        value="{{ request('search') }}"
+        placeholder="Search announcements..." 
+        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+    >
+    <button 
+        type="submit"
+        class="px-4 py-2 bg-red-600 text-white rounded-r-lg hover:bg-red-700 transition-colors"
+    >
+        <i class="fas fa-search"></i>
+    </button>
+    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+</form>
+
             <!-- Filter Buttons -->
             <div class="flex gap-2 w-full sm:w-auto">
-                <button class="filter-btn active px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors" data-filter="all">
-                    All
-                </button>
-                <button class="filter-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors" data-filter="recent">
-                    Recent
-                </button>
+            <a href="{{ route('announcements') }}"
+                class="filter-btn px-4 py-2 rounded-lg {{ !request('filter') ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700' }} hover:bg-red-700 transition-colors">
+                All
+            </a>
+            <a href="{{ route('announcements', ['filter' => 'recent']) }}"
+                class="filter-btn px-4 py-2 rounded-lg {{ request('filter') === 'recent' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700' }} hover:bg-red-700 transition-colors">
+                Recent
+            </a>
+
             </div>
         </div>
     </div>
@@ -35,7 +45,6 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="announcementsGrid">
         @foreach($announcements as $announcement)
         <div class="announcement-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-            <!-- Card Header -->
             <div class="px-6 py-4 border-b border-gray-100">
                 <div class="flex justify-between items-start mb-2">
                     <h3 class="text-xl font-semibold text-gray-900 hover:text-red-600 transition-colors">
@@ -46,25 +55,17 @@
                     @endif
                 </div>
                 <p class="text-sm text-gray-500" data-date="{{ $announcement->created_at->toDateString() }}">
-    {{ $announcement->created_at->format('F j, Y') }}
-</p>
+                    {{ $announcement->created_at->format('F j, Y') }}
+                </p>
             </div>
-            
-            <!-- Card Body -->
             <div class="px-6 py-4">
-            <p class="text-gray-700 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">
-
+                <p class="text-gray-700 overflow-hidden" style="-webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical;">
                     {{ $announcement->message }}
                 </p>
             </div>
-            
-            <!-- Card Footer -->
             <div class="px-6 py-4 bg-gray-50 flex justify-end items-center">
-                <button 
-                    onclick="viewAnnouncement({{ $announcement->id }})"
-                    class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
-                    Read More
-                    <i class="fas fa-arrow-right ml-1"></i>
+                <button onclick="viewAnnouncement({{ $announcement->id }})" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                    Read More <i class="fas fa-arrow-right ml-1"></i>
                 </button>
             </div>
         </div>
@@ -84,114 +85,128 @@
 <!-- Announcement View Modal -->
 <div id="viewModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" onclick="closeViewModal()"></div>
-        
-        <div class="relative bg-white rounded-xl max-w-2xl w-full shadow-xl transform transition-all">
+        <div class="fixed inset-0 bg-black bg-opacity-50" onclick="closeViewModal()"></div>
+        <div class="relative bg-white rounded-xl max-w-2xl w-full shadow-xl">
             <div class="absolute top-4 right-4">
                 <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            
-            <!-- Modal Content -->
             <div class="p-6">
                 <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 mb-2"></h2>
                 <div class="flex items-center gap-4 mb-6">
                     <span id="modalDate" class="text-sm text-gray-500"></span>
                 </div>
-                <div id="modalContent" class="prose max-w-none">
-                    <!-- Content will be inserted here -->
-                </div>
+                <div id="modalContent" class="prose max-w-none"></div>
             </div>
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('searchAnnouncement');
-    const filterBtns = document.querySelectorAll('.filter-btn');
     const cards = document.querySelectorAll('.announcement-card');
+    const filterButtons = document.querySelectorAll('.filter-btn');
     const emptyState = document.getElementById('emptyState');
     const grid = document.getElementById('announcementsGrid');
+    let debounceTimer;
 
-    // Search functionality
-    searchInput.addEventListener('input', filterAnnouncements);
+    // Bind input event to the search input field
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer); // Clear previous timer
+        debounceTimer = setTimeout(filterAnnouncements, 200); // Trigger search after 200ms
+    });
 
-    // Filter buttons
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            // Update active state
-            filterBtns.forEach(b => b.classList.remove('active', 'bg-red-600', 'text-white'));
-            filterBtns.forEach(b => b.classList.add('bg-gray-200', 'text-gray-700'));
-            btn.classList.remove('bg-gray-200', 'text-gray-700');
-            btn.classList.add('active', 'bg-red-600', 'text-white');
-            
-            filterAnnouncements();
+    // Bind filter button click event
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Reset filter button active states
+            filterButtons.forEach(btn => btn.classList.remove('active', 'bg-red-600', 'text-white'));
+            filterButtons.forEach(btn => btn.classList.add('bg-gray-200', 'text-gray-700'));
+            button.classList.remove('bg-gray-200', 'text-gray-700');
+            button.classList.add('active', 'bg-red-600', 'text-white');
+            filterAnnouncements(); // Re-filter based on the selected filter
         });
     });
 
+    // Function to filter announcements based on search term and filter button
     function filterAnnouncements() {
-        const searchTerm = searchInput.value.toLowerCase();
+        const searchTerm = searchInput.value.toLowerCase().trim();
         const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
         let visibleCount = 0;
 
         cards.forEach(card => {
-            const title = card.querySelector('h3').textContent.toLowerCase();
-            const content = card.querySelector('.text-gray-700').textContent.toLowerCase();
-            const date = new Date(card.querySelector('.text-gray-500').textContent);
-            
-            let showCard = (title.includes(searchTerm) || content.includes(searchTerm));
-            
-            // Apply date filters
-            if (showCard && activeFilter === 'recent') {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                showCard = date >= thirtyDaysAgo;
+            const titleEl = card.querySelector('h3');
+            const contentEl = card.querySelector('.text-gray-700');
+            const dateEl = card.querySelector('[data-date]');
+            const date = new Date(dateEl.dataset.date);
+
+            const titleText = titleEl.textContent.toLowerCase();
+            const contentText = contentEl.textContent.toLowerCase();
+
+            let match = titleText.includes(searchTerm) || contentText.includes(searchTerm);
+
+            // Apply filter for recent announcements if the filter is active
+            if (match && activeFilter === 'recent') {
+                const recentLimit = new Date();
+                recentLimit.setDate(recentLimit.getDate() - 30); // Set the limit to the last 30 days
+                match = date >= recentLimit;
             }
-            
-            card.style.display = showCard ? 'block' : 'none';
-            if (showCard) visibleCount++;
+
+            if (match) {
+                card.style.display = ''; // Show the card if it matches the search/filter
+                visibleCount++;
+                highlight(titleEl, searchTerm); // Highlight the matching search term in the title
+                highlight(contentEl, searchTerm); // Highlight the matching search term in the content
+            } else {
+                card.style.display = 'none'; // Hide the card if it doesn't match the search/filter
+                unhighlight(titleEl); // Remove highlight from the title
+                unhighlight(contentEl); // Remove highlight from the content
+            }
         });
 
-        // Toggle empty state
+        // Show or hide the empty state based on visible count
         emptyState.style.display = visibleCount === 0 ? 'block' : 'none';
         grid.style.display = visibleCount === 0 ? 'none' : 'grid';
     }
+
+    // Function to highlight the matching search term in the given element
+    function highlight(el, term) {
+        if (!term) return unhighlight(el); // If no term, unhighlight
+
+        const text = el.textContent;
+        const regex = new RegExp(`(${term})`, 'gi'); // Case-insensitive search
+        el.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$1</mark>'); // Wrap the matched term with a highlight
+    }
+
+    // Function to remove highlights from the given element
+    function unhighlight(el) {
+        el.innerHTML = el.textContent; // Restore the original text content (removes highlights)
+    }
+
+    // Initial run of filtering
+    filterAnnouncements();
 });
 
 function viewAnnouncement(id) {
-    // Fetch announcement details
     fetch(`/api/announcements/${id}`)
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
             if (data.success) {
-                const modal = document.getElementById('viewModal');
-                const title = document.getElementById('modalTitle');
-                const date = document.getElementById('modalDate');
-                const content = document.getElementById('modalContent');
-
-                title.textContent = data.announcement.title;
-                date.textContent = new Date(data.announcement.created_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                content.innerHTML = data.announcement.message;
-
-                modal.classList.remove('hidden');
+                document.getElementById('modalTitle').textContent = data.announcement.title;
+                document.getElementById('modalDate').textContent = new Date(data.announcement.created_at).toLocaleDateString();
+                document.getElementById('modalContent').innerHTML = data.announcement.message;
+                document.getElementById('viewModal').classList.remove('hidden');
             }
         })
-        .catch(error => console.error('Error fetching announcement:', error));
+        .catch(err => console.error('Error:', err));
 }
 
 function closeViewModal() {
     document.getElementById('viewModal').classList.add('hidden');
 }
-
-
 </script>
 @endpush

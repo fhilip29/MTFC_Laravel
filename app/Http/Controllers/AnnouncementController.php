@@ -13,18 +13,23 @@ class AnnouncementController extends Controller
 {
     // 👥 Public view
     public function userIndex(Request $request)
-{
-    $query = Announcement::where('is_active', 'active');
-
-    if ($search = $request->query('search')) {
-        $query->where('title', 'like', "%{$search}%")
-              ->orWhere('message', 'like', "%{$search}%");
+    {
+        $query = Announcement::where('is_active', true);
+    
+        // Search functionality
+        if ($search = $request->query('search')) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+    
+        // Filter: Recent
+        if ($request->query('filter') === 'recent') {
+            $query->where('created_at', '>=', now()->subDays(30));
+        }
+    
+        $announcements = $query->orderBy('created_at', 'desc')->get();
+    
+        return view('announcements', compact('announcements'));
     }
-
-    $announcements = $query->orderBy('created_at', 'desc')->get();
-
-    return view('announcements', compact('announcements'));
-}
 
 
     // 🛠 Admin index view (full list)

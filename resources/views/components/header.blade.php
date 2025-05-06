@@ -101,7 +101,7 @@
     <a href="{{ route('home') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Home</a>
     <a href="{{ route('about') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">About</a>
     <a href="{{ route('trainers') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Trainers</a>
-    <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Pricing</a>
+    <a href="{{ route('pricing.gym') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Pricing</a>
     <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Shop</a>
     <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Contact Us</a>
 </div>

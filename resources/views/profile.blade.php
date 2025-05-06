@@ -191,7 +191,7 @@
         <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
                 <h2 class="text-lg md:text-xl font-semibold">Membership Plan</h2>
-                <a href="{{ route('pricing') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
+                <a href="{{ route('pricing.gym') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
                     @if (!$activeSubscription)
                         Add Plan
                     @else
@@ -250,7 +250,7 @@
             @endif
             
             <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="{{ route('pricing') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('pricing.gym') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-sync-alt mr-2"></i> Change Plan
                 </a>
                 <a href="{{ route('subscription.history') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
@@ -267,7 +267,7 @@
             <div class="py-6 text-center bg-[#1e1e1e] rounded-lg">
                 <i class="fas fa-dumbbell text-gray-500 text-4xl mb-3"></i>
                 <p class="text-gray-400 mb-4">You don't have any active membership plan.</p>
-                <a href="{{ route('pricing') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('pricing.gym') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-plus mr-2"></i> Get Membership
                 </a>
             </div>

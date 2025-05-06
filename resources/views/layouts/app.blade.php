@@ -109,7 +109,8 @@
         @yield('content')
         
         @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
-        !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart'))
+        !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart')
+        && !Request::is ('terms') && !Request::is ('privacypolicy'))
             <div class="h-[400px]"></div>
         @endif
     </main>

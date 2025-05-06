@@ -113,7 +113,7 @@ Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers
 // ===================
 // PRICING ROUTES
 // ===================
-Route::view('/pricing', 'pricing')->name('pricing');
+
 Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym');
 Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
 Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
@@ -268,7 +268,8 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth']], function () {
 Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
 Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
 
-  
+
+
 
 
 // Admin routes (only for authenticated users)

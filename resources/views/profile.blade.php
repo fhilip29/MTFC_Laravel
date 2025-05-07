@@ -24,17 +24,17 @@
         width: 100%;
         height: 100%;
         overflow: auto;
-        background-color: rgba(0,0,0,0.8);
+        background-color: rgba(0,0,0,0.5);
         transition: all 0.3s ease;
     }
     
     .modal-content {
-        background-color: #2d2d2d;
+        background-color: #ffffff;
         margin: 10% auto;
         padding: 25px;
         border-radius: 12px;
         max-width: 400px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
     
     .modal-open {
@@ -50,7 +50,7 @@
     
     .hover-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 15px rgba(0,0,0,0.3);
+        box-shadow: 0 10px 15px rgba(0,0,0,0.1);
     }
 </style>
 @endsection
@@ -62,14 +62,14 @@
     $invoices = $invoices ?? collect();
 @endphp
 
-<div class="flex flex-col md:flex-row min-h-screen bg-[#121212] text-white">
+<div class="flex flex-col md:flex-row min-h-screen bg-[#EDEDED] text-gray-800">
     <!-- Mobile Toggle for Sidebar - Moved lower -->
-    <button id="sidebarToggle" class="md:hidden bg-[#2d2d2d] text-gray-300 hover:text-white p-2 m-4 rounded-lg absolute top-15 left-0 z-10 flex items-center justify-center w-10 h-10">
+    <button id="sidebarToggle" class="md:hidden bg-white text-gray-700 hover:text-gray-900 p-2 m-4 rounded-lg absolute top-15 left-0 z-10 flex items-center justify-center w-10 h-10 shadow-md">
         <i class="fas fa-chevron-right text-sm rotate-icon"></i>
     </button>
 
     <!-- Sidebar -->
-    <div id="sidebar" class="w-full md:w-80 bg-[#1e1e1e] p-4 md:p-8 space-y-6 md:space-y-8 transform transition-transform duration-300 ease-in-out md:transform-none hidden md:block">
+    <div id="sidebar" class="w-full md:w-80 bg-white p-4 md:p-8 space-y-6 md:space-y-8 transform transition-transform duration-300 ease-in-out md:transform-none hidden md:block shadow-lg">
         <div class="flex flex-col items-center space-y-4">
             <div class="relative">
                 <div class="h-24 w-24 md:h-32 md:w-32 bg-gradient-to-r from-red-600 to-red-800 rounded-full p-1">
@@ -80,56 +80,56 @@
                 <div class="absolute bottom-2 right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
             <div class="text-center">
-                <h2 class="text-xl md:text-2xl font-bold">{{ Auth::user()->full_name }}</h2>
-                <p class="text-gray-400 text-xs md:text-sm">Member since {{ Auth::user()->created_at->format('m/d/Y') }}</p>
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800">{{ Auth::user()->full_name }}</h2>
+                <p class="text-gray-500 text-xs md:text-sm">Member since {{ Auth::user()->created_at->format('m/d/Y') }}</p>
             </div>
         </div>
 
         <!-- QR Code -->
-        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl">
-            <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center">Check-In QR</h3>
-            <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center cursor-pointer" id="qrCodeContainer" onclick="openQrModal()">
+        <div class="bg-white hover-card p-4 md:p-6 rounded-xl shadow-md border border-gray-200">
+            <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-gray-800">Check-In QR</h3>
+            <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center cursor-pointer border border-gray-200" id="qrCodeContainer" onclick="openQrModal()">
                 <div class="w-32 h-32 md:w-40 md:h-40">
                     {!! QrCode::size(150)->generate(Auth::user()->qr_code) !!}
                 </div>
             </div>
             <div class="flex justify-center mt-2">
-                <a href="{{ route('profile.qr') }}" class="text-xs text-center text-blue-400 hover:text-blue-300">View full screen</a>
+                <a href="{{ route('profile.qr') }}" class="text-xs text-center text-red-600 hover:text-red-800">View full screen</a>
             </div>
-            <p class="text-xs text-center mt-2 md:mt-3 text-gray-400">Tap the QR code to enlarge</p>
+            <p class="text-xs text-center mt-2 md:mt-3 text-gray-500">Tap the QR code to enlarge</p>
         </div>
 
         <!-- Personal Information -->
-        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
-            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Personal Information</h3>
+        <div class="bg-white hover-card p-4 md:p-6 rounded-xl shadow-md border border-gray-200 space-y-3 md:space-y-4">
+            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4 text-gray-800">Personal Information</h3>
             <div class="space-y-3 md:space-y-4">
                 <div class="flex justify-between items-center">
-                    <label class="text-gray-400 text-sm">Gender</label>
-                    <p class="font-medium text-sm md:text-base">{{ strtoupper(Auth::user()->gender) }}</p>
+                    <label class="text-gray-500 text-sm">Gender</label>
+                    <p class="font-medium text-sm md:text-base text-gray-800">{{ strtoupper(Auth::user()->gender) }}</p>
                 </div>
                 <div class="flex justify-between items-center">
-                    <label class="text-gray-400 text-sm">Fitness Goals</label>
-                    <p class="font-medium text-sm md:text-base">{{ strtoupper(str_replace('-', ' ', Auth::user()->fitness_goal)) }}</p>
+                    <label class="text-gray-500 text-sm">Fitness Goals</label>
+                    <p class="font-medium text-sm md:text-base text-gray-800">{{ strtoupper(str_replace('-', ' ', Auth::user()->fitness_goal)) }}</p>
                 </div>
                 <div class="flex justify-between items-center">
-                    <label class="text-gray-400 text-sm">Mobile Number</label>
-                    <p class="font-medium text-sm md:text-base">{{ Auth::user()->mobile_number ?? 'Not provided' }}</p>
+                    <label class="text-gray-500 text-sm">Mobile Number</label>
+                    <p class="font-medium text-sm md:text-base text-gray-800">{{ Auth::user()->mobile_number ?? 'Not provided' }}</p>
                 </div>
             </div>
         </div>
         
         <!-- Quick Links -->
-        <div class="bg-[#2d2d2d] hover-card p-4 md:p-6 rounded-xl space-y-3 md:space-y-4">
-            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4">Quick Links</h3>
+        <div class="bg-white hover-card p-4 md:p-6 rounded-xl shadow-md border border-gray-200 space-y-3 md:space-y-4">
+            <h3 class="text-base md:text-lg font-semibold mb-2 md:mb-4 text-gray-800">Quick Links</h3>
             <div class="space-y-3">
-                <a href="{{ route('orders') }}" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('orders') }}" class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-shopping-bag mr-2"></i> My Orders
                 </a>
-                <a href="{{ route('account.settings') }}" class="w-full bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('account.settings') }}" class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-user-cog mr-2"></i> Account Settings
                 </a>
-                <a href="{{ route('payment-method') }}" class="w-full bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
-                    <i class="fas fa-credit-card mr-2"></i> Payment Methods
+                <a href="{{ route('subscription.history') }}" class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-history mr-2"></i> Subscription History
                 </a>
             </div>
         </div>
@@ -138,14 +138,14 @@
     <!-- Main Content -->
     <div class="flex-1 p-4 md:p-8 overflow-auto mt-16 md:mt-0">
         <!-- Attendance Graph -->
-        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+        <div class="bg-white hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 border border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
-                <h2 class="text-lg md:text-xl font-semibold">Attendance</h2>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">Attendance</h2>
                 <div class="flex space-x-2 w-full sm:w-auto overflow-x-auto py-1 sm:py-0">
-                    <button class="px-3 py-1 rounded-full bg-[#121212] text-xs md:text-sm whitespace-nowrap hover:bg-opacity-80 transition">1D</button>
-                    <button class="px-3 py-1 rounded-full bg-[#121212] text-xs md:text-sm whitespace-nowrap hover:bg-opacity-80 transition">1W</button>
+                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1D</button>
+                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1W</button>
                     <button class="px-3 py-1 rounded-full bg-red-600 text-white text-xs md:text-sm whitespace-nowrap hover:bg-red-700 transition">1M</button>
-                    <button class="px-3 py-1 rounded-full bg-[#121212] text-xs md:text-sm whitespace-nowrap hover:bg-opacity-80 transition">1Y</button>
+                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1Y</button>
                 </div>
             </div>
             
@@ -165,7 +165,7 @@
                     <div class="w-1/12 h-2 bg-blue-500"></div>
                     <div class="w-1/12 h-2 bg-blue-500"></div>
                 </div>
-                <div class="flex text-xs text-gray-400 mt-2 min-w-[500px]">
+                <div class="flex text-xs text-gray-500 mt-2 min-w-[500px]">
                     <div class="w-1/12 text-center">Jan</div>
                     <div class="w-1/12 text-center">Feb</div>
                     <div class="w-1/12 text-center">Mar</div>
@@ -188,9 +188,9 @@
         </div>
 
         <!-- Membership Plan -->
-        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6">
+        <div class="bg-white hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 border border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
-                <h2 class="text-lg md:text-xl font-semibold">Membership Plan</h2>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">Membership Plan</h2>
                 <a href="{{ route('pricing.gym') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
                     @if (!$activeSubscription)
                         Add Plan
@@ -204,26 +204,26 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                 <div class="space-y-3 md:space-y-4">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-400 text-sm">Type</span>
-                        <span class="font-medium text-sm md:text-base">{{ strtoupper($activeSubscription->type) }}</span>
+                        <span class="text-gray-500 text-sm">Type</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">{{ strtoupper($activeSubscription->type) }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-400 text-sm">Status</span>
-                        <span class="px-2 py-0.5 md:px-3 md:py-1 bg-green-500 bg-opacity-20 text-green-500 rounded-full text-xs md:text-sm font-medium">ACTIVE</span>
+                        <span class="text-gray-500 text-sm">Status</span>
+                        <span class="px-2 py-0.5 md:px-3 md:py-1 bg-green-500 bg-opacity-20 text-green-600 rounded-full text-xs md:text-sm font-medium">ACTIVE</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-400 text-sm">Plan</span>
-                        <span class="font-medium text-sm md:text-base">{{ strtoupper($activeSubscription->plan) }}</span>
+                        <span class="text-gray-500 text-sm">Plan</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">{{ strtoupper($activeSubscription->plan) }}</span>
                     </div>
                 </div>
                 <div class="space-y-3 md:space-y-4">
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-400 text-sm">Start Date</span>
-                        <span class="font-medium text-sm md:text-base">{{ $activeSubscription->start_date ? $activeSubscription->start_date->format('Y-m-d') : 'N/A' }}</span>
+                        <span class="text-gray-500 text-sm">Start Date</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">{{ $activeSubscription->start_date ? $activeSubscription->start_date->format('Y-m-d') : 'N/A' }}</span>
                     </div>
                     <div class="flex justify-between items-center">
-                        <span class="text-gray-400 text-sm">End Date</span>
-                        <span class="font-medium text-sm md:text-base">{{ $activeSubscription->end_date ? $activeSubscription->end_date->format('Y-m-d') : 'N/A' }}</span>
+                        <span class="text-gray-500 text-sm">End Date</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">{{ $activeSubscription->end_date ? $activeSubscription->end_date->format('Y-m-d') : 'N/A' }}</span>
                     </div>
                 </div>
             </div>
@@ -239,21 +239,21 @@
                     $percentComplete = min(100, max(0, ($elapsed / $totalDuration) * 100));
                 @endphp
             <div class="mt-4 md:mt-6">
-                <div class="flex justify-between text-xs md:text-sm mb-1">
+                <div class="flex justify-between text-xs md:text-sm mb-1 text-gray-600">
                     <span>Membership Duration</span>
                     <span>{{ round($percentComplete) }}% Complete</span>
                 </div>
-                <div class="w-full bg-gray-700 rounded-full h-2">
+                <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="bg-red-600 h-2 rounded-full" style="width: {{ $percentComplete }}%"></div>
                 </div>
             </div>
             @endif
             
             <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="{{ route('pricing.gym') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('pricing.gym') }}" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-sync-alt mr-2"></i> Change Plan
                 </a>
-                <a href="{{ route('subscription.history') }}" class="flex-1 bg-[#374151] text-white py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('subscription.history') }}" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-history mr-2"></i> View History
                 </a>
                 <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" class="flex-1">
@@ -264,9 +264,9 @@
                 </form>
             </div>
             @else
-            <div class="py-6 text-center bg-[#1e1e1e] rounded-lg">
+            <div class="py-6 text-center bg-gray-100 rounded-lg">
                 <i class="fas fa-dumbbell text-gray-500 text-4xl mb-3"></i>
-                <p class="text-gray-400 mb-4">You don't have any active membership plan.</p>
+                <p class="text-gray-600 mb-4">You don't have any active membership plan.</p>
                 <a href="{{ route('pricing.gym') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-plus mr-2"></i> Get Membership
                 </a>
@@ -275,11 +275,11 @@
         </div>
 
         <!-- Payment History -->
-        <div class="bg-[#2d2d2d] hover-card rounded-xl shadow-lg p-4 md:p-6">
+        <div class="bg-white hover-card rounded-xl shadow-lg p-4 md:p-6 border border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
-                <h2 class="text-lg md:text-xl font-semibold">Payment History</h2>
+                <h2 class="text-lg md:text-xl font-semibold text-gray-800">Payment History</h2>
                 <div class="flex gap-2 w-full sm:w-auto">
-                    <select id="filterType" class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm px-3 py-2">
+                    <select id="filterType" class="bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm px-3 py-2">
                         <option value="">All Types</option>
                         <option value="product">Products</option>
                         <option value="subscription">Subscriptions</option>
@@ -287,7 +287,7 @@
                     <input 
                         type="date" 
                         id="dateFilter"
-                        class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm px-3 py-2"
+                        class="bg-white border border-gray-300 text-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm px-3 py-2"
                     >
                 </div>
             </div>
@@ -295,35 +295,35 @@
                 <div class="min-w-[600px] px-4 md:px-0">
                     <table class="w-full" id="invoiceTable">
                         <thead>
-                            <tr class="text-left border-b border-gray-700">
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Invoice #</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Date</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Type</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Amount</th>
-                                <th class="pb-3 md:pb-4 text-gray-400 font-medium text-xs md:text-sm">Actions</th>
+                            <tr class="text-left border-b border-gray-200">
+                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Invoice #</th>
+                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Date</th>
+                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Type</th>
+                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Amount</th>
+                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if(isset($invoices) && count($invoices) > 0)
                                 @foreach($invoices as $invoice)
-                                <tr class="border-b border-gray-700 hover:bg-[#374151]">
-                                    <td class="py-3 md:py-4 text-xs md:text-sm">
+                                <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="py-3 md:py-4 text-xs md:text-sm text-gray-800">
                                         {{ substr($invoice->invoice_number ?? 'N/A', 0, 10) }}...
                                     </td>
-                                    <td class="py-3 md:py-4 text-xs md:text-sm">
+                                    <td class="py-3 md:py-4 text-xs md:text-sm text-gray-600">
                                         {{ \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d') }}
                                     </td>
                                     <td class="py-3 md:py-4 text-xs md:text-sm">
                                         <span class="px-2 py-1 rounded-full text-xs 
-                                            {{ ($invoice->type ?? '') === 'subscription' ? 'bg-blue-900 text-blue-200' : 'bg-green-900 text-green-200' }}">
+                                            {{ ($invoice->type ?? '') === 'subscription' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
                                             {{ ucfirst($invoice->type ?? 'unknown') }}
                                         </span>
                                     </td>
-                                    <td class="py-3 md:py-4 text-red-500 font-medium text-xs md:text-sm">
+                                    <td class="py-3 md:py-4 text-red-600 font-medium text-xs md:text-sm">
                                         ₱{{ number_format($invoice->total_amount ?? 0, 2) }}
                                     </td>
                                     <td class="py-3 md:py-4 flex space-x-2">
-                                        <button class="text-gray-400 hover:text-white transition-colors" 
+                                        <button class="text-gray-500 hover:text-gray-800 transition-colors" 
                                         onclick="openReceiptModal('{{ $invoice->invoice_number ?? 'Unknown' }}', {{ json_encode([
                                             'date' => \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d'),
                                             'type' => ucfirst($invoice->type ?? 'unknown'),
@@ -338,7 +338,7 @@
                                             <i class="fas fa-eye text-sm"></i>
                                         </button>
                                         @if(isset($invoice->id))
-                                        <a href="{{ route('user.invoices.receipt', $invoice->id) }}" class="text-gray-400 hover:text-white transition-colors">
+                                        <a href="{{ route('user.invoices.receipt', $invoice->id) }}" class="text-gray-500 hover:text-gray-800 transition-colors">
                                             <i class="fas fa-print text-sm"></i>
                                         </a>
                                         @endif
@@ -347,7 +347,7 @@
                                 @endforeach
                             @else
                             <tr>
-                                <td colspan="5" class="py-6 text-center text-gray-400">
+                                <td colspan="5" class="py-6 text-center text-gray-500">
                                     No payment history found. Your purchases and subscriptions will appear here.
                                 </td>
                             </tr>
@@ -531,11 +531,11 @@
                             beginAtZero: true,
                             max: 5.5,
                             grid: {
-                                color: 'rgba(200, 200, 200, 0.2)'
+                                color: 'rgba(0, 0, 0, 0.1)'
                             },
                             ticks: {
                                 stepSize: 0.5,
-                                color: '#9ca3af',
+                                color: '#6b7280',
                                 font: {
                                     size: 10
                                 }
@@ -543,10 +543,10 @@
                         },
                         x: {
                             grid: {
-                                color: 'rgba(200, 200, 200, 0.2)'
+                                color: 'rgba(0, 0, 0, 0.1)'
                             },
                             ticks: {
-                                color: '#9ca3af',
+                                color: '#6b7280',
                                 font: {
                                     size: 9
                                 },
@@ -562,7 +562,7 @@
                         title: {
                             display: true,
                             text: 'Attendance',
-                            color: '#fff',
+                            color: '#1f2937',
                             font: {
                                 size: 16,
                                 weight: 'bold'

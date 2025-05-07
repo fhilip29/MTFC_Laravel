@@ -96,6 +96,41 @@
 
                 <!-- Payment Methods -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-semibold mb-6">Payment Method</h2>
+                    <div class="space-y-4">
+                        <!-- Payment Method Selection -->
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors payment-method-option" data-method="cash">
+                                <input type="radio" name="payment_method" value="cash" id="payment_cash" class="w-4 h-4 text-red-600" checked>
+                                <label for="payment_cash" class="flex items-center cursor-pointer">
+                                    <div class="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full mr-3">
+                                        <i class="fas fa-money-bill text-green-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium block">Cash on Delivery</span>
+                                        <span class="text-sm text-gray-500">Pay when you receive your order</span>
+                                    </div>
+                                </label>
+                            </div>
+                            
+                            <div class="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors payment-method-option" data-method="paymongo">
+                                <input type="radio" name="payment_method" value="paymongo" id="payment_paymongo" class="w-4 h-4 text-red-600">
+                                <label for="payment_paymongo" class="flex items-center cursor-pointer">
+                                    <div class="w-8 h-8 flex items-center justify-center bg-blue-100 rounded-full mr-3">
+                                        <i class="fas fa-credit-card text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <span class="font-medium block">Online Payment</span>
+                                        <span class="text-sm text-gray-500">Pay with credit card, GCash, or other online methods</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Notes -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
                     <h2 class="text-xl font-semibold mb-6">Shipping Notes</h2>
                     <div class="space-y-4">
                         <div>
@@ -106,8 +141,8 @@
                         <!-- Payment Security Notice -->
                         <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
                             <div class="flex items-center space-x-2 text-sm text-gray-600">
-                                <i class="fas fa-info-circle"></i>
-                                <span>You'll select your payment method in the next step</span>
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Your payment information is secure and encrypted</span>
                             </div>
                         </div>
                     </div>
@@ -156,7 +191,7 @@
 
                 <!-- Place Order Button -->
                 <button id="placeOrderBtn" class="w-full bg-red-600 text-white py-3 rounded-md font-semibold hover:bg-red-700 transition-colors duration-200">
-                    Proceed to Payment
+                    Place Order
                 </button>
             </div>
         </div>
@@ -424,6 +459,9 @@
                 const phoneNumber = document.querySelector('input[name="phone_number"]').value;
                 const notes = document.getElementById('notes').value;
                 
+                // Get selected payment method
+                const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+                
                 // Validate form fields
                 if (!firstName || !lastName || !street || !barangay || !city || !postalCode || !phoneNumber) {
                     Swal.fire({
@@ -441,7 +479,17 @@
                 const shipping = parseFloat(shippingText.replace('₱', '').replace(',', ''));
                 const total = subtotal + shipping;
                 
-                // Store order data in session storage
+                // Show processing message
+                Swal.fire({
+                    title: 'Processing Order...',
+                    text: 'Please wait while we process your order',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Create order data
                 const orderData = {
                     items: selectedItems,
                     shipping: {
@@ -454,20 +502,236 @@
                         phone_number: phoneNumber,
                         notes: notes
                     },
-                    amount: total
+                    amount: total,
+                    payment_method: paymentMethod
                 };
                 
-                // Store order data in sessionStorage for retrieval in payment page
-                sessionStorage.setItem('orderData', JSON.stringify(orderData));
+                // If PayMongo is selected, handle differently
+                if (paymentMethod === 'paymongo') {
+                    handlePayMongoPayment(orderData);
+                    return;
+                }
                 
-                // Redirect to payment method page
-                window.location.href = '{{ route("payment-method") }}' + 
-                    '?type=product' + 
-                    '&plan=one-time' + 
-                    '&amount=' + total + 
-                    '&waiver_accepted=1' +
-                    '&order_id=' + Date.now().toString();
+                // For cash payment, continue with normal order process
+                // Send order data to server
+                fetch('{{ route('orders.store') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        street: street,
+                        barangay: barangay,
+                        city: city,
+                        postal_code: postalCode,
+                        phone_number: phoneNumber,
+                        notes: notes || '',
+                        payment_method: paymentMethod,
+                        items: selectedItems.map(item => ({
+                            id: item.id,
+                            quantity: item.quantity,
+                            price: parseFloat(item.price)
+                        }))
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || 'Error placing order');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        console.log('Order placed successfully:', data);
+                        // Clear cart for ordered items
+                        const remainingItems = cart.filter((item, index) => {
+                            return !Array.from(checkboxes)
+                                .filter(checkbox => checkbox.checked)
+                                .map(checkbox => parseInt(checkbox.dataset.index))
+                                .includes(index);
+                        });
+                        
+                        localStorage.setItem('cart', JSON.stringify(remainingItems));
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Order Placed Successfully!',
+                            text: 'Your order has been placed and is now being processed.',
+                            confirmButtonText: 'View My Orders',
+                            confirmButtonColor: '#ef4444',
+                            showCancelButton: true,
+                            cancelButtonText: 'Continue Shopping'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '{{ route('orders') }}';
+                            } else {
+                                window.location.href = '{{ route('shop') }}';
+                            }
+                        });
+                        
+                        // Sync cart with server
+                        @auth
+                        fetch('{{ route('cart.sync') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ items: remainingItems })
+                        });
+                        @endauth
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Order Failed',
+                            text: data.message || 'There was a problem placing your order. Please try again.'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error placing order:', error);
+                    
+                    // Check if the error message contains stock availability issues
+                    const errorMessage = error.message || 'There was a problem placing your order. Please try again.';
+                    const isStockError = errorMessage.includes('Not enough stock');
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: isStockError ? 'Stock Availability Issue' : 'Order Failed',
+                        text: errorMessage,
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: isStockError ? 'Update Cart' : 'OK',
+                        showCancelButton: isStockError,
+                        cancelButtonText: isStockError ? 'Continue Shopping' : null
+                    }).then((result) => {
+                        if (isStockError) {
+                            if (result.isConfirmed) {
+                                // Redirect to cart to let user update quantities
+                                window.location.href = '{{ route('cart') }}';
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                window.location.href = '{{ route('shop') }}';
+                            }
+                        }
+                    });
+                });
             });
+        }
+
+        // Function to handle PayMongo payment
+        function handlePayMongoPayment(orderData) {
+            // Store order data in session storage for later use
+            sessionStorage.setItem('orderData', JSON.stringify(orderData));
+            
+            // Clear cart for ordered items
+            const checkboxes = document.querySelectorAll('.item-checkbox:checked');
+            const selectedIndices = Array.from(checkboxes).map(checkbox => parseInt(checkbox.dataset.index));
+            
+            // Filter out selected items from cart
+            const remainingItems = cart.filter((item, index) => !selectedIndices.includes(index));
+            
+            // Save remaining items to localStorage
+            localStorage.setItem('cart', JSON.stringify(remainingItems));
+            
+            // Create form data for PayMongo payment
+            const formData = new FormData();
+            formData.append('type', 'product'); // This is a product payment, not a subscription
+            formData.append('amount', orderData.amount);
+            formData.append('payment_method', 'paymongo');
+            formData.append('billing_name', `${orderData.shipping.first_name} ${orderData.shipping.last_name}`);
+            formData.append('billing_email', '{{ Auth::user()->email ?? "" }}');
+            formData.append('billing_phone', orderData.shipping.phone_number);
+            formData.append('order_data', JSON.stringify(orderData));
+            
+            // These fields are required by the validation but don't affect product orders
+            formData.append('plan', 'product'); 
+            formData.append('waiver_accepted', '1');
+            
+            // Show processing message
+            Swal.fire({
+                title: 'Redirecting to Payment',
+                text: 'Please wait while we prepare your payment...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Create a hidden form to submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ route('payment.process') }}';
+            
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '_token';
+            csrfToken.value = document.querySelector('meta[name="csrf-token"]').content;
+            form.appendChild(csrfToken);
+            
+            // Add form data
+            for (const [key, value] of formData.entries()) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value;
+                form.appendChild(input);
+            }
+            
+            // Append form to body and submit
+            document.body.appendChild(form);
+            form.submit();
+            
+            // Sync cart with server if user is logged in
+            @auth
+            fetch('{{ route('cart.sync') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ items: remainingItems })
+            }).catch(error => console.error('Error syncing cart:', error));
+            @endauth
+        }
+
+        // Payment method selection
+        const paymentOptions = document.querySelectorAll('.payment-method-option');
+        paymentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Check the radio button
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // Add selected class to this option and remove from others
+                paymentOptions.forEach(opt => {
+                    if (opt === this) {
+                        opt.classList.add('border-red-500', 'bg-red-50');
+                    } else {
+                        opt.classList.remove('border-red-500', 'bg-red-50');
+                    }
+                });
+                
+                // Update button text based on payment method
+                const placeOrderBtn = document.getElementById('placeOrderBtn');
+                if (placeOrderBtn) {
+                    if (radio.value === 'paymongo') {
+                        placeOrderBtn.textContent = 'Proceed to Payment';
+                    } else {
+                        placeOrderBtn.textContent = 'Place Order';
+                    }
+                }
+            });
+        });
+
+        // Initialize the first payment option as selected
+        if (paymentOptions.length > 0) {
+            paymentOptions[0].click();
         }
     });
 </script>

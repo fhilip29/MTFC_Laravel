@@ -9,7 +9,7 @@
         <div class="p-6 border-b border-gray-700">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold">Online Payment</h2>
-                <a href="{{ route('pricing') }}" class="text-gray-400 hover:text-white">
+                <a href="{{ $type === 'product' ? route('shop') : route('pricing.' . ($type ?? 'gym')) }}" class="text-gray-400 hover:text-white">
                     <i class="fas fa-times"></i>
                 </a>
             </div>

@@ -1,17 +1,23 @@
-<!-- Modals -->
+<!-- QR Code Modal -->
 <div id="qrModal" class="modal">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-white">Your Check-In QR Code</h2>
-            <button onclick="closeQrModal()" class="text-gray-400 hover:text-white">
-                <i class="fas fa-times text-lg"></i>
+            <h3 class="text-xl font-bold text-gray-800">Check-In QR Code</h3>
+            <button onclick="closeQrModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="bg-white p-4 rounded-lg flex justify-center items-center">
-            <div class="w-64 h-64">
-                {!! QrCode::size(250)->generate(Auth::user()->qr_code) !!}
+        
+        <div class="flex justify-center">
+            <div class="bg-white p-3 rounded-lg border border-gray-200">
+                <div class="w-60 h-60">
+                    {!! QrCode::size(240)->generate(Auth::user()->qr_code) !!}
+                </div>
             </div>
         </div>
-        <p class="text-center mt-4 text-gray-300 text-sm">Show this QR code at the gym entrance to check in</p>
+        
+        <p class="text-center text-gray-600 text-sm mt-4">
+            Show this QR code to the staff for check-in and check-out.
+        </p>
     </div>
 </div> 

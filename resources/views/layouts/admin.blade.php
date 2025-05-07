@@ -96,6 +96,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            height: calc(100vh - 220px); /* Adjust based on header height */
+            overflow-y: auto;
         }
 
         .nav-link {
@@ -234,6 +236,14 @@
             background-color: #991B1B;
             color: white;
         }
+        
+        /* Logout button at bottom */
+        .logout-button {
+            margin-top: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
 
         @media (max-width: 768px) {
             .sidebar {
@@ -284,23 +294,12 @@
                     <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="MTFC Logo">
                 </a>
             </div>
-            <div class="nav-button profile" x-data="{ open: false }">
-                <i class="fas fa-user" @click="open = !open" title="Profile Options"></i>
-                <div :class="{'active': open}" class="dropdown-menu" @click.away="open = false">
-                    <div class="dropdown-item">
-                        <i class="fas fa-user-circle"></i>
-                        <span>{{ Auth::user()->name ?? 'Admin' }}</span>
-                    </div>
-                    <a href="/admin/profile" class="dropdown-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Account Settings</span>
-                    </a>
-                    <button type="button" onclick="confirmAdminLogout()" class="dropdown-item danger w-full text-left">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
+            <a href="/admin/profile" class="nav-button profile" title="Profile Settings">
+                <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
+                    <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" 
+                         alt="Admin Profile" class="w-full h-full object-cover">
                 </div>
-            </div>
+            </a>
             <button class="toggle-btn" id="sidebarToggle">
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -342,6 +341,12 @@
                 <i class="fas fa-box"></i>
                 <span>Product Management</span>
             </a>
+            
+            <!-- Logout Button at the bottom -->
+            <button onclick="confirmAdminLogout()" class="nav-link logout-button text-red-400 hover:text-red-300">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
         </div>
     </nav>
 

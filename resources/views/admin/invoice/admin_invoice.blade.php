@@ -121,32 +121,32 @@
                             <span>Payment QR Scanner</span>
                             <button id="closeScanner" class="text-[#9CA3AF] hover:text-white transition-colors">
                                 <i class="fas fa-times"></i>
-                            </button>
+                </button>
                         </h3>
-                        
-                        <!-- Success message (initially hidden) -->
+            
+                <!-- Success message (initially hidden) -->
                         <div id="payment-success-message" class="hidden bg-green-600 text-white p-4 rounded-lg mt-4 mb-4 animate-pulse">
-                            <div class="flex items-center">
-                                <i class="fas fa-check-circle text-2xl mr-2"></i>
-                                <div>
-                                    <h4 class="font-bold">Payment Confirmed!</h4>
-                                    <p class="text-sm" id="payment-success-details"></p>
-                                </div>
-                            </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="font-bold">Payment Confirmed!</h4>
+                            <p class="text-sm" id="payment-success-details"></p>
                         </div>
-                        
-                        <!-- Error message (initially hidden) -->
+                    </div>
+                </div>
+                
+                <!-- Error message (initially hidden) -->
                         <div id="payment-error-message" class="hidden bg-red-600 text-white p-4 rounded-lg mt-4 mb-4 animate-pulse">
-                            <div class="flex items-center">
-                                <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
-                                <div>
-                                    <h4 class="font-bold">Payment Error</h4>
-                                    <p class="text-sm" id="payment-error-details"></p>
-                                </div>
-                            </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle text-2xl mr-2"></i>
+                        <div>
+                            <h4 class="font-bold">Payment Error</h4>
+                            <p class="text-sm" id="payment-error-details"></p>
                         </div>
-                        
-                        <!-- Scanner container -->
+                    </div>
+                </div>
+                
+                <!-- Scanner container -->
                         <div class="relative mt-6 mb-6">
                             <div id="reader" class="w-full h-[400px] rounded-lg mx-auto"></div>
                         </div>
@@ -156,7 +156,7 @@
             <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-10">
                 <button id="cancelScanner" class="mt-3 w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                     Close
-                </button>
+                    </button>
             </div>
         </div>
     </div>
@@ -168,7 +168,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
     // Initialize elements
     const openScannerBtn = document.getElementById('openScannerBtn');
     const scannerModal = document.getElementById('scannerModal');
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Open scanner modal
     openScannerBtn.addEventListener('click', function() {
         scannerModal.classList.remove('hidden');
-        startScanner();
+                startScanner();
     });
     
     // Close scanner modal
@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeModal();
         }
     });
-    
+
     // Start the scanner
     function startScanner() {
         if (isScanning) return;
@@ -237,8 +237,8 @@ document.addEventListener('DOMContentLoaded', function() {
         html5QrCode.start(
             { facingMode: "environment" }, // Prefer back camera
             config,
-            onScanSuccess,
-            onScanFailure
+                onScanSuccess,
+                onScanFailure
         )
         .then(() => {
             isScanning = true;
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (scannerElement) {
                 // Override some of the default styling
                 scannerElement.style.border = "none";
-                
+            
                 // Target internal elements with more specific selectors
                 setTimeout(() => {
                     // Get all video elements inside the reader and style them
@@ -267,8 +267,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         scanRegion.style.display = 'flex';
                         scanRegion.style.justifyContent = 'center';
                         scanRegion.style.alignItems = 'center';
-                    }
-                    
+        }
+        
                     // Adjust canvas position if it exists
                     const canvas = scannerElement.querySelector('canvas');
                     if (canvas) {
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         canvas.style.left = '50%';
                         canvas.style.top = '50%';
                         canvas.style.transform = 'translate(-50%, -50%)';
-                    }
+            }
                 }, 500);
             }
         })
@@ -328,9 +328,11 @@ document.addEventListener('DOMContentLoaded', function() {
             let paymentData;
             try {
                 paymentData = JSON.parse(decodedText);
+                console.log("Parsed QR code data:", paymentData);
             } catch (e) {
                 // If not JSON, just use the string
-                paymentData = { qr_code: decodedText };
+                paymentData = { reference: decodedText };
+                console.log("Using QR code as reference string:", paymentData);
             }
             
             // Show processing message
@@ -344,6 +346,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     Swal.showLoading();
                 }
             });
+            
+            // Add missing fields if they don't exist in the parsed data
+            if (!paymentData.type && paymentData.plan) {
+                paymentData.type = 'subscription';
+            } else if (!paymentData.type && paymentData.items) {
+                paymentData.type = 'product';
+            }
+            
+            if (!paymentData.order_id && paymentData.reference) {
+                // Use reference as order_id if not provided
+                paymentData.order_id = paymentData.reference;
+            }
             
             // Send to server for processing
             fetch('/admin/verify-payment', {
@@ -366,16 +380,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                 } else {
                     showError(data.message || "Error verifying payment");
+                    
+                    // Try to restart scanner after error
+                    setTimeout(() => {
+                        startScanner();
+                    }, 3000);
                 }
             })
             .catch(error => {
                 Swal.close();
                 console.error("Error:", error);
                 showError("Network error. Please try again.");
+                
+                // Try to restart scanner after error
+                setTimeout(() => {
+                    startScanner();
+                }, 3000);
             });
         } catch (error) {
             console.error("Error processing QR code:", error);
             showError("Invalid QR code format");
+            
+            // Try to restart scanner after error
+            setTimeout(() => {
+                startScanner();
+            }, 3000);
         }
     }
     
@@ -398,56 +427,56 @@ document.addEventListener('DOMContentLoaded', function() {
         errorMessage.classList.remove('hidden');
         successMessage.classList.add('hidden');
     }
-    
+
     // Client-side search and filtering
-    const searchInput = document.getElementById('searchInput');
-    const filterType = document.getElementById('filterType');
-    const dateFilter = document.getElementById('dateFilter');
-    const rows = document.querySelectorAll('#invoiceTable tbody tr');
-    
-    const filterTable = () => {
-        const searchTerm = searchInput.value.toLowerCase();
-        const typeFilter = filterType.value.toLowerCase();
-        const dateValue = dateFilter.value;
+        const searchInput = document.getElementById('searchInput');
+        const filterType = document.getElementById('filterType');
+        const dateFilter = document.getElementById('dateFilter');
+        const rows = document.querySelectorAll('#invoiceTable tbody tr');
         
-        rows.forEach(row => {
-            const invoiceNumber = row.cells[0].textContent.toLowerCase();
-            const clientName = row.cells[1].textContent.toLowerCase();
-            const type = row.cells[2].textContent.toLowerCase();
-            const date = row.cells[4].textContent;
+        const filterTable = () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const typeFilter = filterType.value.toLowerCase();
+            const dateValue = dateFilter.value;
             
-            // Parse the date for comparison
-            let shouldShow = true;
-            
-            // Check search term
-            if (searchTerm && !invoiceNumber.includes(searchTerm) && !clientName.includes(searchTerm)) {
-                shouldShow = false;
-            }
-            
-            // Check type filter
-            if (typeFilter && !type.includes(typeFilter)) {
-                shouldShow = false;
-            }
-            
-            // Check date filter (simplified)
-            if (dateValue) {
-                const rowDate = new Date(date);
-                const filterDate = new Date(dateValue);
+            rows.forEach(row => {
+                const invoiceNumber = row.cells[0].textContent.toLowerCase();
+                const clientName = row.cells[1].textContent.toLowerCase();
+                const type = row.cells[2].textContent.toLowerCase();
+                const date = row.cells[4].textContent;
                 
-                if (rowDate.toDateString() !== filterDate.toDateString()) {
+                // Parse the date for comparison
+                let shouldShow = true;
+                
+                // Check search term
+                if (searchTerm && !invoiceNumber.includes(searchTerm) && !clientName.includes(searchTerm)) {
                     shouldShow = false;
                 }
-            }
-            
-            row.style.display = shouldShow ? '' : 'none';
-        });
-    };
-    
+                
+                // Check type filter
+                if (typeFilter && !type.includes(typeFilter)) {
+                    shouldShow = false;
+                }
+                
+                // Check date filter (simplified)
+                if (dateValue) {
+                    const rowDate = new Date(date);
+                    const filterDate = new Date(dateValue);
+                    
+                    if (rowDate.toDateString() !== filterDate.toDateString()) {
+                        shouldShow = false;
+                    }
+                }
+                
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        };
+        
     // Add event listeners for filtering
     if (searchInput) searchInput.addEventListener('input', filterTable);
     if (filterType) filterType.addEventListener('change', filterTable);
     if (dateFilter) dateFilter.addEventListener('input', filterTable);
-});
+    });
 </script>
 
 <style>

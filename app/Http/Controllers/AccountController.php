@@ -74,8 +74,20 @@ class AccountController extends Controller
         // Handle profile image upload
         if ($request->hasFile('profile_image') || $request->filled('cropped_image')) {
             // Delete old image if it exists
-            if ($user->profile_image && Storage::exists('public/' . $user->profile_image)) {
-                Storage::delete('public/' . $user->profile_image);
+            if ($user->profile_image && file_exists(public_path($user->profile_image))) {
+                unlink(public_path($user->profile_image));
+            }
+            
+            // Determine directory based on user role
+            $directory = match($user->role) {
+                'trainer' => public_path('images/trainer'),
+                'admin' => public_path('images/admin'),
+                default => public_path('images/users')
+            };
+                
+            // Create directory if it doesn't exist
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
             }
             
             if ($request->filled('cropped_image')) {
@@ -89,16 +101,48 @@ class AccountController extends Controller
                 
                 // Generate a unique filename
                 $filename = 'profile_' . $user->id . '_' . time() . '.jpg';
-                $path = 'profile_images/' . $filename;
+                $relativePath = match($user->role) {
+                    'trainer' => 'images/trainer/' . $filename,
+                    'admin' => 'images/admin/' . $filename,
+                    default => 'images/users/' . $filename
+                };
+                $fullPath = public_path($relativePath);
                 
                 // Store the file
-                Storage::disk('public')->put($path, base64_decode($imageData));
-                $user->profile_image = $path;
+                file_put_contents($fullPath, base64_decode($imageData));
+                $user->profile_image = $relativePath;
+                
+                // If user is a trainer, update the trainer profile as well
+                if ($user->role === 'trainer') {
+                    $trainer = $user->trainer;
+                    if ($trainer) {
+                        $trainer->profile_url = $relativePath;
+                        $trainer->save();
+                    }
+                }
             }
             elseif ($request->hasFile('profile_image')) {
-                // Store new image the traditional way
-                $path = $request->file('profile_image')->store('profile_images', 'public');
-                $user->profile_image = $path;
+                // Store new image in public directory
+                $file = $request->file('profile_image');
+                $filename = 'profile_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+                $relativePath = match($user->role) {
+                    'trainer' => 'images/trainer/' . $filename,
+                    'admin' => 'images/admin/' . $filename,
+                    default => 'images/users/' . $filename
+                };
+                
+                // Move uploaded file to public directory
+                $file->move($directory, $filename);
+                $user->profile_image = $relativePath;
+                
+                // If user is a trainer, update the trainer profile as well
+                if ($user->role === 'trainer') {
+                    $trainer = $user->trainer;
+                    if ($trainer) {
+                        $trainer->profile_url = $relativePath;
+                        $trainer->save();
+                    }
+                }
             }
         }
 

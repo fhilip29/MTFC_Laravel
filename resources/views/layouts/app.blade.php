@@ -110,13 +110,15 @@
         
         @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
         !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart')
-        && !Request::is ('terms') && !Request::is ('privacypolicy'))
+        && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history'))
             <div class="h-[400px]"></div>
         @endif
     </main>
 
     
-    @include('components.footer')
+    @if (!Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('profile'))
+        @include('components.footer')
+    @endif
 
 
    <!-- 🛒 Cart Drawer -->

@@ -44,18 +44,18 @@
     }
 </style>
 
-<div class="min-h-screen bg-[#121212] py-8 px-4 text-white">
+<div class="min-h-screen bg-white py-8 px-4 md:px-8 text-gray-800">
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-2xl font-bold flex items-center gap-2">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                 <i class="fas fa-user-cog text-red-500"></i> Account Settings
             </h1>
-            <p class="text-gray-400 mt-2">Manage your profile information and account preferences</p>
+            <p class="text-gray-600 mt-2">Manage your profile information and account preferences</p>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-800 bg-opacity-80 text-green-100 px-4 py-3 rounded-lg mb-6 flex items-start">
+            <div class="bg-green-100 text-green-800 px-4 py-3 rounded-lg mb-6 flex items-start">
                 <i class="fas fa-check-circle mt-1 mr-3"></i>
                 <span>{{ session('success') }}</span>
             </div>
@@ -64,15 +64,15 @@
         <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
             <!-- Navigation Sidebar -->
             <div class="md:col-span-1">
-                <div class="bg-[#1e1e1e] rounded-xl p-4">
+                <div class="bg-gray-100 rounded-xl p-4">
                     <nav class="space-y-1">
-                        <a href="#profile-section" class="block py-2 px-3 rounded-lg bg-[#2d2d2d] text-white font-medium">
+                        <a href="#profile-section" class="block py-2 px-3 rounded-lg bg-gray-200 text-gray-800 font-medium">
                             <i class="fas fa-user mr-2"></i> Profile
                         </a>
-                        <a href="#password-section" class="block py-2 px-3 rounded-lg hover:bg-[#2d2d2d] text-gray-300 transition-colors">
+                        <a href="#password-section" class="block py-2 px-3 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
                             <i class="fas fa-lock mr-2"></i> Password
                         </a>
-                        <a href="{{ route('profile') }}" class="block py-2 px-3 rounded-lg hover:bg-[#2d2d2d] text-gray-300 transition-colors">
+                        <a href="{{ route('profile') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
                             <i class="fas fa-arrow-left mr-2"></i> Back to Profile
                         </a>
                     </nav>
@@ -82,26 +82,26 @@
             <!-- Main Content -->
             <div class="md:col-span-4 space-y-6">
                 <!-- Profile Section -->
-                <div id="profile-section" class="bg-[#1e1e1e] rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-6">Profile Information</h2>
+                <div id="profile-section" class="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">Profile Information</h2>
 
                     <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                         @csrf
                         
                         <!-- Profile Picture -->
                         <div class="flex flex-col sm:flex-row items-center gap-6">
-                            <div class="relative h-32 w-32 rounded-full overflow-hidden bg-[#2d2d2d] border-4 border-[#2d2d2d]">
+                            <div class="relative h-32 w-32 rounded-full overflow-hidden bg-gray-100 border-4 border-gray-200">
                                 <img id="preview-image" 
-                                    src="{{ $user->profile_image ? asset('storage/'.$user->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                    src="{{ $user->profile_image ? asset($user->profile_image) : asset('assets/default-profile.jpg') }}" 
                                     alt="Profile Picture" class="h-full w-full object-cover">
                             </div>
                             <div class="flex flex-col space-y-2">
-                                <label class="bg-[#374151] hover:bg-[#4B5563] text-white px-4 py-2 rounded-lg cursor-pointer text-center transition-colors inline-block">
+                                <label class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-pointer text-center transition-colors inline-block">
                                     <i class="fas fa-camera mr-2"></i> Change Photo
                                     <input type="file" id="profile_image" class="hidden" name="profile_image" accept="image/*">
                                     <input type="hidden" id="cropped_image" name="cropped_image">
                                 </label>
-                                <span class="text-xs text-gray-400">JPEG, PNG, GIF up to 4MB</span>
+                                <span class="text-xs text-gray-500">JPEG, PNG, GIF up to 4MB</span>
                                 @error('profile_image')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
@@ -111,35 +111,35 @@
                         <!-- Form Fields -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Full Name</label>
+                                <label class="block text-gray-600 text-sm mb-1">Full Name</label>
                                 <input type="text" name="full_name" value="{{ old('full_name', $user->full_name) }}" 
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('full_name')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Email</label>
+                                <label class="block text-gray-600 text-sm mb-1">Email</label>
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('email')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Mobile Number</label>
+                                <label class="block text-gray-600 text-sm mb-1">Mobile Number</label>
                                 <input type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('mobile_number')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Gender</label>
-                                <select name="gender" id="gender" class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                <label class="block text-gray-600 text-sm mb-1">Gender</label>
+                                <select name="gender" id="gender" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                     <option value="">Select Gender</option>
                                     <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>Male</option>
                                     <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>Female</option>
@@ -152,15 +152,15 @@
                             
                             <!-- Custom gender field, hidden by default -->
                             <div id="otherGenderField" class="mt-2 {{ old('gender', $user->gender) == 'other' ? '' : 'hidden' }}">
-                                <label class="block text-gray-300 text-sm mb-1">Specify Gender</label>
+                                <label class="block text-gray-600 text-sm mb-1">Specify Gender</label>
                                 <input type="text" name="other_gender" value="{{ old('other_gender', $user->other_gender) }}"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white"
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
                                     placeholder="Please specify your gender">
                             </div>
 
                             <div class="md:col-span-2">
-                                <label class="block text-gray-300 text-sm mb-1">Fitness Goal</label>
-                                <select name="fitness_goal" class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                <label class="block text-gray-600 text-sm mb-1">Fitness Goal</label>
+                                <select name="fitness_goal" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                     <option value="">Select Goal</option>
                                     <option value="weight-loss" {{ old('fitness_goal', $user->fitness_goal) == 'weight-loss' ? 'selected' : '' }}>Weight Loss</option>
                                     <option value="muscle-gain" {{ old('fitness_goal', $user->fitness_goal) == 'muscle-gain' ? 'selected' : '' }}>Build Muscle</option>
@@ -184,35 +184,35 @@
                 </div>
 
                 <!-- Password Section -->
-                <div id="password-section" class="bg-[#1e1e1e] rounded-xl p-6">
-                    <h2 class="text-xl font-semibold mb-6">Change Password</h2>
+                <div id="password-section" class="bg-white rounded-xl p-6 shadow-md border border-gray-200">
+                    <h2 class="text-xl font-semibold mb-6 text-gray-800">Change Password</h2>
 
                     <form action="{{ route('password.update') }}" method="POST" class="space-y-6">
                         @csrf
                         
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Current Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">Current Password</label>
                                 <input type="password" name="current_password"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('current_password', 'password')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">New Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">New Password</label>
                                 <input type="password" name="password"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('password', 'password')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-gray-300 text-sm mb-1">Confirm New Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">Confirm New Password</label>
                                 <input type="password" name="password_confirmation"
-                                    class="w-full px-4 py-2 bg-[#2d2d2d] border border-[#374151] rounded-lg focus:ring-red-500 focus:border-red-500 text-white">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                             </div>
                         </div>
 
@@ -231,11 +231,11 @@
 
 <!-- Image Cropper Modal -->
 <div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center overflow-y-auto">
-    <div class="bg-[#1F2937] rounded-xl shadow-xl border border-[#374151] w-full max-w-2xl max-h-[90vh] overflow-y-auto my-4 mx-2">
-        <div class="p-6 border-b border-[#374151] sticky top-0 bg-[#1F2937] z-10">
+    <div class="bg-white rounded-xl shadow-xl border border-gray-300 w-full max-w-2xl max-h-[90vh] overflow-y-auto my-4 mx-2">
+        <div class="p-6 border-b border-gray-300 sticky top-0 bg-white z-10">
             <div class="flex justify-between items-center">
-                <h3 class="text-xl font-bold text-white">Crop Profile Image</h3>
-                <button type="button" id="closeCropperModal" class="text-gray-400 hover:text-white">
+                <h3 class="text-xl font-bold text-gray-800">Crop Profile Image</h3>
+                <button type="button" id="closeCropperModal" class="text-gray-500 hover:text-gray-800">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -248,8 +248,8 @@
             
             <div class="preview mb-6"></div>
             
-            <div class="flex justify-end space-x-3 sticky bottom-0 pt-4 pb-2 bg-[#1F2937] border-t border-[#374151]">
-                <button type="button" id="cancelCrop" class="px-5 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+            <div class="flex justify-end space-x-3 sticky bottom-0 pt-4 pb-2 bg-white border-t border-gray-300">
+                <button type="button" id="cancelCrop" class="px-5 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors">
                     Cancel
                 </button>
                 <button type="button" id="applyCrop" class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
@@ -397,13 +397,13 @@ document.addEventListener('DOMContentLoaded', function() {
         link.addEventListener('click', function(e) {
             // Remove active class from all links
             navLinks.forEach(l => {
-                l.classList.remove('bg-[#2d2d2d]', 'text-white', 'font-medium');
-                l.classList.add('text-gray-300');
+                l.classList.remove('bg-gray-200', 'text-gray-800', 'font-medium');
+                l.classList.add('text-gray-600');
             });
             
             // Add active class to clicked link
-            this.classList.add('bg-[#2d2d2d]', 'text-white', 'font-medium');
-            this.classList.remove('text-gray-300');
+            this.classList.add('bg-gray-200', 'text-gray-800', 'font-medium');
+            this.classList.remove('text-gray-600');
         });
     });
 });

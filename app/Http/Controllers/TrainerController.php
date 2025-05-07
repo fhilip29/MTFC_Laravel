@@ -172,9 +172,15 @@ class TrainerController extends Controller
                     $file = $request->file('profile_image');
                     $filename = time() . '_' . $file->getClientOriginalName();
                     
-                    // Store the file in public/uploads/profiles
-                    $path = $file->storeAs('uploads/profiles', $filename, 'public');
-                    $trainer->profile_url = 'storage/' . $path;
+                    // Create directory if it doesn't exist
+                    $directory = public_path('images/trainers');
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+                    
+                    // Move the file to public/images/trainers
+                    $file->move($directory, $filename);
+                    $trainer->profile_url = 'images/trainers/' . $filename;
                     
                     \Log::info('Saved profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {
@@ -192,13 +198,19 @@ class TrainerController extends Controller
                         list(, $base64Image) = explode(';base64,', $base64Image);
                     }
                     
+                    // Create directory if it doesn't exist
+                    $directory = public_path('images/trainers');
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+                    
                     // Generate a unique filename
                     $filename = 'cropped_' . time() . '.jpg';
-                    $path = 'uploads/profiles/' . $filename;
+                    $path = $directory . '/' . $filename;
                     
                     // Store the file
-                    \Storage::disk('public')->put($path, base64_decode($base64Image));
-                    $trainer->profile_url = 'storage/' . $path;
+                    file_put_contents($path, base64_decode($base64Image));
+                    $trainer->profile_url = 'images/trainers/' . $filename;
                     
                     \Log::info('Saved cropped profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {
@@ -335,9 +347,23 @@ class TrainerController extends Controller
                     $file = $request->file('profile_image');
                     $filename = time() . '_' . $file->getClientOriginalName();
                     
-                    // Store the file in public/uploads/profiles
-                    $path = $file->storeAs('uploads/profiles', $filename, 'public');
-                    $trainer->profile_url = 'storage/' . $path;
+                    // Create directory if it doesn't exist
+                    $directory = public_path('images/trainers');
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+                    
+                    // Delete old image if it exists and is not a default image
+                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default-profile')) {
+                        $oldImagePath = public_path($trainer->profile_url);
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath);
+                        }
+                    }
+                    
+                    // Move the file to public/images/trainers
+                    $file->move($directory, $filename);
+                    $trainer->profile_url = 'images/trainers/' . $filename;
                     
                     \Log::info('Saved profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {
@@ -355,13 +381,27 @@ class TrainerController extends Controller
                         list(, $base64Image) = explode(';base64,', $base64Image);
                     }
                     
+                    // Create directory if it doesn't exist
+                    $directory = public_path('images/trainers');
+                    if (!file_exists($directory)) {
+                        mkdir($directory, 0755, true);
+                    }
+                    
+                    // Delete old image if it exists and is not a default image
+                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default-profile')) {
+                        $oldImagePath = public_path($trainer->profile_url);
+                        if (file_exists($oldImagePath)) {
+                            unlink($oldImagePath);
+                        }
+                    }
+                    
                     // Generate a unique filename
                     $filename = 'cropped_' . time() . '.jpg';
-                    $path = 'uploads/profiles/' . $filename;
+                    $path = $directory . '/' . $filename;
                     
                     // Store the file
-                    \Storage::disk('public')->put($path, base64_decode($base64Image));
-                    $trainer->profile_url = 'storage/' . $path;
+                    file_put_contents($path, base64_decode($base64Image));
+                    $trainer->profile_url = 'images/trainers/' . $filename;
                     
                     \Log::info('Saved cropped profile image at: ' . $trainer->profile_url);
                 } catch (\Exception $e) {

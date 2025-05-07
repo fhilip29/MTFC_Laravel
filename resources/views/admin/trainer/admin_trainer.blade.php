@@ -93,7 +93,7 @@
         @forelse($trainers as $trainer)
         <div class="bg-[#1F2937] rounded-lg shadow-lg overflow-hidden transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-[#374151]">
             <div class="relative">
-                <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 ? $trainer->profile_url : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" alt="{{ $trainer->user->full_name }}" class="w-full h-48 object-cover transition-transform duration-300 hover:scale-105">
+                <img src="{{ $trainer->profile_image_url }}" alt="{{ $trainer->user->full_name }}" class="w-full h-48 object-cover transition-transform duration-300 hover:scale-105">
                 <div class="absolute top-2 right-2">
                     <span class="px-3 py-1 text-sm font-medium rounded-full bg-[#374151] text-[#9CA3AF] shadow-sm">
                         @if($trainer->user->is_archived)
@@ -368,6 +368,11 @@
                                 <option value="female">Female</option>
                                 <option value="other">Other</option>
                             </select>
+                            <!-- Custom gender field, hidden by default -->
+                            <div id="editOtherGenderField" class="mt-3 hidden">
+                                <input type="text" id="edit_other_gender" name="other_gender" placeholder="Please specify gender" 
+                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-2 focus:outline-none focus:border-[#9CA3AF]">
+                            </div>
                         </div>
                     </div>
                     
@@ -381,8 +386,25 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
-                            <input type="text" id="edit_instructor_for" name="instructor_for" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_gym" value="gym" class="text-blue-500">
+                                    <span class="ml-2 text-white">Gym</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_boxing" value="boxing" class="text-red-500">
+                                    <span class="ml-2 text-white">Boxing</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_muaythai" value="muay-thai" class="text-yellow-500">
+                                    <span class="ml-2 text-white">Muay Thai</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_jiujitsu" value="jiu-jitsu" class="text-green-500">
+                                    <span class="ml-2 text-white">Jiu Jitsu</span>
+                                </label>
+                            </div>
                         </div>
                         
                         <div class="mb-4">

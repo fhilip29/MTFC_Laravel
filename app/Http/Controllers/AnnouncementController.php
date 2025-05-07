@@ -14,7 +14,7 @@ class AnnouncementController extends Controller
     // 👥 Public view
     public function userIndex(Request $request)
     {
-        $query = Announcement::where('is_active', true);
+        $query = Announcement::where('is_active', 'active');
     
         // Search functionality
         if ($search = $request->query('search')) {

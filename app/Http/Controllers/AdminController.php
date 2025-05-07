@@ -180,7 +180,125 @@ class AdminController extends Controller
 
     public function verifyPayment(Request $request)
     {
+        \Log::info('Verifying payment data:', $request->all());
+        
         try {
+            // For cash payments from QR codes
+            if ($request->has('user_id') && $request->has('reference')) {
+                // This is a cash payment QR code
+                $userId = $request->input('user_id');
+                $reference = $request->input('reference');
+                $amount = $request->input('amount');
+                $paymentType = $request->input('type', 'subscription'); // Default to subscription if not specified
+                
+                // Find the user
+                $user = \App\Models\User::find($userId);
+                if (!$user) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'User not found'
+                    ]);
+                }
+                
+                if ($paymentType === 'subscription') {
+                    // Get subscription data from QR
+                    $subscriptionType = $request->input('type', 'gym');
+                    $subscriptionPlan = $request->input('plan', 'monthly');
+                    
+                    // Calculate end date based on plan
+                    $endDate = now();
+                    switch ($subscriptionPlan) {
+                        case 'daily':
+                            $endDate = $endDate->addDay();
+                            break;
+                        case 'weekly':
+                            $endDate = $endDate->addWeek();
+                            break;
+                        case 'monthly':
+                            $endDate = $endDate->addMonth();
+                            break;
+                        case 'quarterly':
+                            $endDate = $endDate->addMonths(3);
+                            break;
+                        case 'annual':
+                            $endDate = $endDate->addYear();
+                            break;
+                        default:
+                            $endDate = $endDate->addMonth(); // Default to monthly
+                    }
+                    
+                    // Create or update subscription
+                    $subscription = \App\Models\Subscription::updateOrCreate(
+                        ['payment_reference' => $reference],
+                        [
+                            'user_id' => $userId,
+                            'type' => $subscriptionType,
+                            'plan' => $subscriptionPlan,
+                            'price' => $amount,
+                            'start_date' => now(),
+                            'end_date' => $endDate,
+                            'is_active' => true,
+                            'payment_method' => 'cash',
+                            'payment_status' => 'paid',
+                            'waiver_accepted' => true
+                        ]
+                    );
+                    
+                    // Create invoice
+                    $invoiceController = app(\App\Http\Controllers\InvoiceController::class);
+                    $subscriptionDetails = ucfirst($subscriptionType) . ' - ' . ucfirst($subscriptionPlan) . ' Plan';
+                    $invoiceController->storeSubscriptionInvoice(
+                        $userId,
+                        $subscriptionDetails,
+                        $amount,
+                        'completed'
+                    );
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Payment verified successfully for ' . $user->full_name . '\'s ' . ucfirst($subscriptionType) . ' subscription'
+                    ]);
+                } else if ($paymentType === 'product') {
+                    // Product order
+                    $items = $request->input('items', []);
+                    
+                    // Create order
+                    $order = new \App\Models\Order([
+                        'user_id' => $userId,
+                        'order_date' => now(),
+                        'status' => 'Completed',
+                        'total_amount' => $amount,
+                        'payment_method' => 'Cash',
+                        'payment_status' => 'Paid',
+                        'reference_no' => $reference
+                    ]);
+                    
+                    $order->save();
+                    
+                    // Create invoice
+                    $invoice = new \App\Models\Invoice([
+                        'user_id' => $userId,
+                        'type' => 'product',
+                        'amount' => $amount,
+                        'description' => 'Order #' . $order->reference_no,
+                        'invoice_number' => 'INV-' . strtoupper(\Illuminate\Support\Str::random(8)),
+                        'payment_status' => 'paid',
+                        'payment_method' => 'Cash',
+                        'payment_reference' => $reference,
+                        'paid_at' => now(),
+                        'invoice_date' => now()
+                    ]);
+                    
+                    $invoice->save();
+                    
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Payment verified successfully for ' . $user->full_name . '\'s product order'
+                    ]);
+                }
+            }
+            
+            // For regular payment verifications (PayMongo, etc.)
             $paymentData = $request->validate([
                 'reference' => 'required|string',
                 'amount' => 'required|numeric',
@@ -227,6 +345,7 @@ class AdminController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Payment verification error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error verifying payment: ' . $e->getMessage()

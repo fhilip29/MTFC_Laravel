@@ -88,6 +88,7 @@
                                     >
                                         <i class="fas fa-eye mr-1 sm:mr-2"></i> <span class="hidden sm:inline">View</span>
                                     </button>
+                                    @if($order->status !== 'Completed' && $order->status !== 'Cancelled')
                                     <button 
                                         onclick="updateOrderStatus('{{ $order->id }}', '{{ $order->reference_no }}', '{{ $order->status }}')"
                                         title="Update Status"
@@ -95,6 +96,15 @@
                                     >
                                         <i class="fas fa-edit mr-1 sm:mr-2"></i> <span class="hidden sm:inline">Status</span>
                                     </button>
+                                    @else
+                                    <button 
+                                        title="Order {{ $order->status }}"
+                                        class="inline-flex items-center px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-gray-500 border border-gray-500 rounded-md cursor-not-allowed"
+                                        disabled
+                                    >
+                                        <i class="fas fa-lock mr-1 sm:mr-2"></i> <span class="hidden sm:inline">Locked</span>
+                                    </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -288,9 +298,13 @@
                             
                             <!-- Actions -->
                             <div class="flex justify-end space-x-3 pt-2">
-                                <button onclick="updateOrderStatus('${order.id}', '${order.reference_no}', '${order.status}')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+                                ${order.status !== 'Completed' && order.status !== 'Cancelled' ? 
+                                `<button onclick="updateOrderStatus('${order.id}', '${order.reference_no}', '${order.status}')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
                                     <i class="fas fa-edit mr-1"></i> Update Status
-                                </button>
+                                </button>` : 
+                                `<button class="px-4 py-2 bg-gray-500 text-white rounded cursor-not-allowed">
+                                    <i class="fas fa-lock mr-1"></i> Order ${order.status}
+                                </button>`}
                                 <button onclick="closeOrderDetailsModal()" class="px-4 py-2 bg-[#374151] text-white rounded hover:bg-[#4B5563] transition-colors">
                                     Close
                                 </button>
@@ -328,6 +342,17 @@
     
     // Update order status
     function updateOrderStatus(orderId, referenceNo, currentStatus) {
+        // Check if order is completed or cancelled
+        if (currentStatus === 'Completed' || currentStatus === 'Cancelled') {
+            Swal.fire({
+                icon: 'info',
+                title: 'Order Locked',
+                text: `This order is ${currentStatus} and cannot be modified.`,
+                confirmButtonColor: '#4B5563'
+            });
+            return;
+        }
+        
         Swal.fire({
             title: `Update Order Status`,
             html: `

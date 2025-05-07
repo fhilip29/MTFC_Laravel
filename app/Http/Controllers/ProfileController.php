@@ -9,6 +9,7 @@ use App\Models\Subscription;
 use App\Models\Invoice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class ProfileController extends Controller
 {
@@ -118,6 +119,31 @@ class ProfileController extends Controller
         $user = Auth::user();
         $role = $user->role; // Add role to pass to the view
         return view('profile.show_qr', compact('user', 'role'));
+    }
+    
+    /**
+     * Generate QR code image for user identification
+     * 
+     * @return \Illuminate\Http\Response
+     */
+    public function generateQrImage()
+    {
+        $user = Auth::user();
+        $userId = $user->id;
+        $userRole = $user->role;
+        
+        // Create QR code with user ID and role
+        $qrCode = QrCode::format('png')
+            ->size(300)
+            ->errorCorrection('H')
+            ->generate(json_encode([
+                'id' => $userId,
+                'role' => $userRole,
+                'timestamp' => time()
+            ]));
+            
+        return response($qrCode)
+            ->header('Content-Type', 'image/png');
     }
     
     /**

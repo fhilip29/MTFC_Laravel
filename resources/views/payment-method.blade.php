@@ -9,7 +9,7 @@
         <div class="p-6 border-b border-gray-700">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold">Choose Payment Method</h2>
-                <a href="{{ request()->query('type') === 'product' ? route('shop') : route('pricing') }}" class="text-gray-400 hover:text-white">
+                <a href="{{ request()->query('type') === 'product' ? route('shop') : route('pricing.'.request()->query('type', 'gym')) }}" class="text-gray-400 hover:text-white">
                     <i class="fas fa-times"></i>
                 </a>
             </div>
@@ -45,7 +45,12 @@
                 <!-- Cash Option -->
                 <form id="cashForm" action="{{ route('payment.cash.qr') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="type" value="{{ request()->query('type') }}">
+                    @if(request()->query('type') === 'product')
+                        <input type="hidden" name="type" value="product">
+                    @else
+                        <input type="hidden" name="type" value="subscription">
+                        <input type="hidden" name="subscription_type" value="{{ request()->query('type', 'gym') }}">
+                    @endif
                     <input type="hidden" name="plan" value="{{ request()->query('plan') }}">
                     <input type="hidden" name="amount" value="{{ request()->query('amount') }}">
                     <input type="hidden" name="waiver_accepted" value="{{ request()->query('waiver_accepted', 0) }}">
@@ -70,7 +75,12 @@
                 <!-- PayMongo Option -->
                 <form id="paymongoForm" action="{{ route('payment.process') }}" method="POST">
                     @csrf
-                    <input type="hidden" name="type" value="{{ request()->query('type') }}">
+                    @if(request()->query('type') === 'product')
+                        <input type="hidden" name="type" value="product">
+                    @else
+                        <input type="hidden" name="type" value="subscription">
+                        <input type="hidden" name="subscription_type" value="{{ request()->query('type', 'gym') }}">
+                    @endif
                     <input type="hidden" name="plan" value="{{ request()->query('plan') }}">
                     <input type="hidden" name="amount" value="{{ request()->query('amount') }}">
                     <input type="hidden" name="waiver_accepted" value="{{ request()->query('waiver_accepted', 0) }}">

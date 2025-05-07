@@ -20,9 +20,15 @@ class Subscription extends Model
         'type',
         'plan',
         'price',
+        'amount',
         'start_date',
         'end_date',
-        'is_active'
+        'is_active',
+        'payment_method',
+        'payment_status',
+        'payment_reference',
+        'waiver_accepted',
+        'cancelled_at'
     ];
 
     /**

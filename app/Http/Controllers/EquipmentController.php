@@ -41,7 +41,18 @@ class EquipmentController extends Controller
 
         try {
             if ($request->hasFile('image')) {
-                $data['image_path'] = $request->file('image')->store('equipment_images', 'public');
+                // Create directory if it doesn't exist
+                $directory = public_path('images/equipment');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                
+                // Move the file to public/images/equipment
+                $file->move($directory, $filename);
+                $data['image_path'] = 'images/equipment/' . $filename;
             }
 
             Equipment::create($data);
@@ -49,9 +60,12 @@ class EquipmentController extends Controller
             return redirect()->route('admin.gym.gym')
                 ->with('success', 'Equipment added successfully.');
         } catch (\Exception $e) {
-            // If there was an error uploading the image, delete it if it was uploaded
-            if (isset($data['image_path']) && Storage::disk('public')->exists($data['image_path'])) {
-                Storage::disk('public')->delete($data['image_path']);
+            // If there was an error and we uploaded a new image, delete it
+            if (isset($data['image_path'])) {
+                $imagePath = public_path($data['image_path']);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
             }
             
             return redirect()->back()
@@ -83,15 +97,28 @@ class EquipmentController extends Controller
             $oldImagePath = null;
             
             if ($request->hasFile('image')) {
+                // Create directory if it doesn't exist
+                $directory = public_path('images/equipment');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
                 // Keep track of the old image path in case we need to restore it on error
                 $oldImagePath = $equipment->image_path;
                 
-                // Upload the new image
-                $data['image_path'] = $request->file('image')->store('equipment_images', 'public');
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
                 
-                // Delete old image if successful and if it exists
-                if ($oldImagePath) {
-                    Storage::disk('public')->delete($oldImagePath);
+                // Move the file to public/images/equipment
+                $file->move($directory, $filename);
+                $data['image_path'] = 'images/equipment/' . $filename;
+                
+                // Delete old image if it exists and is not a default image
+                if ($oldImagePath && !str_contains($oldImagePath, 'placeholder')) {
+                    $oldImageFullPath = public_path($oldImagePath);
+                    if (file_exists($oldImageFullPath)) {
+                        unlink($oldImageFullPath);
+                    }
                 }
             }
 
@@ -101,11 +128,12 @@ class EquipmentController extends Controller
                 ->with('success', 'Equipment updated successfully.');
         } catch (\Exception $e) {
             // If there was an error and we uploaded a new image, delete it
-            if (isset($data['image_path']) && Storage::disk('public')->exists($data['image_path'])) {
-                Storage::disk('public')->delete($data['image_path']);
+            if (isset($data['image_path'])) {
+                $imagePath = public_path($data['image_path']);
+                if (file_exists($imagePath)) {
+                    unlink($imagePath);
+                }
             }
-            
-            // If we deleted the old image but encountered an error, we can't restore it
             
             return redirect()->back()
                 ->withInput()
@@ -115,8 +143,12 @@ class EquipmentController extends Controller
 
     public function destroy(Equipment $equipment)
     {
-        if ($equipment->image_path) {
-            Storage::disk('public')->delete($equipment->image_path);
+        // Delete the image if it exists and is not a default image
+        if ($equipment->image_path && !str_contains($equipment->image_path, 'placeholder')) {
+            $imagePath = public_path($equipment->image_path);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+            }
         }
         
         // Delete associated maintenance logs

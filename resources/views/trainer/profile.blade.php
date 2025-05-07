@@ -11,7 +11,7 @@
                 <!-- Profile Picture -->
                 <div class="relative">
                     <div class="h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-white">
-                        <img src="{{ $trainer->user->profile_image ? asset('storage/'.$trainer->user->profile_image) : asset('assets/default-profile.jpg') }}" 
+                        <img src="{{ $trainer->profile_image_url }}" 
                             alt="{{ $trainer->user->full_name }}" 
                             class="w-full h-full object-cover">
                     </div>
@@ -39,14 +39,12 @@
                 
                 <!-- QR Code and Edit Button (Right aligned) -->
                 <div class="flex flex-col items-center space-y-4">
-                    <!-- QR Code at top right -->
-                    <div class="bg-white p-3 rounded-lg text-center">
-                        <img src="{{ url('/my-qr') }}" alt="QR Code" class="h-32 w-32 mx-auto">
-                        <p class="text-gray-800 text-xs mt-2 mb-1">Scan to check-in/out</p>
-                        <a href="{{ route('user.qr') }}" class="text-xs font-medium text-blue-600 hover:text-blue-800 underline">View Full</a>
-                    </div>
+                    <!-- QR Code button instead of displaying it directly -->
+                    <a href="{{ route('user.qr') }}" class="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center">
+                        <i class="fas fa-qrcode mr-2"></i> View QR Code
+                    </a>
                     
-                    <!-- Edit Profile Button below QR -->
+                    <!-- Edit Profile Button -->
                     <a href="{{ route('account.settings') }}" class="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center">
                         <i class="fas fa-edit mr-2"></i> Edit Profile
                     </a>
@@ -159,7 +157,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
-                                                    <img src="{{ $member->profile_image ? asset('storage/'.$member->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                                    <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default-profile.jpg') }}" 
                                                         alt="{{ $member->full_name }}" 
                                                         class="h-10 w-10 object-cover">
                                                 </div>

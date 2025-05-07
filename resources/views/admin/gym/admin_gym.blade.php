@@ -134,7 +134,7 @@
             @forelse($equipments as $equipment)
             <div class="p-4 border-b border-gray-700">
                 <div class="flex items-center space-x-3 mb-3">
-                    <img src="{{ $equipment->getImageUrlAttribute() }}" alt="{{ $equipment->name }}" class="h-16 w-16 object-cover rounded">
+                    <img src="{{ $equipment->image_url }}" alt="{{ $equipment->name }}" class="h-16 w-16 object-cover rounded">
                     <div>
                         <h3 class="font-medium text-white">{{ $equipment->name }}</h3>
                         <span class="px-2 py-1 text-xs rounded-full inline-block mt-1 {{ 
@@ -199,7 +199,7 @@
                     @forelse($equipments as $equipment)
                     <tr class="hover:bg-gray-700 transition">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <img src="{{ $equipment->getImageUrlAttribute() }}" alt="{{ $equipment->name }}" class="h-12 w-12 object-cover rounded">
+                            <img src="{{ $equipment->image_url }}" alt="{{ $equipment->name }}" class="h-12 w-12 object-cover rounded">
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $equipment->name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $equipment->qty }}</td>

@@ -123,7 +123,7 @@ Route::get('/pricing/jiu', [PricingController::class, 'jiu'])->name('pricing.jiu
 // PAYMENT ROUTES
 // ===================
 Route::get('/payment-method', [PaymentController::class, 'showPaymentMethods'])->name('payment-method');
-Route::post('/payment/process', [PaymentController::class, 'processPayment'])->name('payment.process');
+Route::post('/payment/process', [PaymentController::class, 'process'])->name('payment.process');
 Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
 Route::get('/payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
 Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
@@ -163,6 +163,7 @@ Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync'
 Route::view('/profile', 'profile')->name('profile');
 Route::get('/profile/qr', [ProfileController::class, 'showQrCode'])->name('profile.qr');
 Route::get('/my-qr', [\App\Http\Controllers\ProfileController::class, 'showQrCode'])->name('user.qr')->middleware('auth');
+Route::get('/qr-image', [\App\Http\Controllers\ProfileController::class, 'generateQrImage'])->name('user.qr.image')->middleware('auth');
 Route::get('/invoices/{id}', [InvoiceController::class, 'userShow'])->name('user.invoices.show')->middleware('auth');
 Route::get('/my-invoice/{id}/receipt', [InvoiceController::class, 'userShowReceipt'])->name('user.invoices.receipt')->middleware('auth');
 Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates')->middleware('auth'); // Added for calendar
@@ -321,8 +322,11 @@ Route::post('/account-settings/profile', [AccountController::class, 'updateProfi
 Route::post('/account-settings/password', [AccountController::class, 'updatePassword'])->name('password.update');
 
 // Admin routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
+    Route::get('/profile', function() {
+        return view('admin.profile');
+    })->name('admin.profile');
     
     // Add the verify-payment route with the admin prefix
     Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');

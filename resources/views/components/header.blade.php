@@ -54,8 +54,20 @@
             @else
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open" class="flex items-center focus:outline-none">
-                        <img src="{{ Auth::user()->profile_image ? asset('storage/'.Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                             class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                        @if(Auth::user()->role === 'trainer')
+                            @php
+                                $trainer = App\Models\Trainer::where('user_id', Auth::id())->first();
+                                $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
+                            @endphp
+                            <img src="{{ $profileImage }}"
+                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                        @elseif(Auth::user()->role === 'admin')
+                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                        @else
+                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                        @endif
                     </button>
                     <div x-show="open" @click.outside="open = false"
                          class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-50 p-3">
@@ -64,9 +76,9 @@
                         <div class="mt-2 space-y-1 text-sm">
                             @if (Auth::user()->role === 'admin')
                                 <a href="{{ route('admin.dashboard') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Admin Panel</a>
-                                <button @click="adminProfileModal = true; open = false" type="button" class="w-full text-left text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
+                                <a href="{{ route('admin.profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
                                     Profile
-                                </button>
+                                </a>
                             @elseif (Auth::user()->role === 'trainer')
                                 <a href="{{ route('trainer.profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Profile</a>
                                 <a href="{{ route('community') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Community</a>

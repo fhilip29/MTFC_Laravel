@@ -50,13 +50,14 @@ class PaymentController extends Controller
         // Validate the request
         $validated = $request->validate([
             'type' => 'required|string',
-            'plan' => 'required|string',
             'amount' => 'required|numeric',
-            'waiver_accepted' => 'required',
             'payment_method' => 'required|in:card,gcash,paymaya,paymongo',
             'billing_name' => 'required|string',
             'billing_email' => 'required|email',
-            'billing_phone' => 'required|string'
+            'billing_phone' => 'required|string',
+            'plan' => 'required_if:type,subscription',
+            'waiver_accepted' => 'required_if:type,subscription',
+            'order_data' => 'required_if:type,product'
         ]);
 
         try {
@@ -65,17 +66,34 @@ class PaymentController extends Controller
             
             // Store payment intent reference in session
             session(['payment_reference' => $referenceNumber]);
-            session(['subscription_data' => [
-                'type' => $request->type,
-                'plan' => $request->plan,
-                'amount' => $request->amount,
-                'waiver_accepted' => $request->waiver_accepted,
-            ]]);
+            
+            // Store appropriate data in session based on payment type
+            if ($request->type === 'subscription') {
+                // Log the subscription data for debugging
+                Log::info('Storing subscription data in session', [
+                    'subscription_type' => $request->subscription_type,
+                    'plan' => $request->plan,
+                    'amount' => $request->amount
+                ]);
+                
+                session(['subscription_data' => [
+                    'type' => $request->subscription_type ?? 'gym', // Use the subscription_type field
+                    'plan' => $request->plan,
+                    'amount' => $request->amount,
+                    'waiver_accepted' => $request->waiver_accepted,
+                ]]);
+            } else if ($request->type === 'product') {
+                // For product orders, store the order data
+                session(['order_data' => json_decode($request->order_data, true)]);
+            }
             
             // If payment method is PayMongo, create a checkout session
             if ($request->payment_method === 'paymongo') {
                 // Create checkout session/link
-                $description = $request->type . ' - ' . $request->plan . ' Plan';
+                $description = $request->type === 'subscription' 
+                    ? $request->type . ' - ' . $request->plan . ' Plan'
+                    : 'Product Order';
+                    
                 $billingDetails = [
                     'name' => $request->billing_name,
                     'email' => $request->billing_email,
@@ -103,8 +121,8 @@ class PaymentController extends Controller
                 $checkoutUrl = $checkoutSession['data']['attributes']['checkout_url'];
                 return view('payment.paymongo-link', [
                     'checkout_url' => $checkoutUrl,
-                    'type' => $request->type,
-                    'plan' => $request->plan,
+                    'type' => $request->type === 'subscription' ? ($request->subscription_type ?? 'gym') : $request->type,
+                    'plan' => $request->plan ?? null,
                     'amount' => $request->amount,
                     'reference' => $referenceNumber
                 ]);
@@ -152,15 +170,15 @@ class PaymentController extends Controller
             $checkoutUrl = $payment['data']['attributes']['next_action']['redirect']['url'];
             return view('payment.paymongo-link', [
                 'checkout_url' => $checkoutUrl,
-                'type' => $request->type,
-                'plan' => $request->plan,
+                'type' => $request->type === 'subscription' ? ($request->subscription_type ?? 'gym') : $request->type,
+                'plan' => $request->plan ?? null,
                 'amount' => $request->amount,
                 'reference' => $referenceNumber
             ]);
 
         } catch (\Exception $e) {
             Log::error('Payment processing error: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'An error occurred: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Payment processing failed: ' . $e->getMessage());
         }
     }
 
@@ -172,55 +190,124 @@ class PaymentController extends Controller
         // Get stored reference number
         $referenceNumber = session('payment_reference');
         $subscriptionData = session('subscription_data', []);
+        $orderData = session('order_data', []);
         
-        if (empty($referenceNumber) || empty($subscriptionData)) {
-            return redirect()->route('pricing.gym')->with('error', 'Payment reference not found');
+        // Determine if this is a product order or subscription
+        $isProductOrder = !empty($orderData) && isset($orderData['items']);
+        $isSubscription = !empty($subscriptionData);
+        
+        if (empty($referenceNumber) || (!$isProductOrder && !$isSubscription)) {
+            return redirect()->route('shop')->with('error', 'Payment reference not found');
         }
         
         try {
             // Clear session data
-            session()->forget(['payment_reference', 'subscription_data']);
+            session()->forget(['payment_reference', 'subscription_data', 'order_data']);
             
-            // Create subscription record
-            $subscription = Subscription::create([
-                'user_id' => auth()->id(),
-                'type' => $subscriptionData['type'],
-                'plan' => $subscriptionData['plan'],
-                'is_active' => true,
-                'start_date' => now(),
-                'end_date' => $this->calculateEndDate($subscriptionData['plan']),
-                'amount' => $subscriptionData['amount'],
-                'payment_reference' => $referenceNumber,
-                'payment_status' => 'paid',
-                'waiver_accepted' => $subscriptionData['waiver_accepted']
-            ]);
-            
-            // Create invoice record
-            Invoice::create([
-                'user_id' => auth()->id(),
-                'subscription_id' => $subscription->id,
-                'amount' => $subscriptionData['amount'],
-                'description' => "{$subscriptionData['type']} - {$subscriptionData['plan']} Plan",
-                'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                'payment_status' => 'paid',
-                'payment_method' => 'PayMongo',
-                'payment_reference' => $referenceNumber,
-                'paid_at' => now()
-            ]);
-            
-            return redirect()->route('profile')->with('success', 'Your subscription has been activated successfully!');
-            
-        } catch (\Exception $e) {
-            Log::error('Subscription creation error: ' . $e->getMessage());
-            $type = $subscriptionData['type'] ?? 'gym';
-            $route = 'pricing.' . $type;
-            
-            // Default to gym if the route doesn't exist
-            if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
-                $route = 'pricing.gym';
+            if ($isSubscription) {
+                // Create subscription record
+                $subscription = Subscription::create([
+                    'user_id' => auth()->id(),
+                    'type' => $subscriptionData['type'] ?? 'gym',
+                    'plan' => $subscriptionData['plan'],
+                    'price' => $subscriptionData['amount'],
+                    'is_active' => true,
+                    'start_date' => now(),
+                    'end_date' => $this->calculateEndDate($subscriptionData['plan']),
+                    'payment_method' => 'PayMongo',
+                    'payment_status' => 'paid',
+                    'payment_reference' => $referenceNumber,
+                    'waiver_accepted' => $subscriptionData['waiver_accepted'] ?? false
+                ]);
+                
+                // Create invoice record
+                Invoice::create([
+                    'user_id' => auth()->id(),
+                    'subscription_id' => $subscription->id,
+                    'amount' => $subscriptionData['amount'],
+                    'description' => "{$subscriptionData['type']} - {$subscriptionData['plan']} Plan",
+                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
+                    'payment_status' => 'paid',
+                    'payment_method' => 'PayMongo',
+                    'payment_reference' => $referenceNumber,
+                    'paid_at' => now()
+                ]);
+                
+                // Get the subscription type for redirect
+                $type = $subscriptionData['type'] ?? 'gym';
+                $route = "pricing.{$type}";
+                
+                // Default to gym if the type is not one of the standard types
+                if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+                    $route = 'pricing.gym';
+                }
+                
+                // Log the redirect route for debugging
+                Log::info('Redirecting to route after subscription payment', [
+                    'route' => $route,
+                    'subscription_type' => $type,
+                    'subscription_data' => $subscriptionData
+                ]);
+                
+                // Redirect to appropriate pricing page with success message
+                return redirect()->route($route)->with('success', 'Your subscription has been activated successfully!');
+            } 
+            else if ($isProductOrder) {
+                // Handle product order
+                $orderController = app(\App\Http\Controllers\OrderController::class);
+                
+                // Prepare order data
+                $orderRequest = new Request([
+                    'first_name' => $orderData['shipping']['first_name'] ?? '',
+                    'last_name' => $orderData['shipping']['last_name'] ?? '',
+                    'street' => $orderData['shipping']['street'] ?? '',
+                    'barangay' => $orderData['shipping']['barangay'] ?? '',
+                    'city' => $orderData['shipping']['city'] ?? '',
+                    'postal_code' => $orderData['shipping']['postal_code'] ?? '',
+                    'phone_number' => $orderData['shipping']['phone_number'] ?? '',
+                    'notes' => $orderData['shipping']['notes'] ?? '',
+                    'payment_method' => 'paymongo',
+                    'payment_status' => 'paid',
+                    'items' => array_map(function($item) {
+                        return [
+                            'id' => $item['id'],
+                            'quantity' => $item['quantity'],
+                            'price' => floatval($item['price'])
+                        ];
+                    }, $orderData['items'])
+                ]);
+                
+                // Create the order
+                $result = $orderController->store($orderRequest);
+                
+                // Check if order was created successfully
+                if ($result->getStatusCode() === 200 && json_decode($result->getContent(), true)['success']) {
+                    // Clear cart in session
+                    session()->forget('cart');
+                    
+                    // Redirect to shop page for product orders
+                    return redirect()->route('shop')->with('success', 'Your order has been placed successfully!');
+                } else {
+                    throw new \Exception('Failed to create order');
+                }
             }
             
-            return redirect()->route($route)->with('error', 'Your payment was successful, but we encountered an error while activating your subscription. Please contact support.');
+        } catch (\Exception $e) {
+            Log::error('Payment success handling error: ' . $e->getMessage());
+            
+            if ($isSubscription) {
+                $type = $subscriptionData['type'] ?? 'gym';
+                $route = "pricing.{$type}";
+                
+                // Default to gym if the type is not one of the standard types
+                if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+                    $route = 'pricing.gym';
+                }
+                
+                return redirect()->route($route)->with('error', 'Your payment was successful, but we encountered an error while activating your subscription. Please contact support.');
+            } else {
+                return redirect()->route('shop')->with('error', 'Your payment was successful, but we encountered an error while processing your order. Please contact support.');
+            }
         }
     }
 
@@ -229,20 +316,31 @@ class PaymentController extends Controller
      */
     public function failed(Request $request)
     {
-        // Get subscription type from session
+        // Get data from session
         $subscriptionData = session('subscription_data', []);
-        $type = $subscriptionData['type'] ?? 'gym';
-        $route = 'pricing.' . $type;
+        $orderData = session('order_data', []);
         
-        // Default to gym if the route doesn't exist
-        if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
-            $route = 'pricing.gym';
-        }
+        // Determine if this is a product order or subscription
+        $isProductOrder = !empty($orderData) && isset($orderData['items']);
+        $isSubscription = !empty($subscriptionData);
         
         // Clear payment reference from session
-        session()->forget(['payment_reference', 'subscription_data']);
+        session()->forget(['payment_reference', 'subscription_data', 'order_data']);
         
-        return redirect()->route($route)->with('error', 'Payment was not successful. Please try again.');
+        if ($isSubscription) {
+            $type = $subscriptionData['type'] ?? 'gym';
+            $route = "pricing.{$type}";
+            
+            // Default to gym if the type is not one of the standard types
+            if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+                $route = 'pricing.gym';
+            }
+            
+            return redirect()->route($route)->with('error', 'Payment was not successful. Please try again.');
+        } else {
+            // For product orders
+            return redirect()->route('checkout')->with('error', 'Payment was not successful. Please try again.');
+        }
     }
 
     /**
@@ -312,7 +410,8 @@ class PaymentController extends Controller
             'amount' => 'required|numeric',
             'waiver_accepted' => 'required',
             'payment_method' => 'required|in:cash',
-            'order_data' => 'nullable'
+            'order_data' => 'nullable',
+            'subscription_type' => 'nullable|string'
         ]);
         
         try {
@@ -323,7 +422,7 @@ class PaymentController extends Controller
             session(['payment_reference' => $referenceNumber]);
             session(['order_data' => $request->order_data ?? null]);
             session(['subscription_data' => [
-                'type' => $request->type,
+                'type' => $request->subscription_type ?? 'gym',
                 'plan' => $request->plan,
                 'amount' => $request->amount,
                 'waiver_accepted' => $request->waiver_accepted,
@@ -349,7 +448,19 @@ class PaymentController extends Controller
         
         // Check if payment reference exists and matches
         if (!$paymentReference || $paymentReference !== $reference) {
-            return redirect()->route('pricing.gym')->with('error', 'Invalid payment reference');
+            // Redirect to appropriate page based on data type
+            if (!empty($subscriptionData)) {
+                $type = $subscriptionData['type'] ?? 'gym';
+                $route = "pricing.{$type}";
+                
+                if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
+                    $route = 'pricing.gym';
+                }
+                
+                return redirect()->route($route)->with('error', 'Invalid payment reference');
+            } else {
+                return redirect()->route('shop')->with('error', 'Invalid payment reference');
+            }
         }
         
         // Determine the type of payment (subscription or product)

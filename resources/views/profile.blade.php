@@ -131,6 +131,15 @@
                 <a href="{{ route('subscription.history') }}" class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-history mr-2"></i> Subscription History
                 </a>
+                <a href="{{ route('user.messages') }}" class="w-full bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                    <i class="fas fa-envelope mr-2"></i> Messages
+                    @php
+                        $unreadCount = Auth::user()->receivedMessages()->where('is_read', false)->count();
+                    @endphp
+                    @if($unreadCount > 0)
+                        <span class="ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">{{ $unreadCount }}</span>
+                    @endif
+                </a>
             </div>
         </div>
     </div>
@@ -142,15 +151,15 @@
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
                 <h2 class="text-lg md:text-xl font-semibold text-gray-800">Attendance</h2>
                 <div class="flex space-x-2 w-full sm:w-auto overflow-x-auto py-1 sm:py-0">
-                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1D</button>
-                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1W</button>
-                    <button class="px-3 py-1 rounded-full bg-red-600 text-white text-xs md:text-sm whitespace-nowrap hover:bg-red-700 transition">1M</button>
-                    <button class="px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition">1Y</button>
+                    <button class="attendance-period px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition" data-period="week">1W</button>
+                    <button class="attendance-period px-3 py-1 rounded-full bg-red-600 text-white text-xs md:text-sm whitespace-nowrap hover:bg-red-700 transition active" data-period="month">1M</button>
+                    <button class="attendance-period px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition" data-period="year">1Y</button>
+                    <button class="attendance-period px-3 py-1 rounded-full bg-gray-200 text-gray-700 text-xs md:text-sm whitespace-nowrap hover:bg-gray-300 transition" data-period="all">All</button>
                 </div>
             </div>
             
             <!-- Fallback attendance data visualization (for mobile and if Chart.js fails) -->
-            <div class="mb-4 overflow-x-auto">
+            <div class="mb-4 overflow-x-auto fallback-chart">
                 <div class="flex items-end h-32 md:h-48 mt-4 md:mt-8 min-w-[500px]">
                     <div class="w-1/12 h-1 bg-blue-500"></div>
                     <div class="w-1/12 h-3 bg-blue-500"></div>
@@ -184,6 +193,34 @@
             <!-- Hidden Chart.js canvas that will be shown if script works -->
             <div id="chartContainer" class="hidden" style="height: 200px; md:height: 300px; position: relative; width: 100%;">
                 <canvas id="attendanceChart"></canvas>
+            </div>
+            
+            <!-- Attendance Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4 attendance-stats">
+                <div class="bg-gray-100 p-3 rounded-lg text-center">
+                    <p class="text-gray-500 text-xs mb-1">This Month</p>
+                    <p class="text-gray-800 font-bold text-lg" id="thisMonthCount">-</p>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-lg text-center">
+                    <p class="text-gray-500 text-xs mb-1">Last Month</p>
+                    <p class="text-gray-800 font-bold text-lg" id="lastMonthCount">-</p>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-lg text-center">
+                    <p class="text-gray-500 text-xs mb-1">Total Days</p>
+                    <p class="text-gray-800 font-bold text-lg" id="totalDaysCount">-</p>
+                </div>
+                <div class="bg-gray-100 p-3 rounded-lg text-center">
+                    <p class="text-gray-500 text-xs mb-1">Avg Days/Month</p>
+                    <p class="text-gray-800 font-bold text-lg" id="avgDaysCount">-</p>
+                </div>
+            </div>
+            
+            <!-- View All Attendance Link -->
+            <div class="text-center mt-4">
+                <a href="{{ route('user.attendance') }}" class="inline-flex items-center text-red-600 hover:text-red-800 font-medium">
+                    <span>View Complete Attendance History</span>
+                    <i class="fas fa-chevron-right ml-1 text-xs"></i>
+                </a>
             </div>
         </div>
 
@@ -440,103 +477,200 @@
         if (searchInput) searchInput.addEventListener('change', filterTable);
         if (dateFilter) dateFilter.addEventListener('input', filterTable);
         
-        // Chart.js initialization
-        try {
-            // Get the canvas and container
-            const chartContainer = document.getElementById('chartContainer');
-            const canvas = document.getElementById('attendanceChart');
-            const ctx = canvas.getContext('2d');
+        // Attendance period buttons
+        const periodButtons = document.querySelectorAll('.attendance-period');
+        periodButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                periodButtons.forEach(btn => {
+                    btn.classList.remove('active', 'bg-red-600', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-700');
+                });
+                
+                // Add active class to clicked button
+                this.classList.remove('bg-gray-200', 'text-gray-700');
+                this.classList.add('active', 'bg-red-600', 'text-white');
+                
+                // Fetch attendance data for the selected period
+                fetchAttendanceData(this.getAttribute('data-period'));
+            });
+        });
+        
+        // Chart.js variables
+        let attendanceChart = null;
+        let chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Gym Visits',
+                data: [],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                tension: 0.2,
+                fill: true,
+                pointBackgroundColor: '#0d6efd',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        };
+        
+        // Function to fetch attendance data
+        function fetchAttendanceData(period = 'month') {
+            // Show loading state
+            document.getElementById('thisMonthCount').textContent = '...';
+            document.getElementById('lastMonthCount').textContent = '...';
+            document.getElementById('totalDaysCount').textContent = '...';
+            document.getElementById('avgDaysCount').textContent = '...';
             
-            // Create and render chart
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-                    datasets: [{
-                        label: 'Gym Visits',
-                        data: [0.1, 0.5, 4.0, 5.0, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3],
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
-                        tension: 0.2,
-                        fill: true,
-                        pointBackgroundColor: '#0d6efd',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 5.5,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)'
+            fetch(`/api/user/attendance?period=${period}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update chart data
+                    chartData.labels = data.labels;
+                    chartData.datasets[0].data = data.checkIns;
+                    
+                    // Update stats
+                    document.getElementById('thisMonthCount').textContent = data.stats.thisMonth || 0;
+                    document.getElementById('lastMonthCount').textContent = data.stats.lastMonth || 0;
+                    document.getElementById('totalDaysCount').textContent = data.stats.totalDays || 0;
+                    document.getElementById('avgDaysCount').textContent = data.stats.avgDaysPerMonth || 0;
+                    
+                    // Init or update chart
+                    initOrUpdateChart();
+                })
+                .catch(error => {
+                    console.error('Error fetching attendance data:', error);
+                    // Show error state
+                    document.getElementById('thisMonthCount').textContent = '-';
+                    document.getElementById('lastMonthCount').textContent = '-';
+                    document.getElementById('totalDaysCount').textContent = '-';
+                    document.getElementById('avgDaysCount').textContent = '-';
+                });
+        }
+        
+        // Function to initialize or update the chart
+        function initOrUpdateChart() {
+            try {
+                const chartContainer = document.getElementById('chartContainer');
+                const canvas = document.getElementById('attendanceChart');
+                const ctx = canvas.getContext('2d');
+                
+                if (attendanceChart) {
+                    // Update existing chart
+                    attendanceChart.data = chartData;
+                    attendanceChart.update();
+                } else {
+                    // Create new chart
+                    attendanceChart = new Chart(ctx, {
+                        type: 'line',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.1)'
+                                    },
+                                    ticks: {
+                                        stepSize: 1,
+                                        color: '#6b7280',
+                                        font: {
+                                            size: 10
+                                        }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.1)'
+                                    },
+                                    ticks: {
+                                        color: '#6b7280',
+                                        font: {
+                                            size: 9
+                                        },
+                                        maxRotation: 45,
+                                        minRotation: 45
+                                    }
+                                }
                             },
-                            ticks: {
-                                stepSize: 0.5,
-                                color: '#6b7280',
-                                font: {
-                                    size: 10
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Attendance',
+                                    color: '#1f2937',
+                                    font: {
+                                        size: 16,
+                                        weight: 'bold'
+                                    },
+                                    padding: {
+                                        top: 0,
+                                        bottom: 20
+                                    },
+                                    align: 'start'
+                                },
+                                tooltip: {
+                                    backgroundColor: '#fff',
+                                    titleColor: '#000',
+                                    bodyColor: '#000',
+                                    padding: 12,
+                                    displayColors: false,
+                                    borderColor: '#ddd',
+                                    borderWidth: 1
                                 }
                             }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.1)'
-                            },
-                            ticks: {
-                                color: '#6b7280',
-                                font: {
-                                    size: 9
-                                },
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
                         }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        title: {
-                            display: true,
-                            text: 'Attendance',
-                            color: '#1f2937',
-                            font: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            padding: {
-                                top: 0,
-                                bottom: 20
-                            },
-                            align: 'start'
-                        },
-                        tooltip: {
-                            backgroundColor: '#fff',
-                            titleColor: '#000',
-                            bodyColor: '#000',
-                            padding: 12,
-                            displayColors: false,
-                            borderColor: '#ddd',
-                            borderWidth: 1
+                    });
+                }
+                
+                // Show the chart container and hide the fallback
+                chartContainer.classList.remove('hidden');
+                document.querySelector('.fallback-chart').classList.add('hidden');
+                
+            } catch (error) {
+                console.error('Error creating chart:', error);
+                // Fallback is already visible
+            }
+        }
+        
+        // Fetch initial attendance data
+        fetchAttendanceData('month');
+        
+        // Check for unread messages periodically
+        function checkUnreadMessages() {
+            fetch('/api/user/unread-messages-count')
+                .then(response => response.json())
+                .then(data => {
+                    const messageLink = document.querySelector('a[href="{{ route("user.messages") }}"]');
+                    if (messageLink) {
+                        // Remove existing badge if any
+                        const existingBadge = messageLink.querySelector('.ml-2.bg-red-600');
+                        if (existingBadge) {
+                            existingBadge.remove();
+                        }
+                        
+                        // Add new badge if there are unread messages
+                        if (data.count > 0) {
+                            const badge = document.createElement('span');
+                            badge.className = 'ml-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full';
+                            badge.textContent = data.count;
+                            messageLink.appendChild(badge);
                         }
                     }
-                }
-            });
-            
-            // Show the chart container and hide the fallback
-            chartContainer.classList.remove('hidden');
-            document.querySelector('.flex.items-end').parentNode.classList.add('hidden');
-            
-        } catch (error) {
-            console.error('Error creating chart:', error);
-            // Fallback is already visible
+                })
+                .catch(error => {
+                    console.error('Error checking unread messages:', error);
+                });
         }
+        
+        // Check initially and then every minute
+        checkUnreadMessages();
+        setInterval(checkUnreadMessages, 60000);
     });
 </script>
 

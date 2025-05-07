@@ -441,4 +441,62 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Get messages for the admin dashboard
+     */
+    public function getMessages()
+    {
+        // Get messages sent directly to admin
+        $adminId = \App\Models\User::where('role', 'admin')->first()->id ?? auth()->id();
+        
+        $messages = \App\Models\Message::with('sender')
+            ->where('recipient_id', $adminId)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('admin.messages.index', compact('messages'));
+    }
+
+    /**
+     * Show message details
+     */
+    public function showMessage($id)
+    {
+        $message = \App\Models\Message::with(['sender', 'replies.sender'])
+            ->findOrFail($id);
+        
+        // Mark as read if not already
+        if (!$message->is_read) {
+            $message->is_read = true;
+            $message->read_at = \Carbon\Carbon::now();
+            $message->save();
+        }
+        
+        return view('admin.messages.show', compact('message'));
+    }
+
+    /**
+     * Reply to a message
+     */
+    public function replyToMessage(Request $request, $id)
+    {
+        $request->validate([
+            'content' => 'required|string',
+        ]);
+        
+        $originalMessage = \App\Models\Message::findOrFail($id);
+        
+        // Create reply message
+        $reply = new \App\Models\Message();
+        $reply->sender_id = auth()->id(); // admin ID
+        $reply->recipient_id = $originalMessage->sender_id;
+        $reply->subject = 'RE: ' . $originalMessage->subject;
+        $reply->content = $request->content;
+        $reply->parent_id = $originalMessage->id;
+        $reply->save();
+        
+        return redirect()->route('admin.messages.show', $id)
+            ->with('success', 'Reply sent successfully!');
+    }
 }

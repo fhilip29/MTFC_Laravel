@@ -10,8 +10,8 @@
             <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
                 <i class="fas fa-history text-red-600"></i> My Subscriptions
             </h1>
-            <a href="{{ route('profile') }}" class="inline-flex items-center bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Profile
+            <a href="{{ route('user.messages.compose', ['admin' => true]) }}" class="inline-flex items-center bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                <i class="fas fa-envelope mr-2"></i> Message Admin Support
             </a>
         </div>
 

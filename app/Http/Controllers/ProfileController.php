@@ -132,37 +132,303 @@ class ProfileController extends Controller
     /**
      * Get user attendance data for charts
      */
-    public function getUserAttendance()
+    public function getUserAttendance(Request $request)
     {
         $user = Auth::user();
-        $currentYear = Carbon::now()->year;
+        $period = $request->period ?? 'month';
         
-        // Get all sessions for the current year
-        $sessions = $user->sessions()
-            ->whereYear('time', $currentYear)
-            ->get();
-            
-        // Initialize arrays for all months
-        $checkIns = array_fill(0, 12, 0);
-        $checkOuts = array_fill(0, 12, 0);
+        // Different queries based on period
+        $query = $user->sessions()->where('status', 'IN');
         
-        // Process sessions data
-        foreach ($sessions as $session) {
-            $date = Carbon::parse($session->time);
-            $monthIndex = $date->month - 1; // Zero-based index (Jan = 0)
-            
-            if ($session->status === 'IN') {
-                $checkIns[$monthIndex]++;
-            } elseif ($session->status === 'OUT') {
-                $checkOuts[$monthIndex]++;
+        switch ($period) {
+            case 'week':
+                $startDate = Carbon::now()->subDays(7);
+                $query->where('time', '>=', $startDate);
+                $data = $this->getWeeklyAttendanceData($query);
+                break;
+            case 'month':
+                $startDate = Carbon::now()->startOfMonth()->subMonths(1);
+                $query->where('time', '>=', $startDate);
+                $data = $this->getMonthlyAttendanceData($query);
+                break;
+            case 'year':
+                $startDate = Carbon::now()->startOfYear();
+                $query->where('time', '>=', $startDate);
+                $data = $this->getYearlyAttendanceData($query);
+                break;
+            case 'all':
+                $data = $this->getAllTimeAttendanceData($query);
+                break;
+            default:
+                $startDate = Carbon::now()->startOfMonth()->subMonths(1);
+                $query->where('time', '>=', $startDate);
+                $data = $this->getMonthlyAttendanceData($query);
+        }
+        
+        // Add stats
+        $data['stats'] = $this->getAttendanceStats($user);
+        
+        return response()->json($data);
+    }
+    
+    /**
+     * Get weekly attendance data
+     */
+    private function getWeeklyAttendanceData($query)
+    {
+        $labels = [];
+        $checkIns = array_fill(0, 7, 0);
+        
+        // Create labels for the last 7 days
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $labels[] = $date->format('D'); // Day name
+        }
+        
+        // Get attendance data
+        $attendanceData = $query->get()->groupBy(function ($session) {
+            return Carbon::parse($session->time)->format('Y-m-d');
+        });
+        
+        // Fill in the data
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i)->format('Y-m-d');
+            if ($attendanceData->has($date)) {
+                $checkIns[6-$i] = $attendanceData[$date]->count();
             }
         }
         
-        return response()->json([
-            'checkIns' => $checkIns,
-            'checkOuts' => $checkOuts,
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-        ]);
+        return [
+            'labels' => $labels,
+            'checkIns' => $checkIns
+        ];
+    }
+    
+    /**
+     * Get monthly attendance data
+     */
+    private function getMonthlyAttendanceData($query)
+    {
+        // Calculate the number of days in the current month
+        $daysInMonth = Carbon::now()->daysInMonth;
+        
+        $labels = [];
+        $checkIns = array_fill(0, $daysInMonth, 0);
+        
+        // Create labels for each day of the month
+        for ($i = 1; $i <= $daysInMonth; $i++) {
+            $date = Carbon::now()->startOfMonth()->addDays($i - 1);
+            $labels[] = $date->format('d'); // Day of month
+        }
+        
+        // Get attendance data
+        $attendanceData = $query->whereMonth('time', Carbon::now()->month)
+            ->whereYear('time', Carbon::now()->year)
+            ->get()
+            ->groupBy(function ($session) {
+                return Carbon::parse($session->time)->format('d');
+            });
+        
+        // Fill in the data
+        foreach ($attendanceData as $day => $sessions) {
+            $dayIndex = (int)$day - 1; // Convert to 0-based index
+            if ($dayIndex >= 0 && $dayIndex < $daysInMonth) {
+                $checkIns[$dayIndex] = $sessions->count();
+            }
+        }
+        
+        return [
+            'labels' => $labels,
+            'checkIns' => $checkIns
+        ];
+    }
+    
+    /**
+     * Get yearly attendance data
+     */
+    private function getYearlyAttendanceData($query)
+    {
+        $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        $checkIns = array_fill(0, 12, 0);
+        
+        // Get attendance data for the current year
+        $attendanceData = $query->whereYear('time', Carbon::now()->year)
+            ->get()
+            ->groupBy(function ($session) {
+                return Carbon::parse($session->time)->format('m');
+            });
+        
+        // Fill in the data
+        foreach ($attendanceData as $month => $sessions) {
+            $monthIndex = (int)$month - 1; // Convert to 0-based index
+            $checkIns[$monthIndex] = $sessions->count();
+        }
+        
+        return [
+            'labels' => $labels,
+            'checkIns' => $checkIns
+        ];
+    }
+    
+    /**
+     * Get all-time attendance data, grouped by month
+     */
+    private function getAllTimeAttendanceData($query)
+    {
+        // Get the earliest check-in date
+        $earliestSession = $query->orderBy('time', 'asc')->first();
+        
+        if (!$earliestSession) {
+            // No check-ins, return empty data
+            return [
+                'labels' => [],
+                'checkIns' => []
+            ];
+        }
+        
+        $startDate = Carbon::parse($earliestSession->time)->startOfMonth();
+        $endDate = Carbon::now()->endOfMonth();
+        $monthDiff = $startDate->diffInMonths($endDate) + 1;
+        
+        $labels = [];
+        $checkIns = array_fill(0, $monthDiff, 0);
+        
+        // Generate labels for each month
+        for ($i = 0; $i < $monthDiff; $i++) {
+            $currentDate = (clone $startDate)->addMonths($i);
+            $labels[] = $currentDate->format('M y');
+        }
+        
+        // Group sessions by month
+        $attendanceData = $query->get()
+            ->groupBy(function ($session) {
+                return Carbon::parse($session->time)->format('Y-m');
+            });
+        
+        // Fill in the data
+        foreach ($attendanceData as $yearMonth => $sessions) {
+            $date = Carbon::createFromFormat('Y-m', $yearMonth)->startOfMonth();
+            $index = $startDate->diffInMonths($date);
+            if ($index >= 0 && $index < $monthDiff) {
+                $checkIns[$index] = $sessions->count();
+            }
+        }
+        
+        return [
+            'labels' => $labels,
+            'checkIns' => $checkIns
+        ];
+    }
+    
+    /**
+     * Get attendance statistics
+     */
+    private function getAttendanceStats($user)
+    {
+        // Calculate this month's attendance
+        $thisMonth = $user->sessions()
+            ->where('status', 'IN')
+            ->whereMonth('time', Carbon::now()->month)
+            ->whereYear('time', Carbon::now()->year)
+            ->count();
+        
+        // Calculate last month's attendance
+        $lastMonth = $user->sessions()
+            ->where('status', 'IN')
+            ->whereMonth('time', Carbon::now()->subMonth()->month)
+            ->whereYear('time', Carbon::now()->subMonth()->year)
+            ->count();
+        
+        // Calculate total unique days with check-ins
+        $totalDays = $user->sessions()
+            ->where('status', 'IN')
+            ->selectRaw('DATE(time) as date')
+            ->distinct()
+            ->count();
+        
+        // Calculate first month of attendance
+        $firstSession = $user->sessions()
+            ->where('status', 'IN')
+            ->orderBy('time', 'asc')
+            ->first();
+        
+        $avgDaysPerMonth = 0;
+        if ($firstSession) {
+            $firstMonth = Carbon::parse($firstSession->time)->startOfMonth();
+            $currentMonth = Carbon::now()->startOfMonth();
+            $monthCount = $firstMonth->diffInMonths($currentMonth) + 1;
+            
+            if ($monthCount > 0) {
+                $avgDaysPerMonth = round($totalDays / $monthCount, 1);
+            }
+        }
+        
+        return [
+            'thisMonth' => $thisMonth,
+            'lastMonth' => $lastMonth,
+            'totalDays' => $totalDays,
+            'avgDaysPerMonth' => $avgDaysPerMonth
+        ];
+    }
+
+    /**
+     * Show detailed attendance records page
+     *
+     * @return \Illuminate\View\View
+     */
+    public function showAttendanceDetails(Request $request)
+    {
+        $user = Auth::user();
+        $filter = [
+            'date' => $request->input('date'),
+            'status' => $request->input('status'),
+            'month' => $request->input('month'),
+            'year' => $request->input('year'),
+        ];
+        
+        // Build query with filters
+        $query = $user->sessions();
+        
+        // Apply date filter if provided
+        if (!empty($filter['date'])) {
+            $query->whereDate('time', $filter['date']);
+        }
+        
+        // Apply status filter if provided
+        if (!empty($filter['status'])) {
+            $query->where('status', $filter['status']);
+        }
+        
+        // Apply month filter if provided
+        if (!empty($filter['month'])) {
+            $query->whereMonth('time', $filter['month']);
+        }
+        
+        // Apply year filter if provided
+        if (!empty($filter['year'])) {
+            $query->whereYear('time', $filter['year']);
+        }
+        
+        // Get paginated sessions
+        $sessions = $query->orderBy('time', 'desc')->paginate(10);
+        
+        // Get stats for the view
+        $stats = $this->getAttendanceStats($user);
+        
+        // Get year options for the filter
+        $yearOptions = $user->sessions()
+            ->selectRaw('YEAR(time) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+            
+        // If empty, add current year
+        if (empty($yearOptions)) {
+            $yearOptions[] = Carbon::now()->year;
+        }
+        
+        return view('profile.attendance_details', compact('sessions', 'stats', 'filter', 'yearOptions'));
     }
 
     /**

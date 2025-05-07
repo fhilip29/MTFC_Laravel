@@ -119,42 +119,71 @@
         </div>
     </div>
 
-    {{-- Client Messages Table --}}
-    <div class="bg-[#1F2937] p-6 rounded-2xl shadow-md border border-[#374151]">
-        <h2 class="text-lg font-semibold mb-4 text-white">Client Messages</h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full text-sm table-auto">
-                <thead class="bg-[#374151] text-[#9CA3AF] uppercase text-xs">
-                    <tr>
-                        <th class="py-3 px-4 text-left">Client</th>
-                        <th class="py-3 px-4 text-left">Subject</th>
-                        <th class="py-3 px-4 text-center">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="text-[#9CA3AF]">
-                    @forelse($contactMessages ?? $feedback as $index => $item)
-                    <tr class="hover:bg-[#374151] border-b border-[#374151]">
-                        <td class="py-3 px-4">{{ $item instanceof \App\Models\ContactMessage ? $item->full_name : $item['name'] }}</td>
-                        <td class="py-3 px-4">{{ $item instanceof \App\Models\ContactMessage ? $item->subject : $item['msg'] }}</td>
-                        <td class="py-3 px-4 text-center">
-                            <button type="button" class="view-message-btn text-blue-400 hover:text-blue-300 cursor-pointer" 
-                                    data-id="{{ $item instanceof \App\Models\ContactMessage ? $item->id : $index }}"
-                                    data-name="{{ $item instanceof \App\Models\ContactMessage ? $item->full_name : $item['name'] }}"
-                                    data-email="{{ $item instanceof \App\Models\ContactMessage ? $item->email : 'example@email.com' }}"
-                                    data-subject="{{ $item instanceof \App\Models\ContactMessage ? $item->subject : $item['msg'] }}"
-                                    data-message="{{ $item instanceof \App\Models\ContactMessage ? $item->message : 'Sample message content' }}"
-                                    data-date="{{ $item instanceof \App\Models\ContactMessage ? $item->created_at->format('M d, Y h:i A') : date('M d, Y h:i A') }}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="3" class="py-4 px-4 text-center text-[#9CA3AF]">No messages found.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+    <!-- Client Messages -->
+    <div class="bg-[#1F2937] p-6 rounded-2xl shadow-md border border-[#374151] mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-white">Client Messages</h2>
+            <a href="{{ route('admin.messages') }}" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg transition">
+                View All
+            </a>
+        </div>
+        
+        <div class="client-messages overflow-auto" style="max-height: 380px;">
+            @php
+                // Get messages sent to admin (assuming admin id is 1)
+                $adminId = \App\Models\User::where('role', 'admin')->first()->id ?? 1;
+                $recentMessages = \App\Models\Message::with('sender')
+                    ->where('recipient_id', $adminId)
+                    ->whereNull('parent_id') // Only show parent messages (not replies)
+                    ->orderBy('created_at', 'desc')
+                    ->take(5)
+                    ->get();
+            @endphp
+
+            @if($recentMessages->count() > 0)
+                <div class="space-y-4">
+                    @foreach($recentMessages as $message)
+                        <div class="flex space-x-3 p-3 {{ $message->is_read ? 'bg-[#2D3748]' : 'bg-[#374151]' }} rounded-lg">
+                            <div class="flex-shrink-0">
+                                @if($message->sender->profile_image)
+                                    <img src="{{ asset($message->sender->profile_image) }}" alt="{{ $message->sender->full_name }}" class="h-10 w-10 rounded-full">
+                                @else
+                                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                        <span class="text-white font-semibold text-sm">{{ strtoupper(substr($message->sender->full_name, 0, 2)) }}</span>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between">
+                                    <h3 class="text-sm font-semibold {{ $message->is_read ? 'text-white' : 'text-white' }}">
+                                        {{ $message->sender->full_name }}
+                                        <span class="ml-2 px-1.5 py-0.5 rounded-full text-xs 
+                                            {{ $message->sender->role == 'admin' ? 'bg-red-500 text-white' : '' }}
+                                            {{ $message->sender->role == 'trainer' ? 'bg-purple-500 text-white' : '' }}
+                                            {{ $message->sender->role == 'member' ? 'bg-blue-500 text-white' : '' }}">
+                                            {{ ucfirst($message->sender->role) }}
+                                        </span>
+                                        @if(!$message->is_read)
+                                            <span class="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">New</span>
+                                        @endif
+                                    </h3>
+                                    <span class="text-xs text-[#9CA3AF]">{{ \Carbon\Carbon::parse($message->created_at)->diffForHumans() }}</span>
+                                </div>
+                                <p class="text-sm font-medium text-white truncate">{{ $message->subject }}</p>
+                                <p class="text-xs text-[#9CA3AF] mt-1 line-clamp-2">{{ Str::limit($message->content, 80) }}</p>
+                                <a href="{{ route('admin.messages.show', $message->id) }}" class="inline-flex items-center mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition">
+                                    <i class="fas fa-reply mr-1"></i> Reply
+                                </a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="flex flex-col items-center justify-center py-8">
+                    <i class="fas fa-envelope text-4xl text-[#4B5563] mb-3"></i>
+                    <p class="text-[#9CA3AF]">No messages found</p>
+                </div>
+            @endif
         </div>
     </div>
 </div>
@@ -215,6 +244,7 @@
 
 {{-- Chart.js CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     // Product Sales Chart
     const productCtx = document.getElementById('productChart').getContext('2d');
@@ -372,8 +402,13 @@
             const id = this.getAttribute('data-id');
             // Here you would typically make an AJAX request to mark the message as read
             
-            // For demo purposes, just show alert
-            alert('Message marked as read!');
+            // For demo purposes, just show SweetAlert
+            Swal.fire({
+                title: 'Success!',
+                text: 'Message marked as read!',
+                icon: 'success',
+                confirmButtonColor: '#10B981'
+            });
             messageModal.classList.add('hidden');
         });
         
@@ -383,9 +418,24 @@
             const email = this.getAttribute('data-email');
             // Here you would typically redirect to a compose message page or show a compose modal
             
-            // For demo purposes, just show alert
-            alert('Replying to: ' + email);
+            // For demo purposes, just show SweetAlert
+            Swal.fire({
+                title: 'Reply',
+                text: 'Replying to: ' + email,
+                icon: 'info',
+                confirmButtonColor: '#3B82F6'
+            });
         });
+        
+        // Show success message if present
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#10B981'
+            });
+        @endif
     });
 </script>
 @endsection

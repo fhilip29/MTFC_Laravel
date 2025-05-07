@@ -40,13 +40,18 @@
                 <!-- QR Code and Edit Button (Right aligned) -->
                 <div class="flex flex-col items-center space-y-4">
                     <!-- QR Code button instead of displaying it directly -->
-                    <a href="{{ route('user.qr') }}" class="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center">
+                    <a href="{{ route('user.qr') }}" class="w-full px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center">
                         <i class="fas fa-qrcode mr-2"></i> View QR Code
                     </a>
                     
                     <!-- Edit Profile Button -->
-                    <a href="{{ route('account.settings') }}" class="px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center">
+                    <a href="{{ route('account.settings') }}" class="w-full px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center">
                         <i class="fas fa-edit mr-2"></i> Edit Profile
+                    </a>
+                    
+                    <!-- Messages Button -->
+                    <a href="{{ route('user.messages') }}" class="w-full px-6 py-3 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors flex items-center justify-center">
+                        <i class="fas fa-envelope mr-2"></i> Messages
                     </a>
                 </div>
             </div>
@@ -183,9 +188,9 @@
                                             {{ $subscription->end_date ? date('M d, Y', strtotime($subscription->end_date)) : 'Ongoing' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <button class="text-gray-600 hover:text-gray-800" onclick="alert('Message feature coming soon!')">
+                                            <a href="{{ route('user.messages.compose', ['recipient_id' => $member->id]) }}" class="text-gray-600 hover:text-red-600 transition-colors">
                                                 <i class="fas fa-envelope mr-1"></i> Message
-                                            </button>
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach

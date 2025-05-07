@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8" x-data="{ showModal: false, selectedOrder: null }">
-    <h1 class="text-3xl font-bold mb-8 text-gray-800">My Orders</h1>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">My Orders</h1>
+        <a href="{{ route('user.messages.compose', ['admin' => true]) }}" class="mt-4 md:mt-0 inline-flex items-center justify-center bg-gray-800 text-white py-2 px-6 rounded-lg hover:bg-gray-700 transition duration-200">
+            <i class="fas fa-envelope mr-2"></i> Message Admin Support
+        </a>
+    </div>
     
     <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
         <div class="overflow-x-auto">

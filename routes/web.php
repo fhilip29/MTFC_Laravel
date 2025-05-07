@@ -29,6 +29,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileDebugController;
+use App\Http\Controllers\MessageController;
 
 
 
@@ -304,6 +305,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
 Route::get('/api/user/attendance', [\App\Http\Controllers\ProfileController::class, 'getUserAttendance'])->name('api.user.attendance')->middleware('auth');
 Route::get('/api/invoice/{id}/items', [InvoiceController::class, 'getInvoiceItems'])->name('api.invoice.items')->middleware('auth');
+Route::get('/user/attendance', [\App\Http\Controllers\ProfileController::class, 'showAttendanceDetails'])->name('user.attendance')->middleware('auth');
 
 
 
@@ -338,6 +340,11 @@ Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':admin'
     
     // Add the verify-payment route with the admin prefix
     Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');
+    
+    // Admin messages routes
+    Route::get('/messages', [AdminController::class, 'getMessages'])->name('admin.messages');
+    Route::get('/messages/{id}', [AdminController::class, 'showMessage'])->name('admin.messages.show');
+    Route::post('/messages/{id}/reply', [AdminController::class, 'replyToMessage'])->name('admin.messages.reply');
 });
 
 // User Invoice Routes
@@ -345,6 +352,16 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/my-payments', [InvoiceController::class, 'userInvoices'])->name('user.payments');
     Route::get('/my-payment/{id}/receipt', [InvoiceController::class, 'userShowReceipt'])->name('user.payments.receipt');
     Route::get('/my-payment/{id}/details', [InvoiceController::class, 'userInvoiceDetails'])->name('user.payment.details');
+});
+
+// User Messages Routes
+Route::middleware(['auth'])->group(function() {
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('user.messages');
+    Route::get('/messages/compose', [\App\Http\Controllers\MessageController::class, 'compose'])->name('user.messages.compose');
+    Route::get('/messages/{id}', [\App\Http\Controllers\MessageController::class, 'show'])->name('user.messages.show');
+    Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('user.messages.store');
+    Route::post('/messages/{id}/reply', [\App\Http\Controllers\MessageController::class, 'reply'])->name('user.messages.reply');
+    Route::post('/messages/{id}/read', [\App\Http\Controllers\MessageController::class, 'markAsRead'])->name('user.messages.read');
 });
 
 

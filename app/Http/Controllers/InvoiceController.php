@@ -169,4 +169,158 @@ class InvoiceController extends Controller
         // Reuse the admin receipt view
         return view('admin.invoice.receipt', compact('invoice'));
     }
+
+    /**
+     * API endpoint to get invoice items with product details
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getInvoiceItems($id)
+    {
+        try {
+            $invoice = Invoice::with('items')->where('id', $id)
+                ->where('user_id', auth()->id()) // Ensure invoice belongs to the user
+                ->firstOrFail();
+            
+            $items = [];
+            
+            foreach ($invoice->items as $item) {
+                // Try to find product information if this is a product invoice
+                $productInfo = null;
+                $quantity = 1;
+                
+                // For product invoices, try to find the product
+                if ($invoice->type === 'product') {
+                    // Try to extract product ID from description or other means
+                    // This depends on how you store product info in invoice items
+                    $productName = $item->description;
+                    
+                    // Look for any order items with matching product name
+                    $orderItem = \App\Models\OrderItem::whereHas('product', function($query) use ($productName) {
+                        $query->where('name', 'like', '%' . $productName . '%');
+                    })->first();
+                    
+                    if ($orderItem) {
+                        $productInfo = $orderItem->product;
+                        $quantity = $orderItem->quantity;
+                    }
+                }
+                
+                $itemData = [
+                    'description' => $item->description,
+                    'amount' => $item->amount,
+                    'quantity' => $quantity,
+                    'unit_price' => $quantity > 0 ? $item->amount / $quantity : $item->amount,
+                ];
+                
+                // Add product data if available
+                if ($productInfo) {
+                    $itemData['product_id'] = $productInfo->id;
+                    $itemData['product_image'] = $productInfo->image ? asset($productInfo->image) : null;
+                }
+                
+                $items[] = $itemData;
+            }
+            
+            return response()->json([
+                'success' => true,
+                'items' => $items,
+                'invoice' => [
+                    'number' => $invoice->invoice_number,
+                    'date' => $invoice->invoice_date,
+                    'total' => $invoice->total_amount,
+                    'type' => $invoice->type
+                ]
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error getting invoice items: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not retrieve invoice items'
+            ], 404);
+        }
+    }
+
+    /**
+     * Display a list of all invoices for the authenticated user
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+    public function userInvoices(Request $request)
+    {
+        $query = Invoice::with('items')
+            ->where('user_id', auth()->id());
+            
+        // Apply type filter if provided
+        if ($request->has('type') && in_array($request->type, ['product', 'subscription'])) {
+            $query->where('type', $request->type);
+        }
+        
+        // Apply date filter if provided
+        if ($request->has('date_from') && $request->has('date_to')) {
+            $query->whereBetween('invoice_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->has('date_from')) {
+            $query->where('invoice_date', '>=', $request->date_from);
+        } elseif ($request->has('date_to')) {
+            $query->where('invoice_date', '<=', $request->date_to);
+        }
+        
+        // Get the invoices with pagination
+        $invoices = $query->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->withQueryString();
+            
+        return view('user.invoices', compact('invoices'));
+    }
+
+    /**
+     * Display a detailed view of a specific invoice for the authenticated user
+     *
+     * @param int $id
+     * @return \Illuminate\View\View
+     */
+    public function userInvoiceDetails($id)
+    {
+        $invoice = Invoice::with(['user', 'items'])
+            ->where('user_id', auth()->id()) // Only show invoices owned by the user
+            ->findOrFail($id);
+            
+        // Fetch additional product information for invoice items
+        $items = [];
+        foreach ($invoice->items as $item) {
+            $productInfo = null;
+            $quantity = 1;
+            
+            // Try to find product information if this is a product invoice
+            if ($invoice->type === 'product') {
+                // Try to extract product ID from description or other means
+                $productName = $item->description;
+                
+                // Look for any order items with matching product name
+                $orderItem = \App\Models\OrderItem::whereHas('product', function($query) use ($productName) {
+                    $query->where('name', 'like', '%' . $productName . '%');
+                })->first();
+                
+                if ($orderItem) {
+                    $productInfo = $orderItem->product;
+                    $quantity = $orderItem->quantity;
+                }
+            }
+            
+            $itemData = [
+                'description' => $item->description,
+                'amount' => $item->amount,
+                'quantity' => $quantity,
+                'unit_price' => $item->amount / $quantity,
+                'product_image' => $productInfo ? asset($productInfo->image) : null,
+            ];
+            
+            $items[] = $itemData;
+        }
+        
+        return view('user.invoice_details', compact('invoice', 'items'));
+    }
 } 

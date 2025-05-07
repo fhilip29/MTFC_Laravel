@@ -74,7 +74,7 @@
             <div class="relative">
                 <div class="h-24 w-24 md:h-32 md:w-32 bg-gradient-to-r from-red-600 to-red-800 rounded-full p-1">
                     <div class="h-full w-full bg-white rounded-full flex items-center justify-center overflow-hidden">
-                        <img src="{{ Auth::user()->profile_image ? asset('storage/'.Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" alt="Profile" class="h-full w-full object-cover">
+                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" alt="Profile" class="h-full w-full object-cover">
                     </div>
                 </div>
                 <div class="absolute bottom-2 right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
@@ -195,7 +195,7 @@
                     @if (!$activeSubscription)
                         Add Plan
                     @else
-                        Change Plan
+                        View Plans
                     @endif
                 </a>
             </div>
@@ -250,11 +250,8 @@
             @endif
             
             <div class="mt-4 md:mt-6 flex flex-col sm:flex-row gap-3">
-                <a href="{{ route('pricing.gym') }}" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
-                    <i class="fas fa-sync-alt mr-2"></i> Change Plan
-                </a>
                 <a href="{{ route('subscription.history') }}" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
-                    <i class="fas fa-history mr-2"></i> View History
+                    <i class="fas fa-history mr-2"></i> View Subscriptions
                 </a>
                 <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" class="flex-1">
                     @csrf
@@ -291,80 +288,81 @@
                     >
                 </div>
             </div>
-            <div class="overflow-x-auto -mx-4 md:mx-0">
-                <div class="min-w-[600px] px-4 md:px-0">
-                    <table class="w-full" id="invoiceTable">
-                        <thead>
-                            <tr class="text-left border-b border-gray-200">
-                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Invoice #</th>
-                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Date</th>
-                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Type</th>
-                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Amount</th>
-                                <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Actions</th>
+            
+            <div class="overflow-x-auto rounded-lg shadow-sm -mx-4 md:mx-0">
+                <div class="inline-block min-w-full align-middle">
+                    <table class="min-w-full divide-y divide-gray-200 text-xs sm:text-sm text-left" id="invoiceTable">
+                        <thead class="bg-gray-100 text-gray-500 uppercase text-xs sticky top-0 z-10">
+                            <tr>
+                                <th class="px-3 sm:px-4 py-3">Receipt Number</th>
+                                <th class="px-3 sm:px-4 py-3">Type</th>
+                                <th class="px-3 sm:px-4 py-3">Amount</th>
+                                <th class="px-3 sm:px-4 py-3">Date</th>
+                                <th class="px-3 sm:px-4 py-3 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @if(isset($invoices) && count($invoices) > 0)
+                        <tbody class="divide-y divide-gray-200">
+                            @if(count($invoices) > 0)
                                 @foreach($invoices as $invoice)
-                                <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="py-3 md:py-4 text-xs md:text-sm text-gray-800">
-                                        {{ substr($invoice->invoice_number ?? 'N/A', 0, 10) }}...
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-3 sm:px-4 py-3 font-mono text-gray-800 text-xs sm:text-sm">
+                                        {{ Str::limit($invoice->invoice_number, 15) }}
                                     </td>
-                                    <td class="py-3 md:py-4 text-xs md:text-sm text-gray-600">
-                                        {{ \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d') }}
-                                    </td>
-                                    <td class="py-3 md:py-4 text-xs md:text-sm">
-                                        <span class="px-2 py-1 rounded-full text-xs 
-                                            {{ ($invoice->type ?? '') === 'subscription' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
-                                            {{ ucfirst($invoice->type ?? 'unknown') }}
+                                    <td class="px-3 sm:px-4 py-3 text-xs sm:text-sm">
+                                        <span class="px-2 py-1 rounded-full text-xs {{ $invoice->type === 'subscription' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800' }}">
+                                            {{ ucfirst($invoice->type) }}
                                         </span>
                                     </td>
-                                    <td class="py-3 md:py-4 text-red-600 font-medium text-xs md:text-sm">
-                                        ₱{{ number_format($invoice->total_amount ?? 0, 2) }}
+                                    <td class="px-3 sm:px-4 py-3 text-red-600 font-medium text-xs sm:text-sm">
+                                        ₱{{ number_format($invoice->total_amount, 2) }}
                                     </td>
-                                    <td class="py-3 md:py-4 flex space-x-2">
-                                        <button class="text-gray-500 hover:text-gray-800 transition-colors" 
-                                        onclick="openReceiptModal('{{ $invoice->invoice_number ?? 'Unknown' }}', {{ json_encode([
-                                            'date' => \Carbon\Carbon::parse($invoice->invoice_date ?? now())->format('Y-m-d'),
-                                            'type' => ucfirst($invoice->type ?? 'unknown'),
-                                            'amount' => number_format($invoice->total_amount ?? 0, 2),
-                                            'items' => collect($invoice->items ?? [])->map(function($item) {
-                                                return [
-                                                    'description' => $item['description'] ?? $item->description ?? 'Unknown item',
-                                                    'amount' => number_format(isset($item['amount']) ? $item['amount'] : (isset($item->amount) ? $item->amount : 0), 2)
-                                                ];
-                                            })
-                                        ]) }})">
-                                            <i class="fas fa-eye text-sm"></i>
-                                        </button>
-                                        @if(isset($invoice->id))
-                                        <a href="{{ route('user.invoices.receipt', $invoice->id) }}" class="text-gray-500 hover:text-gray-800 transition-colors">
-                                            <i class="fas fa-print text-sm"></i>
-                                        </a>
-                                        @endif
+                                    <td class="px-3 sm:px-4 py-3 text-gray-600 text-xs sm:text-sm">
+                                        {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}
+                                    </td>
+                                    <td class="px-3 sm:px-4 py-3 text-center">
+                                        <div class="flex justify-center space-x-2">
+                                            <a href="{{ route('user.payment.details', $invoice->id) }}" 
+                                               class="text-gray-600 hover:text-gray-900 transition-colors"
+                                               title="View Details">
+                                                <i class="fas fa-eye text-sm"></i>
+                                            </a>
+                                            @if(isset($invoice->id))
+                                            <a href="{{ route('user.payments.receipt', $invoice->id) }}" 
+                                               class="text-gray-600 hover:text-gray-900 transition-colors" 
+                                               target="_blank"
+                                               title="Download Receipt">
+                                                <i class="fas fa-download text-sm"></i>
+                                            </a>
+                                            @endif
+                                        </div>
                                     </td>
                                 </tr>
                                 @endforeach
                             @else
-                            <tr>
-                                <td colspan="5" class="py-6 text-center text-gray-500">
-                                    No payment history found. Your purchases and subscriptions will appear here.
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="5" class="px-3 sm:px-4 py-6 text-center text-gray-500">
+                                        No payment history found. Your purchases and subscriptions will appear here.
+                                    </td>
+                                </tr>
                             @endif
                         </tbody>
                     </table>
                 </div>
             </div>
+            
+            @if(count($invoices) > 0)
+            <div class="flex justify-center mt-4">
+                <a href="{{ route('user.payments') }}" class="bg-gray-800 text-white py-2 px-6 rounded-md hover:bg-gray-700 transition flex items-center gap-2 text-sm">
+                    <i class="fas fa-history"></i> View All Payments
+                </a>
+            </div>
+            @endif
         </div>
     </div>
 </div>
 
 <!-- Include QR Code Modal from partials -->
 @include('profile.partials.qr-code-modal')
-
-<!-- Include Receipt Modal from partials -->
-@include('profile.partials.receipt-modal')
 
 <!-- Inline script for immediate execution -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
@@ -403,66 +401,6 @@
             document.getElementById('qrModal').classList.remove('modal-open');
         };
         
-        // Receipt Modal
-        window.openReceiptModal = function(invoiceNumber, data) {
-            // Set receipt title
-            document.getElementById('receipt-title').textContent = 'Receipt #' + invoiceNumber.substring(0, 8);
-            
-            // Set receipt details
-            document.getElementById('receiptInvoiceNumber').textContent = invoiceNumber;
-            document.getElementById('receiptDate').textContent = data.date;
-            
-            // Set receipt type with colored badge
-            const typeElement = document.getElementById('receiptType');
-            typeElement.innerHTML = '';
-            const typeBadge = document.createElement('span');
-            typeBadge.className = data.type.toLowerCase() === 'subscription' 
-                ? 'px-2 py-1 bg-blue-800 text-blue-200 rounded-full text-xs font-medium' 
-                : 'px-2 py-1 bg-green-800 text-green-200 rounded-full text-xs font-medium';
-            typeBadge.textContent = data.type;
-            typeElement.appendChild(typeBadge);
-            
-            // Set receipt amount
-            document.getElementById('receiptAmount').textContent = '₱' + data.amount;
-            
-            // Set items
-            const itemsContainer = document.getElementById('receiptItems');
-            itemsContainer.innerHTML = '';
-            
-            data.items.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="py-2 px-3">${item.description}</td>
-                    <td class="py-2 px-3 text-right">₱${item.amount}</td>
-                `;
-                itemsContainer.appendChild(row);
-            });
-            
-            document.getElementById('receiptModal').classList.add('modal-open');
-        };
-        
-        window.closeReceiptModal = function() {
-            document.getElementById('receiptModal').classList.remove('modal-open');
-        };
-        
-        window.printReceipt = function() {
-            alert('Printing functionality will be implemented here');
-        };
-        
-        // Close modals when clicking outside of them
-        window.addEventListener('click', function(event) {
-            const qrModal = document.getElementById('qrModal');
-            const receiptModal = document.getElementById('receiptModal');
-            
-            if (event.target === qrModal) {
-                closeQrModal();
-            }
-            
-            if (event.target === receiptModal) {
-                closeReceiptModal();
-            }
-        });
-        
         // Filter invoice table
         const searchInput = document.getElementById('filterType');
         const dateFilter = document.getElementById('dateFilter');
@@ -475,8 +413,8 @@
             rows.forEach(row => {
                 if (row.cells.length < 3) return; // Skip "No payment history" row
                 
-                const type = row.cells[2].textContent.toLowerCase().trim();
-                const date = row.cells[1].textContent.trim();
+                const type = row.cells[1].textContent.toLowerCase().trim();
+                const date = row.cells[3].textContent.trim();
                 
                 let shouldShow = true;
                 
@@ -486,8 +424,13 @@
                 }
                 
                 // Check date filter
-                if (dateValue && date !== dateValue) {
-                    shouldShow = false;
+                if (dateValue) {
+                    const rowDate = new Date(date);
+                    const filterDate = new Date(dateValue);
+                    
+                    if (rowDate.toDateString() !== filterDate.toDateString()) {
+                        shouldShow = false;
+                    }
                 }
                 
                 row.style.display = shouldShow ? '' : 'none';
@@ -598,3 +541,5 @@
 </script>
 
 @endsection
+
+

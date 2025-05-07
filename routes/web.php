@@ -28,6 +28,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ProfileDebugController;
 
 
 
@@ -160,13 +161,19 @@ Route::post('/cart/sync', [CartController::class, 'syncCart'])->name('cart.sync'
 // ===================
 // USER ROUTES
 // ===================
-Route::view('/profile', 'profile')->name('profile');
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
 Route::get('/profile/qr', [ProfileController::class, 'showQrCode'])->name('profile.qr');
 Route::get('/my-qr', [\App\Http\Controllers\ProfileController::class, 'showQrCode'])->name('user.qr')->middleware('auth');
 Route::get('/qr-image', [\App\Http\Controllers\ProfileController::class, 'generateQrImage'])->name('user.qr.image')->middleware('auth');
 Route::get('/invoices/{id}', [InvoiceController::class, 'userShow'])->name('user.invoices.show')->middleware('auth');
 Route::get('/my-invoice/{id}/receipt', [InvoiceController::class, 'userShowReceipt'])->name('user.invoices.receipt')->middleware('auth');
-Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates')->middleware('auth'); // Added for calendar
+Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates')->middleware('auth');
+Route::get('/my-invoices', [InvoiceController::class, 'userInvoices'])->name('user.invoices')->middleware('auth');
+
+// Debug routes for troubleshooting profile issues
+Route::get('/debug/profile-image', [\App\Http\Controllers\ProfileDebugController::class, 'debugProfileImage'])->middleware('auth');
+Route::get('/debug/invoice-receipt', [\App\Http\Controllers\ProfileDebugController::class, 'debugInvoiceReceipt'])->middleware('auth');
+Route::get('/debug/qr-code', [\App\Http\Controllers\ProfileController::class, 'debugQrCode'])->middleware('auth');
 
 
 
@@ -296,6 +303,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 // API route
 Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 'apiShow'])->name('api.announcements.show');
 Route::get('/api/user/attendance', [\App\Http\Controllers\ProfileController::class, 'getUserAttendance'])->name('api.user.attendance')->middleware('auth');
+Route::get('/api/invoice/{id}/items', [InvoiceController::class, 'getInvoiceItems'])->name('api.invoice.items')->middleware('auth');
 
 
 
@@ -330,6 +338,13 @@ Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':admin'
     
     // Add the verify-payment route with the admin prefix
     Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');
+});
+
+// User Invoice Routes
+Route::middleware(['auth'])->group(function() {
+    Route::get('/my-payments', [InvoiceController::class, 'userInvoices'])->name('user.payments');
+    Route::get('/my-payment/{id}/receipt', [InvoiceController::class, 'userShowReceipt'])->name('user.payments.receipt');
+    Route::get('/my-payment/{id}/details', [InvoiceController::class, 'userInvoiceDetails'])->name('user.payment.details');
 });
 
 

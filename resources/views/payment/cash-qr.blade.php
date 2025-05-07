@@ -83,6 +83,14 @@
                 // Create QR code with the data
                 const qrData = {!! $qrContent !!}; // Use proper JSON encoding
                 
+                // Ensure reference is always present
+                if (!qrData.reference) {
+                    qrData.reference = "{{ $paymentData['reference'] ?? '' }}";
+                }
+                
+                // Log QR data for debugging
+                console.log("QR data being encoded:", qrData);
+                
                 new QRCode(qrContainer, {
                     text: JSON.stringify(qrData),
                     width: 256,

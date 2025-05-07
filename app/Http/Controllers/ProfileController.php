@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -37,9 +38,22 @@ class ProfileController extends Controller
                 return redirect()->route('login');
             }
             
+            // Ensure user has a QR code
+            if (!$user->qr_code) {
+                $user->qr_code = Str::uuid();
+                $user->save();
+            }
+            
+            // Log user information for debugging
+            \Log::info('User profile data:', [
+                'id' => $user->id,
+                'profile_image' => $user->profile_image,
+                'image_exists' => $user->profile_image ? file_exists(public_path($user->profile_image)) : false,
+                'qr_code' => $user->qr_code
+            ]);
+            
             // Simple and direct approach to get active subscription
-            $activeSubscription = DB::table('subscriptions')
-                ->where('user_id', $user->id)
+            $activeSubscription = Subscription::where('user_id', $user->id)
                 ->where('is_active', true)
                 ->where(function($query) {
                     $query->whereNull('end_date')
@@ -49,59 +63,28 @@ class ProfileController extends Controller
                 ->first();
             
             // Get all invoices for this user
-            $invoices = DB::table('invoices')
-                ->where('user_id', $user->id)
+            $invoices = Invoice::where('user_id', $user->id)
+                ->with('items')
                 ->orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get();
             
-            // Transform invoices to expected format with their items
-            $formattedInvoices = collect();
-            foreach ($invoices as $invoice) {
-                // Get items for this invoice
-                $items = DB::table('invoice_items')
-                    ->where('invoice_id', $invoice->id)
-                    ->get();
-                
-                // Format items
-                $formattedItems = collect();
-                foreach ($items as $item) {
-                    $formattedItems->push([
-                        'description' => $item->description,
-                        'amount' => $item->amount
-                    ]);
-                }
-                
-                // Create formatted invoice object
-                $formattedInvoice = (object)[
-                    'id' => $invoice->id,
-                    'invoice_number' => $invoice->invoice_number,
-                    'user_id' => $invoice->user_id,
-                    'type' => $invoice->type,
-                    'total_amount' => $invoice->total_amount,
-                    'invoice_date' => $invoice->invoice_date,
-                    'created_at' => $invoice->created_at,
-                    'updated_at' => $invoice->updated_at,
-                    'items' => $formattedItems
-                ];
-                
-                $formattedInvoices->push($formattedInvoice);
-            }
-            
             // Log data
             \Log::info('User ID: ' . $user->id);
             \Log::info('Active subscription: ' . ($activeSubscription ? 'Yes' : 'No'));
-            \Log::info('Invoices count: ' . count($formattedInvoices));
+            \Log::info('Invoices count: ' . $invoices->count());
             
             return view('profile', [
+                'user' => $user,
                 'activeSubscription' => $activeSubscription,
-                'invoices' => $formattedInvoices
+                'invoices' => $invoices
             ]);
         } catch (\Exception $e) {
             \Log::error('Error in profile page: ' . $e->getMessage());
             \Log::error($e->getTraceAsString());
             
             return view('profile', [
+                'user' => Auth::user(),
                 'activeSubscription' => null,
                 'invoices' => collect(),
                 'error' => 'There was an error loading your profile data.'
@@ -202,5 +185,29 @@ class ProfileController extends Controller
             ->toArray(); // Convert to array
             
         return response()->json($dates);
+    }
+
+    /**
+     * Debug QR code generation
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function debugQrCode()
+    {
+        $user = Auth::user();
+        
+        if (!$user->qr_code) {
+            // Generate a new QR code if one doesn't exist
+            $user->qr_code = Str::uuid();
+            $user->save();
+        }
+        
+        $qrCodeData = [
+            'qr_code' => $user->qr_code,
+            'id' => $user->id,
+            'role' => $user->role
+        ];
+        
+        return response()->json($qrCodeData);
     }
 }

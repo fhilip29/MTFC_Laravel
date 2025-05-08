@@ -633,13 +633,9 @@ function editTrainer(trainerId) {
             document.getElementById('edit_email').value = data.user.email;
             document.getElementById('edit_mobile_number').value = data.user.mobile_number || '';
             
-            // Set gender radio
-            const genderRadios = document.querySelectorAll('input[name="gender"]');
-            genderRadios.forEach(radio => {
-                if (radio.value === data.user.gender) {
-                    radio.checked = true;
-                }
-            });
+            // Set gender in the dropdown
+            const genderSelect = document.getElementById('edit_gender');
+            genderSelect.value = data.user.gender || '';
             
             // Handle custom gender if needed
             if (data.user.gender === 'other') {
@@ -657,12 +653,12 @@ function editTrainer(trainerId) {
             const noImagePlaceholder = document.getElementById('noImagePlaceholder');
             
             if (data.profile_url) {
-                // If it's already a base64 image or a URL
-                if (data.profile_url.startsWith('data:image')) {
+                // Make sure we have the full URL by checking for http or https
+                if (data.profile_url.startsWith('data:image') || data.profile_url.startsWith('http')) {
                     currentImage.src = data.profile_url;
                 } else {
-                    // It's a file path
-                    currentImage.src = data.profile_url;
+                    // It's a relative file path - prepend with site base URL
+                    currentImage.src = '/' + data.profile_url;
                 }
                 currentImage.classList.remove('hidden');
                 noImagePlaceholder.classList.add('hidden');
@@ -758,18 +754,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Edit form gender toggle
-    const editGenderRadios = document.querySelectorAll('.edit-gender-radio');
+    const editGenderSelect = document.getElementById('edit_gender');
     const editOtherGenderField = document.getElementById('editOtherGenderField');
     
-    editGenderRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            if (this.value === 'other' && this.checked) {
+    if (editGenderSelect) {
+        editGenderSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
                 editOtherGenderField.classList.remove('hidden');
             } else {
                 editOtherGenderField.classList.add('hidden');
             }
         });
-    });
+    }
 
     // Cropper.js setup
     let cropper;
@@ -1095,9 +1091,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Add other gender if selected
-        if (form.querySelector('input[name="gender"]:checked').value === 'other') {
-            const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
+        // Add other gender if selected - get value from dropdown in edit form
+        const selectedGender = document.getElementById('edit_gender').value;
+        if (selectedGender === 'other') {
+            const otherGenderValue = document.getElementById('edit_other_gender').value;
             formData.set('other_gender', otherGenderValue);
         }
         

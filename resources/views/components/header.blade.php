@@ -79,6 +79,7 @@
                                 <a href="{{ route('admin.profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
                                     Profile
                                 </a>
+                                <a href="{{ route('community') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Community</a>
                             @elseif (Auth::user()->role === 'trainer')
                                 <a href="{{ route('trainer.profile') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">My Profile</a>
                                 <a href="{{ route('community') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">Community</a>

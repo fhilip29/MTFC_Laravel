@@ -91,9 +91,13 @@
                                 <tr class="hover:bg-[#374151] transition-colors">
                                     <td class="px-4 py-3">
                                         <div class="flex items-center">
-                                            <div class="h-9 w-9 rounded-full {{ $roleBgColor }} flex items-center justify-center text-white font-bold text-xs">
-                                                {{ $session->user ? strtoupper(substr($session->user->full_name, 0, 2)) : 'G' }} 
-                                            </div>
+                                            @if($session->user && $session->user->profile_image)
+                                                <img src="{{ asset($session->user->profile_image) }}" alt="{{ $session->user->full_name }}" class="h-9 w-9 rounded-full object-cover">
+                                            @else
+                                                <div class="h-9 w-9 rounded-full {{ $roleBgColor }} flex items-center justify-center text-white font-bold text-xs">
+                                                    {{ $session->user ? strtoupper(substr($session->user->full_name, 0, 2)) : 'G' }} 
+                                                </div>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? ($session->guest_name ?? 'Guest User') }}</td>
@@ -199,40 +203,62 @@
             <div class="bg-[#1F2937] px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="sm:flex sm:items-start">
                     <div class="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between relative z-10">
-                            <span>Guest Check-in/out</span>
+                        <h3 class="text-lg leading-6 font-medium text-white flex items-center justify-between relative z-30">
+                            <span>Guest Management</span>
                             <button id="closeGuestModal" class="text-[#9CA3AF] hover:text-white transition-colors">
                                 <i class="fas fa-times"></i>
                             </button>
                         </h3>
-                        <div class="mt-4 relative z-10">
+                        
+                        <!-- Tab Navigation -->
+                        <div class="flex border-b border-[#374151] mt-4 relative z-30">
+                            <button id="checkInTabBtn" class="py-2 px-4 border-b-2 border-blue-500 text-white font-medium relative z-30">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Check In
+                            </button>
+                            <button id="checkOutTabBtn" class="py-2 px-4 border-b-2 border-transparent text-[#9CA3AF] hover:text-white relative z-30">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Check Out
+                            </button>
+                        </div>
+                        
+                        <!-- Check In Tab Content -->
+                        <div id="checkInTab" class="mt-4 relative z-20">
                             <label for="guestNameInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Guest Name</label>
                             <input type="text" id="guestNameInput" placeholder="Enter guest's full name" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
                             <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required.</p>
-                        </div>
                         
-                        <div class="mt-2 relative z-10">
                             <label for="guestPhoneInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Phone Number</label>
                             <input type="tel" id="guestPhoneInput" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
                             <p id="guestPhoneError" class="text-red-500 text-xs mt-1 hidden">Valid Philippine phone number is required.</p>
+                            
+                            <div class="mt-4 flex justify-center">
+                                <button id="guestCheckInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors w-full justify-center relative z-30">
+                                    <i class="fas fa-sign-in-alt text-lg"></i>
+                                    <span class="text-md font-bold">Check In Guest</span>
+                                </button>
+                            </div>
                         </div>
                         
-                        <div class="mt-4 mb-6 flex gap-4 justify-center relative z-10">
-                            <button id="guestCheckInBtn" class="py-3 px-5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors flex-1 justify-center">
-                                <i class="fas fa-sign-in-alt text-lg"></i>
-                                <span class="text-md font-bold">Check In Guest</span>
-                            </button>
-                            <button id="guestCheckOutBtn" class="py-3 px-5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md shadow flex items-center gap-2 transition-colors flex-1 justify-center">
-                                <i class="fas fa-sign-out-alt text-lg"></i>
-                                <span class="text-md font-bold">Check Out Guest</span>
-                            </button>
+                        <!-- Check Out Tab Content -->
+                        <div id="checkOutTab" class="mt-4 relative z-20 hidden">
+                            <div class="mb-4">
+                                <h4 class="text-white font-medium text-sm mb-2">Currently Checked In Guests</h4>
+                                <div id="checkedInGuestsList" class="max-h-72 overflow-y-auto bg-[#111827] rounded-md shadow-inner border border-[#374151] relative z-20">
+                                    <!-- Guest list will be populated dynamically -->
+                                    <div class="p-4 text-center text-[#9CA3AF] text-sm" id="noGuestsMessage">
+                                        <i class="fas fa-info-circle mr-2"></i> Loading guests...
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-xs text-[#9CA3AF] italic">
+                                <i class="fas fa-info-circle mr-1"></i> Click the "Check Out" button next to a guest to check them out.
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-10">
-                <button id="cancelGuestModal" class="mt-3 w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancel
+            <div class="bg-[#111827] px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse relative z-30">
+                <button id="cancelGuestModal" class="w-full inline-flex justify-center rounded-md border border-[#374151] shadow-sm px-4 py-2 bg-[#1F2937] text-base font-medium text-[#9CA3AF] hover:bg-[#374151] focus:outline-none sm:ml-3 sm:w-auto sm:text-sm">
+                    Close
                 </button>
             </div>
         </div>
@@ -368,6 +394,14 @@
         const guestPhoneError = document.getElementById('guestPhoneError');
         const guestCheckInBtn = document.getElementById('guestCheckInBtn');
         const guestCheckOutBtn = document.getElementById('guestCheckOutBtn');
+        
+        // Tab elements
+        const checkInTabBtn = document.getElementById('checkInTabBtn');
+        const checkOutTabBtn = document.getElementById('checkOutTabBtn');
+        const checkInTab = document.getElementById('checkInTab');
+        const checkOutTab = document.getElementById('checkOutTab');
+        const checkedInGuestsList = document.getElementById('checkedInGuestsList');
+        const noGuestsMessage = document.getElementById('noGuestsMessage');
         
         let scanning = false;
         let stream = null;
@@ -726,9 +760,11 @@
             newRow.innerHTML = `
                 <td class="px-4 py-3">
                     <div class="flex items-center">
-                        <div class="h-9 w-9 rounded-full ${newRowRoleBgColor} flex items-center justify-center text-white font-bold text-xs">
+                        ${data.profile_image ? 
+                        `<img src="${data.profile_image}" alt="${data.full_name}" class="h-9 w-9 rounded-full object-cover">` : 
+                        `<div class="h-9 w-9 rounded-full ${newRowRoleBgColor} flex items-center justify-center text-white font-bold text-xs">
                             ${initials}
-                        </div>
+                        </div>`}
                     </div>
                 </td>
                 <td class="px-4 py-3 font-medium text-white">${data.full_name || 'Guest User'}</td>
@@ -777,9 +813,223 @@
 
         // --- Guest Modal Logic ---
 
+        // Function to switch tabs
+        function switchToTab(tabName) {
+            if (tabName === 'checkIn') {
+                checkInTabBtn.classList.add('border-blue-500', 'text-white');
+                checkInTabBtn.classList.remove('border-transparent', 'text-[#9CA3AF]');
+                checkOutTabBtn.classList.add('border-transparent', 'text-[#9CA3AF]');
+                checkOutTabBtn.classList.remove('border-blue-500', 'text-white');
+                
+                checkInTab.classList.remove('hidden');
+                checkOutTab.classList.add('hidden');
+            } else {
+                checkOutTabBtn.classList.add('border-blue-500', 'text-white');
+                checkOutTabBtn.classList.remove('border-transparent', 'text-[#9CA3AF]');
+                checkInTabBtn.classList.add('border-transparent', 'text-[#9CA3AF]');
+                checkInTabBtn.classList.remove('border-blue-500', 'text-white');
+                
+                checkOutTab.classList.remove('hidden');
+                checkInTab.classList.add('hidden');
+                
+                // Load checked-in guests when switching to checkout tab
+                fetchCheckedInGuests();
+            }
+        }
+        
+        // Add event listeners for tab switching
+        checkInTabBtn.addEventListener('click', () => switchToTab('checkIn'));
+        checkOutTabBtn.addEventListener('click', () => switchToTab('checkOut'));
+        
+        // Automatically refresh the guest list after a successful check-in
+        function refreshGuestListAfterCheckIn() {
+            // Switch to the checkout tab to show the updated list
+            switchToTab('checkOut');
+        }
+
+        // Function to fetch checked-in guests
+        function fetchCheckedInGuests() {
+            // Show loading message
+            noGuestsMessage.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Loading guests...';
+            noGuestsMessage.classList.remove('hidden');
+            
+            // Clear previous guest list
+            while (checkedInGuestsList.firstChild && checkedInGuestsList.firstChild !== noGuestsMessage) {
+                checkedInGuestsList.removeChild(checkedInGuestsList.firstChild);
+            }
+            
+            // Log for debugging
+            console.log('Fetching checked-in guests...');
+            
+            // Fetch checked-in guests from the server
+            fetch('{{ route("admin.session.guest-list") }}', {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-cache'
+                }
+            })
+            .then(response => {
+                console.log('Guest list response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Guest list response data:', data);
+                
+                if (data.success && data.guests && data.guests.length > 0) {
+                    // Remove loading message
+                    noGuestsMessage.classList.add('hidden');
+                    
+                    console.log('Found ' + data.guests.length + ' checked-in guests');
+                    
+                    // Create guest list items
+                    data.guests.forEach(guest => {
+                        // Log for debugging
+                        console.log('Adding guest to list:', guest.guest_name);
+                        
+                        const guestItem = document.createElement('div');
+                        guestItem.className = 'flex items-center justify-between border-b border-[#374151] p-4 hover:bg-[#1F2937] transition-colors gap-3 relative';
+                        
+                        const formattedDate = new Date(guest.time).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                        });
+                        
+                        guestItem.innerHTML = `
+                            <div class="flex items-center w-3/5">
+                                <div class="h-10 w-10 rounded-full bg-gray-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-xs mr-3">
+                                    ${guest.guest_name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <div class="text-white font-medium truncate">${guest.guest_name}</div>
+                                    <div class="text-[#9CA3AF] text-xs truncate">${guest.mobile_number || 'No phone'} • ${formattedDate}</div>
+                                </div>
+                            </div>
+                            <button class="checkout-guest-btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center transition-colors z-40 flex-shrink-0 min-w-[100px] pointer-events-auto relative"
+                                   data-id="${guest.id}" 
+                                   data-name="${guest.guest_name}" 
+                                   data-phone="${guest.mobile_number || ''}">
+                                <i class="fas fa-sign-out-alt mr-2"></i> Check Out
+                            </button>
+                        `;
+                        
+                        // Add to the list
+                        checkedInGuestsList.insertBefore(guestItem, noGuestsMessage);
+                        
+                        // Add click event for checkout button
+                        const checkoutBtn = guestItem.querySelector('.checkout-guest-btn');
+                        checkoutBtn.addEventListener('click', function(e) {
+                            e.stopPropagation(); // Prevent event bubbling
+                            const guestId = this.getAttribute('data-id');
+                            const guestName = this.getAttribute('data-name');
+                            const guestPhone = this.getAttribute('data-phone');
+                            
+                            handleGuestCheckout(guestId, guestName, guestPhone);
+                        });
+                    });
+                } else {
+                    // No guests found
+                    console.log('No checked-in guests found or empty response');
+                    noGuestsMessage.innerHTML = '<i class="fas fa-info-circle mr-2"></i> No guests currently checked in.';
+                    noGuestsMessage.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching guests:', error);
+                noGuestsMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Failed to load guests. Please try again.';
+                noGuestsMessage.classList.remove('hidden');
+            });
+        }
+        
+        // Function to handle guest checkout
+        function handleGuestCheckout(guestId, guestName, guestPhone) {
+            // Show confirmation dialog
+            Swal.fire({
+                title: 'Confirm Check-Out',
+                text: `Are you sure you want to check out ${guestName}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#4B5563',
+                confirmButtonText: 'Yes, Check Out'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    processGuestCheckout(guestId, guestName, guestPhone);
+                }
+            });
+        }
+        
+        // Process the guest checkout
+        function processGuestCheckout(guestId, guestName, guestPhone) {
+            // Show processing message
+            Swal.fire({
+                title: 'Processing...',
+                text: `Processing guest check-out`,
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                willOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Send data to server
+            const formData = new FormData();
+            formData.append('session_id', guestId);
+            formData.append('guest_name', guestName);
+            formData.append('mobile_number', guestPhone);
+            formData.append('status', 'OUT');
+            formData.append('_token', '{{ csrf_token() }}');
+            
+            fetch('{{ route("admin.session.store") }}', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                Swal.close();
+                
+                if (data.success) {
+                    // Show success message
+                    Swal.fire({
+                        title: 'Success!',
+                        text: `${guestName} has been checked out successfully!`,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Refresh the guest list
+                        fetchCheckedInGuests();
+                        
+                        // Refresh the main table after a short delay
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.error || 'Error processing guest check-out',
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Network error. Please check your connection and try again.',
+                    icon: 'error'
+                });
+            });
+        }
+
         // Show guest modal
         guestButton.addEventListener('click', function() {
             guestModal.classList.remove('hidden');
+            switchToTab('checkIn'); // Default to check-in tab
             guestNameInput.focus(); // Focus the name input
         });
 
@@ -808,7 +1058,7 @@
             return philippinePhoneRegex.test(phone.replace(/\s+/g, ''));
         }
 
-        // Function to handle guest check-in/out submission
+        // Function to handle guest check-in submission
         function handleGuestSubmit(status) {
             const guestName = guestNameInput.value.trim();
             const guestPhone = guestPhoneInput.value.trim();
@@ -842,7 +1092,7 @@
             // Show processing alert
             Swal.fire({
                 title: 'Processing...',
-                text: `Processing guest ${status === 'IN' ? 'check-in' : 'check-out'}`,
+                text: `Processing guest check-in`,
                 icon: 'info',
                 allowOutsideClick: false,
                 showConfirmButton: false,
@@ -855,7 +1105,7 @@
             const formData = new FormData();
             formData.append('guest_name', guestName);
             formData.append('mobile_number', guestPhone);
-            formData.append('status', status);
+            formData.append('status', 'IN'); // Always IN for the check in tab
             formData.append('_token', '{{ csrf_token() }}');
             
             fetch('{{ route("admin.session.store") }}', {
@@ -875,9 +1125,15 @@
                 if (data.success) {
                     // Reuse the existing success handler
                     handleSuccessfulScan(data.data);
-                    // Close modal is handled within handleSuccessfulScan now
+                    
+                    // Clear the form
+                    guestNameInput.value = '';
+                    guestPhoneInput.value = '';
+                    
+                    // Refresh the guest list and switch to checkout tab after a short delay
+                    setTimeout(refreshGuestListAfterCheckIn, 1000);
                 } else {
-                     Swal.fire({
+                    Swal.fire({
                         title: 'Error',
                         text: data.error || 'Error processing guest request',
                         icon: 'error'
@@ -895,10 +1151,8 @@
             });
         }
 
-        // Event listeners for guest action buttons
+        // Event listener for guest check-in button
         guestCheckInBtn.addEventListener('click', () => handleGuestSubmit('IN'));
-        guestCheckOutBtn.addEventListener('click', () => handleGuestSubmit('OUT'));
-
     });
 </script>
 
@@ -966,6 +1220,26 @@
     
     #timeInBtn.ring-2, #timeOutBtn.ring-2 {
         animation: pulse 2s infinite;
+    }
+    
+    /* Fix for button layering issues */
+    .checkout-guest-btn {
+        position: relative;
+        z-index: 50 !important;
+        isolation: isolate;
+    }
+    
+    #checkInTabBtn, #checkOutTabBtn, #guestCheckInBtn, #cancelGuestModal, #closeGuestModal {
+        position: relative;
+        z-index: 50 !important;
+    }
+    
+    #guestModal .z-30, #guestModal .z-20, #guestModal .z-10 {
+        isolation: isolate;
+    }
+    
+    #checkedInGuestsList {
+        isolation: isolate;
     }
 </style>
 @endsection

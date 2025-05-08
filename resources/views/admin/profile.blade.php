@@ -8,252 +8,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <style>
-    .profile-container {
-        max-width: 1000px;
+    .image-cropper-container {
+        max-width: 500px;
         margin: 0 auto;
     }
-    
-    .profile-card {
-        background-color: #1F2937;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        margin-bottom: 24px;
-        border: 1px solid #374151;
-    }
-    
-    .profile-card-header {
-        padding: 20px 24px;
-        background-color: #111827;
-        border-bottom: 1px solid #374151;
-        display: flex;
-        align-items: center;
-    }
-    
-    .profile-card-header h3 {
-        margin: 0;
-        color: white;
-        font-size: 18px;
-        font-weight: 600;
-    }
-    
-    .profile-card-header .icon {
-        width: 24px;
-        height: 24px;
-        margin-right: 12px;
-        color: #3B82F6;
-    }
-    
-    .profile-card-body {
-        padding: 24px;
-    }
-    
-    .profile-image-container {
-        position: relative;
-        width: 160px;
-        height: 160px;
-        margin: 0 auto 24px;
-    }
-    
-    .profile-image {
-        width: 160px;
-        height: 160px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid #3B82F6;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
-    }
-    
-    .profile-image-edit {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        background-color: #3B82F6;
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        border: 2px solid #1F2937;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        transition: all 0.2s ease;
-    }
-    
-    .profile-image-edit:hover {
-        background-color: #2563EB;
-        transform: scale(1.05);
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-label {
-        display: block;
-        margin-bottom: 8px;
-        color: #D1D5DB;
-        font-size: 14px;
-        font-weight: 500;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 10px 14px;
-        background-color: #374151;
-        border: 1px solid #4B5563;
-        border-radius: 6px;
-        color: white;
-        font-size: 15px;
-        transition: all 0.2s ease;
-    }
-    
-    .form-control:focus {
-        border-color: #3B82F6;
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
-    
-    .btn {
-        padding: 10px 16px;
-        font-size: 15px;
-        font-weight: 500;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        border: none;
-    }
-    
-    .btn-primary {
-        background-color: #3B82F6;
-        color: white;
-    }
-    
-    .btn-primary:hover {
-        background-color: #2563EB;
-        transform: translateY(-1px);
-    }
-    
-    .btn-secondary {
-        background-color: #4B5563;
-        color: white;
-    }
-    
-    .btn-secondary:hover {
-        background-color: #374151;
-        transform: translateY(-1px);
-    }
-    
-    .btn-icon {
-        margin-right: 8px;
-    }
-    
-    .alert {
-        padding: 12px 16px;
-        margin-bottom: 20px;
-        border-radius: 6px;
-        font-size: 15px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .alert-success {
-        background-color: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.2);
-        color: #10B981;
-    }
-    
-    .alert-danger {
-        background-color: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        color: #EF4444;
-    }
-    
-    .alert-icon {
-        margin-right: 12px;
-        font-size: 18px;
-    }
-    
-    .text-danger {
-        color: #EF4444;
-        font-size: 13px;
-        margin-top: 4px;
-        display: block;
-    }
-    
-    .profile-info {
-        text-align: center;
-        margin-bottom: 24px;
-    }
-    
-    .profile-name {
-        font-size: 24px;
-        font-weight: 700;
-        color: white;
-        margin: 8px 0;
-    }
-    
-    .profile-role {
-        display: inline-block;
-        background-color: #3B82F6;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 9999px;
-        font-size: 13px;
-        font-weight: 500;
-        margin-bottom: 8px;
-    }
-    
-    .profile-email {
-        color: #9CA3AF;
-        font-size: 15px;
-    }
-    
-    .tab-container {
-        margin-bottom: 24px;
-    }
-    
-    .tab-nav {
-        display: flex;
-        border-bottom: 1px solid #374151;
-        margin-bottom: 24px;
-    }
-    
-    .tab-btn {
-        padding: 12px 20px;
-        font-size: 15px;
-        font-weight: 500;
-        color: #9CA3AF;
-        background: none;
-        border: none;
-        border-bottom: 2px solid transparent;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    
-    .tab-btn.active {
-        color: #3B82F6;
-        border-bottom-color: #3B82F6;
-    }
-    
-    .tab-btn:hover:not(.active) {
-        color: #D1D5DB;
-    }
-    
-    .tab-content {
-        display: none;
-    }
-    
-    .tab-content.active {
-        display: block;
-    }
-    
     .cropper-container {
-        max-width: 100%;
+        margin-bottom: 15px;
     }
-    
+    .cropper-view-box,
+    .cropper-face {
+        border-radius: 50%;
+    }
     .preview {
         width: 150px;
         height: 150px;
@@ -261,166 +26,243 @@
         overflow: hidden;
         margin: 0 auto;
     }
-    
-    .modal-content {
-        background-color: #1F2937;
-        border: 1px solid #374151;
+    /* Hide the cropper modal by default */
+    #cropperModal {
+        display: none;
     }
-    
-    .modal-header {
-        border-bottom: 1px solid #374151;
-    }
-    
-    .modal-footer {
-        border-top: 1px solid #374151;
-    }
-    
-    .breadcrumb-item a {
-        color: #3B82F6;
-        text-decoration: none;
-    }
-    
-    .breadcrumb-item a:hover {
-        text-decoration: underline;
-    }
-    
-    .breadcrumb-item.active {
-        color: #9CA3AF;
+    /* Additional styles for cropper responsiveness */
+    @media (max-height: 700px) {
+        .image-cropper-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        #cropperContainer {
+            max-height: 400px;
+            overflow: hidden;
+        }
     }
 </style>
 
-<div class="container-fluid px-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="mt-4 mb-1">Admin Profile</h1>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Profile</li>
-                </ol>
-            </nav>
-        </div>
-    </div>
-
-    @if(session('success'))
-        <div class="alert alert-success" role="alert">
-            <i class="fas fa-check-circle alert-icon"></i>
-            {{ session('success') }}
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger" role="alert">
-            <i class="fas fa-exclamation-circle alert-icon"></i>
-            {{ session('error') }}
-        </div>
-    @endif
-
-    <div class="profile-container">
-        <div class="profile-card">
-            <div class="profile-card-body">
-                <div class="profile-image-container">
-                    <img id="preview-image" 
-                        src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" 
-                        alt="Profile Picture" 
-                        class="profile-image">
-                    <div id="change-photo-btn" class="profile-image-edit">
-                        <i class="fas fa-camera"></i>
+<div class="container mx-auto px-4 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+        <!-- Left Column - Profile Summary -->
+        <div class="md:w-1/3">
+            <div class="bg-[#1F2937] rounded-2xl shadow-md border border-[#374151] overflow-hidden">
+                <!-- Profile Header -->
+                <div class="p-6 text-center border-b border-[#374151]">
+                    <div class="relative inline-block mb-4">
+                        <div class="h-28 w-28 mx-auto rounded-full overflow-hidden border-4 border-[#374151]">
+                            @if(Auth::user()->profile_image)
+                                <img src="{{ asset(Auth::user()->profile_image) }}" alt="{{ Auth::user()->full_name }}" class="h-full w-full object-cover">
+                            @else
+                                <div class="h-full w-full bg-red-600 flex items-center justify-center">
+                                    <span class="text-white font-bold text-2xl">{{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="absolute bottom-0 right-0 bg-green-500 h-4 w-4 rounded-full border-2 border-[#1F2937]"></div>
+                    </div>
+                    <h2 class="text-xl font-bold text-white">{{ Auth::user()->full_name }}</h2>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white mt-2">
+                        Administrator
+                    </span>
+                </div>
+                
+                <!-- Contact Information -->
+                <div class="p-6 border-b border-[#374151]">
+                    <h3 class="text-sm uppercase text-[#9CA3AF] font-semibold mb-4">Contact Information</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-envelope text-[#9CA3AF] w-5"></i>
+                            <span class="ml-3 text-white">{{ Auth::user()->email }}</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-phone text-[#9CA3AF] w-5"></i>
+                            <span class="ml-3 text-white">{{ Auth::user()->mobile_number ?? 'Not provided' }}</span>
+                        </div>
                     </div>
                 </div>
-                <div class="profile-info">
-                    <h2 class="profile-name">{{ Auth::user()->full_name }}</h2>
-                    <span class="profile-role">Administrator</span>
-                    <p class="profile-email">{{ Auth::user()->email }}</p>
+                
+                <!-- Account Information -->
+                <div class="p-6">
+                    <h3 class="text-sm uppercase text-[#9CA3AF] font-semibold mb-4">Account Information</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-calendar text-[#9CA3AF] w-5"></i>
+                            <span class="ml-3 text-white">Joined: {{ Auth::user()->created_at->format('M d, Y') }}</span>
+                        </div>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-clock text-[#9CA3AF] w-5"></i>
+                            <span class="ml-3 text-white">Last login: {{ now()->subHours(rand(1, 24))->format('M d, Y H:i A') }}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
-        <div class="tab-container">
-            <div class="tab-nav">
-                <button class="tab-btn active" data-tab="profile">Account Information</button>
-                <button class="tab-btn" data-tab="password">Change Password</button>
-            </div>
-            
-            <div id="profile-tab" class="tab-content active">
-                <div class="profile-card">
-                    <div class="profile-card-header">
-                        <i class="fas fa-user icon"></i>
-                        <h3>Personal Information</h3>
-                    </div>
-                    <div class="profile-card-body">
-                        <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
-                            @csrf
-                            <input type="hidden" id="cropped_image" name="cropped_image">
-                            <input type="file" id="profile_image" class="d-none" name="profile_image" accept="image/*">
+        <!-- Right Column - Profile Settings -->
+        <div class="md:w-2/3">
+            <div class="bg-[#1F2937] rounded-2xl shadow-md border border-[#374151] overflow-hidden">
+                <div class="p-6 border-b border-[#374151]">
+                    <h2 class="text-xl font-bold text-white">Profile Settings</h2>
+                </div>
+                
+                <!-- Settings Form -->
+                <div class="p-6">
+                    <form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        
+                        <!-- Personal Information Section -->
+                        <div class="mb-8">
+                            <h3 class="text-white font-semibold mb-4 pb-2 border-b border-[#374151]">Personal Information</h3>
                             
-                            <div class="form-group">
-                                <label for="full_name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="full_name" name="full_name" value="{{ Auth::user()->full_name }}">
-                                @error('full_name')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="md:col-span-2">
+                                    <label for="full_name" class="block text-sm font-medium text-[#9CA3AF] mb-2">Full Name</label>
+                                    <input type="text" name="full_name" id="full_name" value="{{ old('full_name', Auth::user()->full_name) }}" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    @error('full_name')
+                                        <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                
+                                <div>
+                                    <label for="email" class="block text-sm font-medium text-[#9CA3AF] mb-2">Email Address</label>
+                                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    @error('email')
+                                        <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                
+                                <div>
+                                    <label for="mobile_number" class="block text-sm font-medium text-[#9CA3AF] mb-2">Mobile Number</label>
+                                    <input type="text" name="mobile_number" id="mobile_number" value="{{ old('mobile_number', Auth::user()->mobile_number) }}" placeholder="+63 9XX XXX XXXX" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    @error('mobile_number')
+                                        <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                    @enderror
+                                    <p class="text-xs text-[#9CA3AF] mt-1">Format: +63 9XX XXX XXXX or 09XXXXXXXXX</p>
+                                </div>
                             </div>
+                        </div>
+                        
+                        <!-- Profile Image Section -->
+                        <div class="mb-8">
+                            <h3 class="text-white font-semibold mb-4 pb-2 border-b border-[#374151]">Profile Image</h3>
                             
-                            <div class="form-group">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ Auth::user()->email }}">
-                                @error('email')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <div class="flex items-start space-x-4">
+                                <div class="h-20 w-20 rounded-full overflow-hidden bg-[#374151]">
+                                    @if(Auth::user()->profile_image)
+                                        <img src="{{ asset(Auth::user()->profile_image) }}" alt="{{ Auth::user()->full_name }}" class="h-full w-full object-cover" id="profile-preview">
+                                    @else
+                                        <div class="h-full w-full bg-red-600 flex items-center justify-center" id="profile-preview-placeholder">
+                                            <span class="text-white font-bold text-xl">{{ strtoupper(substr(Auth::user()->full_name, 0, 2)) }}</span>
+                                        </div>
+                                        <img src="" alt="" class="h-full w-full object-cover hidden" id="profile-preview">
+                                    @endif
+                                </div>
+                                
+                                <div class="flex-1">
+                                    <label class="block text-sm font-medium text-[#9CA3AF] mb-2">Update Profile Image</label>
+                                    <input type="file" name="profile_image" id="profile_image" accept="image/*" class="w-full text-[#9CA3AF] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#374151] file:text-white hover:file:bg-[#4B5563]">
+                                    <input type="hidden" id="cropped_image" name="cropped_image">
+                                    @error('profile_image')
+                                        <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                    @enderror
+                                    <p class="mt-1 text-xs text-[#9CA3AF]">Recommended size: 300x300 pixels. Max file size: 2MB.</p>
+                                </div>
                             </div>
+                        </div>
+                        
+                        <!-- Password Change Section -->
+                        <div class="mb-8">
+                            <h3 class="text-white font-semibold mb-4 pb-2 border-b border-[#374151]">Change Password</h3>
                             
-                            <div class="form-group">
-                                <label for="mobile_number" class="form-label">Mobile Number</label>
-                                <input type="text" class="form-control" id="mobile_number" name="mobile_number" value="{{ Auth::user()->mobile_number }}">
-                                @error('mobile_number')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="current_password" class="block text-sm font-medium text-[#9CA3AF] mb-2">Current Password</label>
+                                    <input type="password" name="current_password" id="current_password" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    @error('current_password')
+                                        <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="new_password" class="block text-sm font-medium text-[#9CA3AF] mb-2">New Password</label>
+                                        <input type="password" name="new_password" id="new_password" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        @error('new_password')
+                                            <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
+                                        @enderror
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="new_password_confirmation" class="block text-sm font-medium text-[#9CA3AF] mb-2">Confirm New Password</label>
+                                        <input type="password" name="new_password_confirmation" id="new_password_confirmation" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    </div>
+                                </div>
+                                
+                                <p class="text-xs text-[#9CA3AF]">Leave password fields empty if you don't want to change your password.</p>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save btn-icon"></i> Save Changes
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition">
+                                <i class="fas fa-save mr-2"></i> Save Changes
                             </button>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
             
-            <div id="password-tab" class="tab-content">
-                <div class="profile-card">
-                    <div class="profile-card-header">
-                        <i class="fas fa-key icon"></i>
-                        <h3>Change Password</h3>
-                    </div>
-                    <div class="profile-card-body">
-                        <form action="{{ route('password.update') }}" method="POST">
-                            @csrf
-                            
-                            <div class="form-group">
-                                <label for="current_password" class="form-label">Current Password</label>
-                                <input type="password" class="form-control" id="current_password" name="current_password">
-                                @error('current_password')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+            <!-- Activity Logs -->
+            <div class="bg-[#1F2937] rounded-2xl shadow-md border border-[#374151] overflow-hidden mt-6">
+                <div class="p-6 border-b border-[#374151]">
+                    <h2 class="text-xl font-bold text-white">Recent Activity</h2>
+                </div>
+                
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <!-- Sample activity logs -->
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 h-8 w-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-sign-in-alt text-white"></i>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="password" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="password" name="password">
-                                @error('password')
-                                    <span class="text-danger">{{ $message }}</span>
-                                @enderror
+                            <div class="flex-1">
+                                <p class="text-white font-medium">System Login</p>
+                                <p class="text-xs text-[#9CA3AF]">{{ now()->subHours(2)->format('M d, Y H:i A') }}</p>
                             </div>
-                            
-                            <div class="form-group">
-                                <label for="password_confirmation" class="form-label">Confirm New Password</label>
-                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation">
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 h-8 w-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-edit text-white"></i>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-key btn-icon"></i> Update Password
-                            </button>
-                        </form>
+                            <div class="flex-1">
+                                <p class="text-white font-medium">Updated Membership Plan</p>
+                                <p class="text-xs text-[#9CA3AF]">{{ now()->subDays(1)->format('M d, Y H:i A') }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 h-8 w-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-plus text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-medium">Added New Trainer</p>
+                                <p class="text-xs text-[#9CA3AF]">{{ now()->subDays(3)->format('M d, Y H:i A') }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="flex-shrink-0 h-8 w-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-chart-line text-white"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-white font-medium">Generated Monthly Report</p>
+                                <p class="text-xs text-[#9CA3AF]">{{ now()->subDays(7)->format('M d, Y H:i A') }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -429,124 +271,206 @@
 </div>
 
 <!-- Image Cropper Modal -->
-<div class="modal fade" id="cropperModal" tabindex="-1" aria-labelledby="cropperModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="cropperModalLabel">Crop Profile Image</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+<div id="cropperModal" class="fixed inset-0 bg-black bg-opacity-70 z-[100] flex items-center justify-center overflow-y-auto">
+    <div class="bg-[#1F2937] rounded-xl shadow-xl border border-[#374151] w-full max-w-2xl max-h-[90vh] overflow-y-auto my-4 mx-2">
+        <div class="p-6 border-b border-[#374151] sticky top-0 bg-[#1F2937] z-10">
+            <div class="flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Crop Profile Image</h3>
+                <button type="button" id="closeCropperModal" class="text-[#9CA3AF] hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div class="modal-body">
-                <div class="image-cropper-container">
-                    <div id="cropperContainer">
-                        <img id="cropperImage" src="" alt="Image to crop" style="max-width: 100%;">
-                    </div>
-                    <div class="mt-3">
-                        <div class="preview"></div>
-                    </div>
-                </div>
+        </div>
+        
+        <div class="image-cropper-container p-6">
+            <div id="cropperContainer" class="mb-4">
+                <img id="cropperImage" src="" class="max-w-full">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="crop-btn">Apply & Save</button>
+            
+            <div class="preview mb-6"></div>
+            
+            <div class="flex justify-end space-x-3 sticky bottom-0 pt-4 pb-2 bg-[#1F2937] border-t border-[#374151]">
+                <button type="button" id="cancelCrop" class="px-5 py-2 bg-[#374151] text-white rounded-lg hover:bg-[#4B5563] transition-colors">
+                    Cancel
+                </button>
+                <button type="button" id="applyCrop" class="px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Apply Crop
+                </button>
             </div>
         </div>
     </div>
 </div>
-@endsection
 
-@push('scripts')
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    $(document).ready(function() {
-        // Tab functionality
-        $('.tab-btn').click(function() {
-            const tabId = $(this).data('tab');
-            
-            // Update active tab button
-            $('.tab-btn').removeClass('active');
-            $(this).addClass('active');
-            
-            // Show selected tab content
-            $('.tab-content').removeClass('active');
-            $(`#${tabId}-tab`).addClass('active');
-        });
-        
-        // Image cropper functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image Cropper
         let cropper;
+        const profileImageInput = document.getElementById('profile_image');
+        const previewImage = document.getElementById('profile-preview');
+        const croppedImageInput = document.getElementById('cropped_image');
+        const cropperModal = document.getElementById('cropperModal');
+        const cropperImage = document.getElementById('cropperImage');
+        const closeCropperModal = document.getElementById('closeCropperModal');
+        const cancelCrop = document.getElementById('cancelCrop');
+        const applyCrop = document.getElementById('applyCrop');
+        const profilePlaceholder = document.getElementById('profile-preview-placeholder');
         
-        // Initialize the image cropper when an image is selected
-        $('#change-photo-btn').click(function() {
-            $('#profile_image').click();
-        });
+        // Initialize - hide the cropper modal
+        cropperModal.style.display = 'none';
         
-        $('#profile_image').change(function(e) {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                const reader = new FileReader();
+        // Handle file selection
+        profileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (file) {
+                // File size validation (2MB max)
+                if (file.size > 2 * 1024 * 1024) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'File size should not exceed 2MB',
+                        icon: 'error',
+                        confirmButtonColor: '#EF4444',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        customClass: {
+                            popup: 'rounded-lg border border-[#374151]',
+                            title: 'text-white text-xl',
+                            htmlContainer: 'text-[#9CA3AF]',
+                            confirmButton: 'rounded-md px-4 py-2'
+                        }
+                    });
+                    profileImageInput.value = '';
+                    return;
+                }
                 
-                reader.onload = function(event) {
-                    // Set the image source
-                    $('#cropperImage').attr('src', event.target.result);
+                // Create a FileReader to read the image
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Set the image source for the cropper
+                    cropperImage.src = e.target.result;
                     
                     // Show the cropper modal
-                    $('#cropperModal').modal('show');
+                    cropperModal.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
                     
-                    // Initialize cropper after the modal is shown
-                    $('#cropperModal').on('shown.bs.modal', function() {
+                    // Initialize Cropper.js after the image has loaded
+                    setTimeout(() => {
                         if (cropper) {
                             cropper.destroy();
                         }
                         
-                        cropper = new Cropper(document.getElementById('cropperImage'), {
-                            aspectRatio: 1,
-                            viewMode: 1,
-                            preview: '.preview',
+                        cropper = new Cropper(cropperImage, {
+                            aspectRatio: 1, // 1:1 ratio for profile picture
+                            viewMode: 1,     // Restrict the crop box to not exceed the size of the canvas
+                            guides: true,    // Show the dashed lines for guiding
+                            center: true,    // Show the center indicator for guiding
+                            minContainerWidth: 250,
+                            minContainerHeight: 250,
                             dragMode: 'move',
-                            autoCropArea: 0.8,
-                            responsive: true,
-                            restore: false,
-                            guides: true,
-                            center: true,
-                            highlight: false,
+                            preview: '.preview',
                             cropBoxMovable: true,
                             cropBoxResizable: true,
                             toggleDragModeOnDblclick: false
                         });
-                    });
+                    }, 200);
                 };
-                
                 reader.readAsDataURL(file);
             }
         });
         
-        // Crop and save the image
-        $('#crop-btn').click(function() {
+        // Handle closing the cropper modal
+        closeCropperModal.addEventListener('click', closeCropperDialog);
+        cancelCrop.addEventListener('click', closeCropperDialog);
+        
+        function closeCropperDialog() {
+            cropperModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            
+            // Reset the file input
+            profileImageInput.value = '';
+        }
+        
+        // Handle applying the crop
+        applyCrop.addEventListener('click', function() {
             if (!cropper) return;
             
             // Get the cropped canvas
             const canvas = cropper.getCroppedCanvas({
                 width: 300,
-                height: 300
+                height: 300,
+                minWidth: 100,
+                minHeight: 100,
+                maxWidth: 4096,
+                maxHeight: 4096,
+                fillColor: '#fff',
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
             });
             
-            if (canvas) {
-                // Convert canvas to base64 string
-                const croppedImageData = canvas.toDataURL('image/jpeg');
-                
-                // Set the cropped image to the preview
-                $('#preview-image').attr('src', croppedImageData);
-                
-                // Set the cropped image data to the hidden input
-                $('#cropped_image').val(croppedImageData);
-                
-                // Close the modal
-                $('#cropperModal').modal('hide');
-                
-                // Reset cropper
-                cropper.destroy();
-                cropper = null;
+            // Convert canvas to data URL
+            const croppedImageData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Set the cropped image data to the hidden input
+            croppedImageInput.value = croppedImageData;
+            
+            // Update the preview image
+            previewImage.src = croppedImageData;
+            previewImage.classList.remove('hidden');
+            
+            if (profilePlaceholder) {
+                profilePlaceholder.classList.add('hidden');
             }
+            
+            // Close the cropper dialog
+            closeCropperDialog();
         });
+        
+        // SweetAlert for success message
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#3B82F6',
+                background: '#1F2937',
+                color: '#FFFFFF',
+                customClass: {
+                    popup: 'rounded-lg border border-[#374151]',
+                    title: 'text-white text-xl',
+                    htmlContainer: 'text-[#9CA3AF]',
+                    confirmButton: 'rounded-md px-4 py-2'
+                }
+            });
+        @endif
+        
+        // SweetAlert for error messages
+        @if($errors->any())
+            Swal.fire({
+                title: 'Error!',
+                html: `<ul class="text-left">
+                    @foreach($errors->all() as $error)
+                        <li class="text-sm text-gray-300 mb-1">• {{ $error }}</li>
+                    @endforeach
+                </ul>`,
+                icon: 'error',
+                confirmButtonColor: '#EF4444',
+                background: '#1F2937',
+                color: '#FFFFFF',
+                customClass: {
+                    popup: 'rounded-lg border border-[#374151]',
+                    title: 'text-white text-xl',
+                    htmlContainer: 'text-[#9CA3AF] pt-4',
+                    confirmButton: 'rounded-md px-4 py-2'
+                }
+            });
+        @endif
     });
 </script>
-@endpush 
+@endsection 

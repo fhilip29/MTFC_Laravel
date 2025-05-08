@@ -22,12 +22,6 @@
         </div>
         
         <div class="p-5">
-            @if(session('success'))
-                <div class="bg-green-500 bg-opacity-20 text-green-500 p-3 rounded-lg mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             @if($messages->count() > 0)
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">
@@ -36,7 +30,6 @@
                                 <th class="py-3 px-4 text-left">From</th>
                                 <th class="py-3 px-4 text-left">Subject</th>
                                 <th class="py-3 px-4 text-left">Date</th>
-                                <th class="py-3 px-4 text-left">Status</th>
                                 <th class="py-3 px-4 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -60,22 +53,14 @@
                                     </td>
                                     <td class="py-3 px-4 font-medium {{ $message->is_read ? 'text-[#9CA3AF]' : 'text-white' }}">
                                         {{ $message->subject }}
+                                        @if(!$message->is_read)
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
+                                                New
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="py-3 px-4">
                                         {{ \Carbon\Carbon::parse($message->created_at)->format('M d, Y h:i A') }}
-                                    </td>
-                                    <td class="py-3 px-4">
-                                        @if($message->is_read)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-500 bg-opacity-20 text-green-500">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-green-500 mr-1"></span>
-                                                Read
-                                            </span>
-                                        @else
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500 bg-opacity-20 text-red-500">
-                                                <span class="h-1.5 w-1.5 rounded-full bg-red-500 mr-1"></span>
-                                                Unread
-                                            </span>
-                                        @endif
                                     </td>
                                     <td class="py-3 px-4 text-center">
                                         <a href="{{ route('admin.messages.show', $message->id) }}" class="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1 rounded transition">
@@ -101,4 +86,27 @@
         </div>
     </div>
 </div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#3B82F6',
+                background: '#1F2937',
+                color: '#FFFFFF',
+                customClass: {
+                    popup: 'rounded-lg border border-[#374151]',
+                    title: 'text-white text-xl',
+                    htmlContainer: 'text-[#9CA3AF]',
+                    confirmButton: 'rounded-md px-4 py-2'
+                }
+            });
+        @endif
+    });
+</script>
 @endsection 

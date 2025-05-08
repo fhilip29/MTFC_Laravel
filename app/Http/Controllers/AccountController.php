@@ -45,12 +45,19 @@ class AccountController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'mobile_number' => ['nullable', 'string', 'max:20', Rule::unique('users')->ignore($user->id)],
+            'mobile_number' => [
+                'nullable', 
+                'string', 
+                'regex:/^(\+63|0)9\d{9}$/', 
+                Rule::unique('users')->ignore($user->id)
+            ],
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'other_gender' => ['nullable', 'string', 'required_if:gender,other'],
             'fitness_goal' => ['nullable', 'string', 'in:weight-loss,muscle-gain,endurance,flexibility,general-fitness'],
             'profile_image' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:4096'], // 4MB
             'cropped_image' => ['nullable', 'string'],
+        ], [
+            'mobile_number.regex' => 'The mobile number must be a valid Philippine phone number (e.g., +639123456789 or 09123456789).'
         ]);
 
         if ($validator->fails()) {
@@ -162,6 +169,9 @@ class AccountController extends Controller
         $validator = Validator::make($request->all(), [
             'current_password' => ['required', 'string'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.confirmed' => 'The password confirmation does not match.'
         ]);
 
         if ($validator->fails()) {

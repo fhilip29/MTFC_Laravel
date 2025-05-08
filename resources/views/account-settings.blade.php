@@ -131,6 +131,9 @@
                             <div>
                                 <label class="block text-gray-600 text-sm mb-1">Mobile Number</label>
                                 <input type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}"
+                                    placeholder="Philippine Phone Number (e.g., 09123456789)" 
+                                    pattern="^(\+63|0)9\d{9}$"
+                                    title="Please enter a valid Philippine mobile number (e.g., 09123456789 or +639123456789)"
                                     class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
                                 @error('mobile_number')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>

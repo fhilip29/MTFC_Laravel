@@ -30,6 +30,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileDebugController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\AdminProfileController;
+use App\Http\Controllers\AdminSessionController;
 
 
 
@@ -37,6 +39,7 @@ use App\Http\Controllers\MessageController;
 // Community routes
 Route::get('/community', [PostController::class, 'index'])->name('community'); // View all posts
 Route::get('/community/search', [PostController::class, 'search'])->name('community.search'); // Search posts
+Route::get('/community/tag/{tag}', [PostController::class, 'byTag'])->name('community.tag'); // Filter by tag
 
 // Post-related routes
 Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create'); // Form for creating post
@@ -190,6 +193,9 @@ Route::middleware(['auth', \App\Http\Middleware\RoleMiddleware::class . ':traine
 // ADMIN ROUTES
 // ===================
 
+// Admin Profile Routes
+Route::get('/admin/profile', [\App\Http\Controllers\AdminProfileController::class, 'index'])->name('admin.profile');
+Route::post('/admin/profile/update', [\App\Http\Controllers\AdminProfileController::class, 'update'])->name('admin.profile.update');
 
 // Trainer management
 Route::get('/admin/trainer/admin_trainer', [TrainerController::class, 'indexAdmin'])->name('admin.trainer.admin_trainer');
@@ -210,6 +216,7 @@ Route::post('/admin/members/{user}/archive', [AdminMemberController::class, 'arc
 //Sessions module
 Route::get('/admin/session/admin_session', [SessionController::class, 'index'])->name('admin.session.admin_session');
 Route::post('/admin/sessions/store', [SessionController::class, 'store'])->name('admin.session.store');
+Route::get('/admin/sessions/guest-list', [\App\Http\Controllers\AdminSessionController::class, 'getCheckedInGuests'])->name('admin.session.guest-list');
 
 
 //Products module

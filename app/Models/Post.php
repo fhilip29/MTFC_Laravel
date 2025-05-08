@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    protected $fillable = ['content', 'user_id'];
+    protected $fillable = ['content', 'user_id', 'tag_ids'];
 
     // Define the user who created the post
     public function user()
@@ -20,10 +20,10 @@ class Post extends Model
         return $this->hasMany(PostImage::class);
     }
 
-    // Define the many-to-many relationship for likes (relationship name: likes)
+    // Define the likes relationship
     public function likes()
     {
-        return $this->belongsToMany(User::class, 'post_likes');
+        return $this->hasMany(PostLike::class);
     }
 
     // Define the comments associated with the post
@@ -36,5 +36,12 @@ class Post extends Model
     {
         return $this->belongsToMany(User::class, 'post_likes')->withTimestamps();
     }
-
+    
+    /**
+     * The tags that belong to the post
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(PostTag::class, 'post_tag', 'post_id', 'post_tag_id');
+    }
 }

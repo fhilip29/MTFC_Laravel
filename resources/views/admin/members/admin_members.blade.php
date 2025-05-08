@@ -182,7 +182,7 @@
                             <tr id="member-row-{{ $member->id }}" class="hover:bg-[#374151] transition-colors">
                                 <td class="px-4 py-3 text-white">
                                     <div class="flex items-center gap-3">
-                                        <img src="{{ $member->profile_image ? asset('storage/' . $member->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                        <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default-profile.jpg') }}" 
                                              alt="{{ $member->full_name }}" class="w-10 h-10 rounded-full object-cover">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ $member->full_name }}</span>

@@ -16,19 +16,16 @@
     <div class="bg-[#1F2937] rounded-2xl shadow-md border border-[#374151] overflow-hidden mb-6">
         <div class="p-5 border-b border-[#374151] flex justify-between items-center">
             <h2 class="text-lg font-semibold text-white">{{ $message->subject }}</h2>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $message->is_read ? 'bg-green-500 bg-opacity-20 text-green-500' : 'bg-red-500 bg-opacity-20 text-red-500' }}">
-                <span class="h-1.5 w-1.5 rounded-full {{ $message->is_read ? 'bg-green-500' : 'bg-red-500' }} mr-1"></span>
-                {{ $message->is_read ? 'Read' : 'Unread' }}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                {{ $message->sender->role === 'admin' ? 'bg-red-500' : '' }}
+                {{ $message->sender->role === 'trainer' ? 'bg-purple-500' : '' }}
+                {{ $message->sender->role === 'member' ? 'bg-blue-500' : '' }}
+                text-white">
+                {{ ucfirst($message->sender->role) }}
             </span>
         </div>
 
         <div class="p-5">
-            @if(session('success'))
-                <div class="bg-green-500 bg-opacity-20 text-green-500 p-3 rounded-lg mb-4">
-                    {{ session('success') }}
-                </div>
-            @endif
-
             <!-- Sender Info -->
             <div class="mb-6 pb-4 border-b border-[#374151]">
                 <div class="flex items-center space-x-4">
@@ -119,4 +116,27 @@
         </div>
     @endif
 </div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        @if(session('success'))
+            Swal.fire({
+                title: 'Success!',
+                text: "{{ session('success') }}",
+                icon: 'success',
+                confirmButtonColor: '#3B82F6',
+                background: '#1F2937',
+                color: '#FFFFFF',
+                customClass: {
+                    popup: 'rounded-lg border border-[#374151]',
+                    title: 'text-white text-xl',
+                    htmlContainer: 'text-[#9CA3AF]',
+                    confirmButton: 'rounded-md px-4 py-2'
+                }
+            });
+        @endif
+    });
+</script>
 @endsection 

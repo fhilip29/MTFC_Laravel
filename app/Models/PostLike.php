@@ -20,9 +20,4 @@ class PostLike extends Model
     {
         return $this->belongsTo(Post::class);
     }
-
-    public function likes()
-    {
-        return $this->hasMany(PostLike::class);
-    }
 }

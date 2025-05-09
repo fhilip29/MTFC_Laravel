@@ -53,7 +53,9 @@
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
-                        @elseif($isTrainer)
+                        @elseif($userRole === 'admin')
+                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Admin</span>
+                        @elseif($userRole === 'trainer')
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
                             <button onclick="openWaiverModal('boxing', 'monthly', '3000.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">
@@ -91,7 +93,9 @@
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>
-                        @elseif($isTrainer)
+                        @elseif($userRole === 'admin')
+                            <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Admin</span>
+                        @elseif($userRole === 'trainer')
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Trainer</span>
                         @else
                             <button onclick="openWaiverModal('boxing', 'per-session', '300.00')" class="text-sm px-3 py-1 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition">

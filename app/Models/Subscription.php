@@ -67,4 +67,12 @@ class Subscription extends Model
         // For time-based plans, check if end_date is in the future
         return $this->end_date->gt(Carbon::now());
     }
+
+    /**
+     * Get the invoices for the subscription.
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

@@ -66,7 +66,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://{{ $_SERVER['HTTP_HOST'] ?? env('APP_URL', 'yourdomain.com') }}/assets/MTFC_LOGO.PNG" alt="MTFC Logo">
+            <img src="{{ url('assets/MTFC_LOGO.PNG') }}" alt="MTFC Logo">
         </div>
         <div class="content">
             <h2>Password Reset Request</h2>

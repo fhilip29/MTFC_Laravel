@@ -151,8 +151,9 @@
     }
 
     .trainers-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
         gap: 2rem;
         padding: 2rem;
         max-width: 1200px;
@@ -167,8 +168,11 @@
         background: #1a1a1a;
         border-radius: 15px;
         overflow: hidden;
-        transition: transform 0.3s ease;
+        transition: transform 0.3s ease, opacity 0.3s ease, box-shadow 0.3s ease;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 320px;
+        flex-shrink: 0;
+        margin-bottom: 1rem;
     }
 
     .trainer-card:hover {
@@ -176,9 +180,15 @@
         box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
     }
 
+    .trainer-image {
+        width: 100%;
+        height: 320px;
+        overflow: hidden;
+    }
+
     .trainer-image img {
         width: 100%;
-        height: 350px;
+        height: 100%;
         object-fit: cover;
         transition: transform 0.3s ease;
     }
@@ -232,8 +242,6 @@
         margin: 0.3rem 0;
     }
 
-
-
     @media (max-width: 768px) {
         .hero-content h1 {
             font-size: 2rem;
@@ -244,8 +252,12 @@
         }
 
         .trainers-container {
-            grid-template-columns: 1fr;
             padding: 1rem;
+        }
+        
+        .trainer-card {
+            width: 100%;
+            max-width: 350px;
         }
     }
 </style>
@@ -267,15 +279,30 @@
                 // Get filter value
                 const filterValue = this.getAttribute('data-filter');
                 
-                // Show/hide trainer cards based on filter
+                // Show/hide trainer cards based on filter with smooth transitions
                 trainerCards.forEach(card => {
                     if (filterValue === 'all') {
-                        card.style.display = 'block';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.style.display = 'block';
+                            setTimeout(() => {
+                                card.style.opacity = '1';
+                            }, 50);
+                        }, 300);
                     } else {
                         if (card.getAttribute('data-category').includes(filterValue)) {
-                            card.style.display = 'block';
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.style.display = 'block';
+                                setTimeout(() => {
+                                    card.style.opacity = '1';
+                                }, 50);
+                            }, 300);
                         } else {
-                            card.style.display = 'none';
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.style.display = 'none';
+                            }, 300);
                         }
                     }
                 });

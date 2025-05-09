@@ -47,6 +47,15 @@ class OrderController extends Controller
             ], 401);
         }
 
+        // Prevent admins and trainers from placing orders
+        $user = Auth::user();
+        if ($user->role === 'admin' || $user->role === 'trainer') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Admin and trainer accounts cannot place orders. Please use a member account for shopping.',
+            ], 403);
+        }
+
         // Validate the request
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',

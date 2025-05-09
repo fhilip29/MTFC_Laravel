@@ -101,6 +101,105 @@ Route::post('/password/verify-code', [PasswordResetController::class, 'verifyCod
 Route::post('/password/reset', [PasswordResetController::class, 'resetPassword'])->name('password.reset');
 Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset.form');
 
+// SMTP Test Page (only available in local/development environment)
+if (app()->environment(['local', 'development'])) {
+    Route::view('/test-smtp', 'test-smtp')->name('test.smtp');
+    Route::post('/test-smtp-send', function(Illuminate\Http\Request $request) {
+        try {
+            $request->validate([
+                'email' => 'required|email',
+                'subject' => 'required|string',
+                'message' => 'required|string'
+            ]);
+            
+            $mailConfig = [
+                'driver' => config('mail.default'),
+                'host' => config('mail.mailers.smtp.host'),
+                'port' => config('mail.mailers.smtp.port'),
+                'encryption' => config('mail.mailers.smtp.encryption'),
+                'from_address' => config('mail.from.address'),
+                'from_name' => config('mail.from.name'),
+                'username' => config('mail.mailers.smtp.username') ? '(set)' : '(not set)',
+                'password' => config('mail.mailers.smtp.password') ? '(set)' : '(not set)',
+            ];
+            
+            // Log the attempt
+            \Log::info('SMTP Test Email Request', [
+                'to' => $request->email,
+                'subject' => $request->subject,
+                'config' => $mailConfig
+            ]);
+            
+            $startTime = microtime(true);
+            
+            // Try to send the email
+            \Illuminate\Support\Facades\Mail::raw($request->message, function($message) use ($request) {
+                $message->to($request->email)
+                        ->subject($request->subject);
+            });
+            
+            $endTime = microtime(true);
+            $duration = round(($endTime - $startTime) * 1000, 2); // in milliseconds
+            
+            \Log::info('SMTP Test Email Success', [
+                'to' => $request->email,
+                'duration_ms' => $duration
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Test email sent successfully to ' . $request->email,
+                'config' => $mailConfig,
+                'duration_ms' => $duration
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Handle validation errors
+            \Log::warning('SMTP Test Validation Error', [
+                'errors' => $e->errors()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            // Log the detailed error
+            \Log::error('SMTP Test Email Failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Check for common SMTP errors and provide helpful messages
+            $errorMessage = $e->getMessage();
+            $errorDetails = null;
+            
+            if (strpos($errorMessage, 'Connection could not be established') !== false) {
+                $errorDetails = 'Could not connect to the mail server. Please check host and port settings.';
+            } elseif (strpos($errorMessage, 'Expected response code') !== false) {
+                $errorDetails = 'Authentication failed. Please check your username and password.';
+            } elseif (strpos($errorMessage, 'Incorrect username') !== false || strpos($errorMessage, 'Incorrect password') !== false) {
+                $errorDetails = 'SMTP authentication failed. Check your credentials.';
+            } elseif (strpos($errorMessage, 'ssl') !== false || strpos($errorMessage, 'tls') !== false) {
+                $errorDetails = 'SSL/TLS encryption issue. Try changing MAIL_ENCRYPTION in your .env file.';
+            }
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $errorMessage,
+                'error' => $errorMessage,
+                'error_details' => $errorDetails,
+                'config' => $mailConfig,
+                'php_version' => PHP_VERSION,
+                'server_info' => [
+                    'software' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
+                    'protocol' => $_SERVER['SERVER_PROTOCOL'] ?? 'unknown',
+                ]
+            ], 500);
+        }
+    });
+}
+
 // Google Login Routes
 Route::get('/auth/google', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
 Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);

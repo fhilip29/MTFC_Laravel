@@ -52,14 +52,6 @@ class PasswordResetController extends Controller
                 });
             }
             
-            // Only in development mode, also return the code for testing
-            if (config('app.env') === 'local' || config('app.env') === 'development') {
-                return response()->json([
-                    'message' => 'Reset code sent successfully to your email',
-                    'code' => $code // For testing in development
-                ]);
-            }
-            
             return response()->json([
                 'message' => 'Reset code sent successfully to your email'
             ]);
@@ -116,7 +108,17 @@ class PasswordResetController extends Controller
         $request->validate([
             'email' => 'required|email',
             'code' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+            'password' => [
+                'required',
+                'min:8',
+                'confirmed',
+                'regex:/[a-z]/',      // must contain at least one lowercase letter
+                'regex:/[A-Z]/',      // must contain at least one uppercase letter
+                'regex:/[0-9]/',      // must contain at least one digit
+            ],
+        ], [
+            'password.min' => 'Password must be at least 8 characters long.',
+            'password.regex' => 'Password must include at least one uppercase letter, one lowercase letter, and one number.'
         ]);
 
         // Verify code is valid

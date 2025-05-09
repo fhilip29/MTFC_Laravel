@@ -29,23 +29,36 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Store a product purchase invoice
+     * Store a product invoice
      */
-    public function storeProductInvoice($userId, $items, $totalAmount)
+    public function storeProductInvoice($userId, $items, $amount)
     {
-        $invoice = Invoice::create([
-            'invoice_number' => (string) Str::uuid(),
+        // Log product invoice creation
+        \Log::info('Creating product invoice', [
             'user_id' => $userId,
-            'type' => 'product',
-            'total_amount' => $totalAmount,
-            'invoice_date' => now()->format('Y-m-d'),
+            'items_count' => count($items),
+            'amount' => $amount
         ]);
 
+        $invoice = Invoice::create([
+            'invoice_number' => 'INV-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'user_id' => $userId,
+            'type' => 'product',
+            'total_amount' => $amount,
+            'invoice_date' => now()->format('Y-m-d'),
+            'payment_status' => 'completed',
+            'payment_method' => isset($items[0]['payment_method']) ? $items[0]['payment_method'] : 'online'
+        ]);
+
+        \Log::info('Product invoice created', ['invoice_id' => $invoice->id, 'invoice_number' => $invoice->invoice_number]);
+
+        // Create invoice items
         foreach ($items as $item) {
             InvoiceItem::create([
                 'invoice_id' => $invoice->id,
-                'description' => $item['name'],
-                'amount' => $item['price'] * $item['quantity'],
+                'description' => $item['name'] ?? 'Product',
+                'amount' => ($item['price'] ?? 0) * ($item['quantity'] ?? 1),
+                'quantity' => $item['quantity'] ?? 1
             ]);
         }
 
@@ -57,14 +70,35 @@ class InvoiceController extends Controller
      */
     public function storeSubscriptionInvoice($userId, $subscriptionDetails, $amount, $paymentStatus = 'completed')
     {
+        // Log subscription invoice creation
+        \Log::info('Creating subscription invoice', [
+            'user_id' => $userId,
+            'details' => $subscriptionDetails,
+            'amount' => $amount,
+            'status' => $paymentStatus
+        ]);
+
+        // Extract subscription ID from details if available
+        $subscriptionId = null;
+        if (is_numeric($subscriptionDetails)) {
+            $subscriptionId = $subscriptionDetails;
+            $subscriptionDetails = \App\Models\Subscription::find($subscriptionId) ? 
+                ucfirst(\App\Models\Subscription::find($subscriptionId)->type) . ' - ' . 
+                ucfirst(\App\Models\Subscription::find($subscriptionId)->plan) . ' Plan' : 
+                'Subscription Plan';
+        }
+
         $invoice = Invoice::create([
-            'invoice_number' => (string) Str::uuid(),
+            'invoice_number' => 'INV-' . strtoupper(\Illuminate\Support\Str::random(8)),
             'user_id' => $userId,
             'type' => 'subscription',
             'total_amount' => $amount,
             'invoice_date' => now()->format('Y-m-d'),
-            'payment_status' => $paymentStatus
+            'payment_status' => $paymentStatus,
+            'subscription_id' => $subscriptionId
         ]);
+
+        \Log::info('Invoice created', ['invoice_id' => $invoice->id, 'invoice_number' => $invoice->invoice_number]);
 
         InvoiceItem::create([
             'invoice_id' => $invoice->id,

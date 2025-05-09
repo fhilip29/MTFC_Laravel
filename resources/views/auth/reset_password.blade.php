@@ -30,16 +30,28 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('password.reset') }}">
+                <form method="POST" action="{{ route('password.reset') }}" id="resetPasswordForm">
                     @csrf
                     <input type="hidden" name="token" value="{{ $token }}">
                     <input type="hidden" name="email" value="{{ $email }}">
 
-                    <input type="password" name="password" placeholder="New Password"
-                        class="w-full p-3 border border-gray-300 rounded text-center mb-3"
-                        required minlength="8">
+                    <div class="mb-4">
+                        <input type="password" name="password" id="password" placeholder="New Password"
+                            class="w-full p-3 border border-gray-300 rounded text-center mb-2"
+                            required minlength="8">
+                        
+                        <div class="text-xs text-left text-gray-600 mt-1">
+                            <p>Password must contain:</p>
+                            <ul class="list-disc pl-4 mt-1">
+                                <li id="length-check" class="text-red-500">At least 8 characters</li>
+                                <li id="uppercase-check" class="text-red-500">At least one uppercase letter</li>
+                                <li id="lowercase-check" class="text-red-500">At least one lowercase letter</li>
+                                <li id="number-check" class="text-red-500">At least one number</li>
+                            </ul>
+                        </div>
+                    </div>
 
-                    <input type="password" name="password_confirmation" placeholder="Confirm Password"
+                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password"
                         class="w-full p-3 border border-gray-300 rounded text-center mb-4"
                         required minlength="8">
 
@@ -64,5 +76,90 @@
                 class="w-full h-full object-cover absolute inset-0 z-0" />
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const lengthCheck = document.getElementById('length-check');
+            const uppercaseCheck = document.getElementById('uppercase-check');
+            const lowercaseCheck = document.getElementById('lowercase-check');
+            const numberCheck = document.getElementById('number-check');
+            const form = document.getElementById('resetPasswordForm');
+            
+            // Function to validate password
+            function validatePassword() {
+                const password = passwordInput.value;
+                
+                // Check length
+                if (password.length >= 8) {
+                    lengthCheck.classList.remove('text-red-500');
+                    lengthCheck.classList.add('text-green-500');
+                } else {
+                    lengthCheck.classList.remove('text-green-500');
+                    lengthCheck.classList.add('text-red-500');
+                }
+                
+                // Check uppercase
+                if (/[A-Z]/.test(password)) {
+                    uppercaseCheck.classList.remove('text-red-500');
+                    uppercaseCheck.classList.add('text-green-500');
+                } else {
+                    uppercaseCheck.classList.remove('text-green-500');
+                    uppercaseCheck.classList.add('text-red-500');
+                }
+                
+                // Check lowercase
+                if (/[a-z]/.test(password)) {
+                    lowercaseCheck.classList.remove('text-red-500');
+                    lowercaseCheck.classList.add('text-green-500');
+                } else {
+                    lowercaseCheck.classList.remove('text-green-500');
+                    lowercaseCheck.classList.add('text-red-500');
+                }
+                
+                // Check number
+                if (/[0-9]/.test(password)) {
+                    numberCheck.classList.remove('text-red-500');
+                    numberCheck.classList.add('text-green-500');
+                } else {
+                    numberCheck.classList.remove('text-green-500');
+                    numberCheck.classList.add('text-red-500');
+                }
+            }
+            
+            // Listen for input changes
+            passwordInput.addEventListener('input', validatePassword);
+            
+            // Form submission validation
+            form.addEventListener('submit', function(event) {
+                const password = passwordInput.value;
+                const confirmPassword = document.getElementById('password_confirmation').value;
+                
+                const isLengthValid = password.length >= 8;
+                const isUppercaseValid = /[A-Z]/.test(password);
+                const isLowercaseValid = /[a-z]/.test(password);
+                const isNumberValid = /[0-9]/.test(password);
+                
+                if (!isLengthValid || !isUppercaseValid || !isLowercaseValid || !isNumberValid) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Invalid Password',
+                        text: 'Your password must meet all the requirements.'
+                    });
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    event.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Passwords Do Not Match',
+                        text: 'Please make sure your passwords match.'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html> 

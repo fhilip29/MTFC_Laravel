@@ -17,6 +17,17 @@ window.addToCart = function(product) {
     console.log('Adding to cart:', product);
     
     @auth
+    @if(Auth::user()->role === 'admin')
+    // For admin accounts, show a message they can't purchase
+    Swal.fire({
+        title: 'Admin Account',
+        text: 'Admin accounts cannot make purchases. Please use a member account to shop.',
+        icon: 'info',
+        confirmButtonColor: '#EF4444'
+    });
+    return;
+    @endif
+    
     // Get existing cart from localStorage
     let cart = JSON.parse(localStorage.getItem('cart')) || [];
     
@@ -284,10 +295,17 @@ function addToCartFromModal() {
                                     </div>
                                 </div>
                                 @auth
+                                @if(Auth::user()->role === 'admin')
+                                <button disabled class="w-full bg-gray-400 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg flex items-center justify-center gap-2 shadow-md opacity-70 cursor-not-allowed">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Admin</span>
+                                </button>
+                                @else
                                 <button id="modalAddToCartBtn" onclick="addToCartFromModal()" class="w-full bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add to Cart</span>
                                 </button>
+                                @endif
                                 @else
                                 <button id="modalLoginBtn" onclick="showLoginPrompt()" class="w-full bg-red-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:bg-red-700 transition-all flex items-center justify-center gap-2 shadow-md transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50">
                                     <i class="fas fa-sign-in-alt"></i>
@@ -408,6 +426,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
                                 </button>
+                                @auth
+                                @if(Auth::user()->role === 'admin')
+                                <button disabled class="flex-1 flex items-center justify-center gap-1 bg-gray-400 text-white px-3 py-2 rounded-lg text-sm cursor-not-allowed opacity-70">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Admin</span>
+                                </button>
+                                @else
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
@@ -421,6 +446,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
                                 </button>
+                                @endif
+                                @else
+                                <button onclick="showLoginPrompt()" class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Login</span>
+                                </button>
+                                @endauth
                             </div>
                         </div>
                     </div>
@@ -469,6 +501,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
                                 </button>
+                                @auth
+                                @if(Auth::user()->role === 'admin')
+                                <button disabled class="flex-1 flex items-center justify-center gap-1 bg-gray-400 text-white px-3 py-2 rounded-lg text-sm cursor-not-allowed opacity-70">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Admin</span>
+                                </button>
+                                @else
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
@@ -482,6 +521,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
                                 </button>
+                                @endif
+                                @else
+                                <button onclick="showLoginPrompt()" class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Login</span>
+                                </button>
+                                @endauth
                             </div>
                         </div>
                     </div>
@@ -530,6 +576,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
                                 </button>
+                                @auth
+                                @if(Auth::user()->role === 'admin')
+                                <button disabled class="flex-1 flex items-center justify-center gap-1 bg-gray-400 text-white px-3 py-2 rounded-lg text-sm cursor-not-allowed opacity-70">
+                                    <i class="fas fa-lock"></i>
+                                    <span>Admin</span>
+                                </button>
+                                @else
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
@@ -543,6 +596,13 @@ function addToCartFromModal() {
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
                                 </button>
+                                @endif
+                                @else
+                                <button onclick="showLoginPrompt()" class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Login</span>
+                                </button>
+                                @endauth
                             </div>
                         </div>
                     </div>

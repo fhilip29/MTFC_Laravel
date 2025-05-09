@@ -19,21 +19,19 @@ class SessionController extends Controller
     {
         \Log::info('Session Store Request', $request->all());
         
-        // Validate based on the type of request (QR code scan or guest check-in)
+        // Priority 1: QR Code Scan (creates a new session for a user)
         if ($request->has('qr_code')) {
             $request->validate([
                 'qr_code' => 'required|string',
                 'status' => 'required|in:IN,OUT',
             ]);
 
-            // Find user by QR code
             $user = User::where('qr_code', $request->qr_code)->first();
 
             if (!$user) {
-                return response()->json(['error' => 'Invalid QR Code'], 404);
+                return response()->json(['success' => false, 'error' => 'Invalid QR Code'], 404);
             }
 
-            // Create new session entry
             $session = Sessions::create([
                 'user_id' => $user->id,
                 'time' => Carbon::now(),
@@ -52,22 +50,65 @@ class SessionController extends Controller
                 ]
             ]);
         } 
-        // Handle guest check-in
-        elseif ($request->has('guest_name')) {
+        // Priority 2: Guest Checkout (updates an existing guest session to 'OUT')
+        elseif ($request->has('session_id') && $request->input('status') === 'OUT') {
+            $request->validate([
+                'session_id' => 'required|exists:sessions,id',
+                'status' => 'required|in:OUT',
+            ]);
+
+            try {
+                $session = Sessions::find($request->session_id);
+                
+                if (!$session) { // Should be caught by exists validation, but good practice
+                    return response()->json(['success' => false, 'error' => 'Session not found.'], 404);
+                }
+                if ($session->user_id !== null) {
+                    return response()->json(['success' => false, 'error' => 'This session is not a guest session.'], 400);
+                }
+                if ($session->status !== 'IN') {
+                    return response()->json(['success' => false, 'error' => 'This guest is not currently checked IN or has already been checked OUT.'], 400);
+                }
+
+                $session->status = 'OUT';
+                $session->time = Carbon::now(); // Update time to checkout time
+                $session->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Guest checked out successfully.',
+                    'data' => [ 
+                        'id' => $session->id,
+                        'full_name' => $session->guest_name,
+                        'mobile_number' => $session->mobile_number,
+                        'role' => 'guest',
+                        'time' => $session->time,
+                        'status' => $session->status,
+                    ]
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Guest Check-out Error', [
+                    'error' => $e->getMessage(), 
+                    'request' => $request->all()
+                ]);
+                return response()->json(['success' => false, 'error' => 'Error processing guest checkout: ' . $e->getMessage()], 500);
+            }
+        }
+        // Priority 3: Guest Check-In (creates a new guest session with status 'IN')
+        elseif ($request->has('guest_name') && $request->input('status') === 'IN') {
             try {
                 $request->validate([
-                    'guest_name' => 'required|string',
-                    'mobile_number' => 'required|string', 
-                    'status' => 'required|in:IN,OUT',
+                    'guest_name' => 'required|string|max:255',
+                    'mobile_number' => 'required|string|max:20', 
+                    'status' => 'required|in:IN',
                 ]);
     
-                // Create guest session without user_id
                 $session = Sessions::create([
-                    'user_id' => null, // No user ID for guests
+                    'user_id' => null, 
                     'guest_name' => $request->guest_name,
                     'mobile_number' => $request->mobile_number,
                     'time' => Carbon::now(),
-                    'status' => $request->status,
+                    'status' => 'IN', // Explicitly IN
                 ]);
     
                 return response()->json([
@@ -82,6 +123,12 @@ class SessionController extends Controller
                         'status' => $session->status,
                     ]
                 ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Guest Check-in Validation Error', [
+                    'errors' => $e->errors(), 
+                    'request' => $request->all()
+                ]);
+                return response()->json(['success' => false, 'error' => 'Validation failed.', 'errors' => $e->errors()], 422);
             } catch (\Exception $e) {
                 \Log::error('Guest Check-in Error', [
                     'error' => $e->getMessage(),
@@ -91,12 +138,14 @@ class SessionController extends Controller
                 
                 return response()->json([
                     'success' => false,
-                    'error' => 'Error processing guest: ' . $e->getMessage()
+                    'error' => 'Error processing guest check-in: ' . $e->getMessage()
                 ], 500);
             }
         }
+        // Fallback: Invalid request
         else {
-            return response()->json(['error' => 'Invalid request. Missing qr_code or guest_name parameter.'], 400);
+            \Log::warning('Invalid Session Store Request', ['request_data' => $request->all()]);
+            return response()->json(['success' => false, 'error' => 'Invalid request. Ensure all required parameters for the intended operation are provided correctly.'], 400);
         }
     }
 }

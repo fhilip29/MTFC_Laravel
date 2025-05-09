@@ -24,6 +24,18 @@ class SubscriptionController extends Controller
     public function store(Request $request)
     {
         try {
+            // Prevent admins and trainers from subscribing
+            $user = Auth::user();
+            if ($user->role === 'admin' || $user->role === 'trainer') {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Admins and trainers cannot subscribe to plans.'
+                    ], 403);
+                }
+                return redirect()->back()->with('error', 'Admins and trainers cannot subscribe to plans.');
+            }
+            
             $validated = $request->validate([
                 'type' => 'required|string|in:gym,boxing,muay,jiu',
                 'plan' => 'required|string|in:daily,monthly,quarterly,annual',

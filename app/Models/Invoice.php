@@ -15,6 +15,13 @@ class Invoice extends Model
         'type',
         'total_amount',
         'invoice_date',
+        'payment_status',
+        'payment_method',
+        'payment_reference',
+        'subscription_id',
+        'paid_at',
+        'amount',
+        'description'
     ];
 
     public function user()
@@ -25,5 +32,13 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    /**
+     * Get the subscription associated with the invoice.
+     */
+    public function subscription()
+    {
+        return $this->belongsTo(Subscription::class);
     }
 }

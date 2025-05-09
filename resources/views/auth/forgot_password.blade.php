@@ -131,31 +131,82 @@
             return;
           }
           
+          // Show loading state
+          Swal.fire({
+            title: 'Sending...',
+            text: 'Sending verification code to your email',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
           try {
+            console.log('Sending password reset request...');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+            
             const response = await fetch('{{ route("password.email") }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
               },
-              body: JSON.stringify({ email: this.email })
+              body: JSON.stringify({ email: this.email }),
+              signal: controller.signal
             });
             
-            const data = await response.json();
+            clearTimeout(timeoutId);
+            console.log('Response status:', response.status);
+            
+            // First check if the response is valid
+            let data;
+            try {
+              data = await response.json();
+              console.log('Response received');
+            } catch (jsonError) {
+              console.error('JSON parsing error:', jsonError);
+              throw new Error('Invalid server response');
+            }
             
             if (response.ok) {
               this.step = 2;
               this.startResendCountdown();
-              Swal.fire('Success', 'Verification code sent to your email', 'success');
               
-              // Remove auto-fill functionality for security
-              // Even in development mode, users should enter the code manually
+              Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Verification code sent to your email',
+                footer: 'Please check your inbox and spam folder'
+              });
             } else {
-              Swal.fire('Error', data.message || 'Failed to send verification code', 'error');
+              console.error('Server error:', data);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to send verification code',
+                confirmButtonText: 'Try Again'
+              });
             }
           } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            console.error('Network error:', error);
+            
+            let errorMessage = 'Could not connect to the server.';
+            let errorDetail = 'Please check your internet connection and try again.';
+            
+            if (error.name === 'AbortError') {
+              errorMessage = 'Request timeout';
+              errorDetail = 'The server took too long to respond. Please try again later.';
+            }
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Connection Error',
+              text: errorMessage,
+              footer: errorDetail,
+              confirmButtonText: 'Try Again'
+            });
           }
         },
 
@@ -178,27 +229,80 @@
         async resendCode() {
           if (this.resendCountdown > 0) return;
           
+          // Show loading state
+          Swal.fire({
+            title: 'Resending...',
+            text: 'Sending a new verification code',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
           try {
+            console.log('Resending password reset code...');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
             const response = await fetch('{{ route("password.email") }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
               },
-              body: JSON.stringify({ email: this.email })
+              body: JSON.stringify({ email: this.email }),
+              signal: controller.signal
             });
             
-            const data = await response.json();
+            clearTimeout(timeoutId);
+            console.log('Response status:', response.status);
+            
+            let data;
+            try {
+              data = await response.json();
+              console.log('Response received');
+            } catch (jsonError) {
+              console.error('JSON parsing error:', jsonError);
+              throw new Error('Invalid server response');
+            }
             
             if (response.ok) {
               this.startResendCountdown();
-              Swal.fire('Success', 'Verification code resent to your email', 'success');
+              
+              Swal.fire({
+                icon: 'success',
+                title: 'Code Resent',
+                text: 'Verification code resent to your email',
+                footer: 'Please check your inbox and spam folder'
+              });
             } else {
-              Swal.fire('Error', data.message || 'Failed to resend verification code', 'error');
+              console.error('Server error:', data);
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'Failed to resend verification code',
+                confirmButtonText: 'Try Again'
+              });
             }
           } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            console.error('Network error:', error);
+            
+            let errorMessage = 'Could not connect to the server.';
+            let errorDetail = 'Please check your internet connection and try again.';
+            
+            if (error.name === 'AbortError') {
+              errorMessage = 'Request timeout';
+              errorDetail = 'The server took too long to respond. Please try again later.';
+            }
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Connection Error',
+              text: errorMessage,
+              footer: errorDetail,
+              confirmButtonText: 'Try Again'
+            });
           }
         },
 
@@ -208,32 +312,87 @@
             return;
           }
           
+          // Show loading state
+          Swal.fire({
+            title: 'Verifying...',
+            text: 'Checking your verification code',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+          
           try {
+            console.log('Verifying code...');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
             const response = await fetch('{{ route("password.verify") }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
               },
               body: JSON.stringify({ 
                 email: this.email, 
                 code: this.verificationCode 
-              })
+              }),
+              signal: controller.signal
             });
             
-            const data = await response.json();
+            clearTimeout(timeoutId);
+            console.log('Response status:', response.status);
+            
+            let data;
+            try {
+              data = await response.json();
+              console.log('Response received');
+            } catch (jsonError) {
+              console.error('JSON parsing error:', jsonError);
+              throw new Error('Invalid server response');
+            }
             
             if (response.ok && data.valid) {
               this.step = 3;
               if (this.resendTimer) {
                 clearInterval(this.resendTimer);
               }
+              
+              Swal.fire({
+                icon: 'success',
+                title: 'Code Verified',
+                text: 'Your code has been verified. Please create a new password.',
+                timer: 2000,
+                showConfirmButton: false
+              });
             } else {
-              Swal.fire('Error', data.message || 'Invalid verification code', 'error');
+              console.error('Verification error:', data);
+              Swal.fire({
+                icon: 'error',
+                title: 'Verification Failed',
+                text: data.message || 'Invalid verification code',
+                confirmButtonText: 'Try Again'
+              });
             }
           } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            console.error('Network error:', error);
+            
+            let errorMessage = 'Could not connect to the server.';
+            let errorDetail = 'Please check your internet connection and try again.';
+            
+            if (error.name === 'AbortError') {
+              errorMessage = 'Request timeout';
+              errorDetail = 'The server took too long to respond. Please try again later.';
+            }
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Connection Error',
+              text: errorMessage,
+              footer: errorDetail,
+              confirmButtonText: 'Try Again'
+            });
           }
         },
 
@@ -253,11 +412,26 @@
             return;
           }
 
+          // Show loading state
+          Swal.fire({
+            title: 'Saving...',
+            text: 'Setting your new password',
+            allowOutsideClick: false,
+            didOpen: () => {
+              Swal.showLoading();
+            }
+          });
+
           try {
+            console.log('Resetting password...');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
             const response = await fetch('{{ route("password.reset") }}', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
               },
               body: JSON.stringify({ 
@@ -265,26 +439,74 @@
                 code: this.verificationCode,
                 password: this.newPassword,
                 password_confirmation: this.newPasswordMatch
-              })
+              }),
+              signal: controller.signal
             });
             
-            const data = await response.json();
+            clearTimeout(timeoutId);
+            console.log('Response status:', response.status);
+            
+            let data;
+            try {
+              data = await response.json();
+              console.log('Response received');
+            } catch (jsonError) {
+              console.error('JSON parsing error:', jsonError);
+              throw new Error('Invalid server response');
+            }
             
             if (response.ok && data.success) {
-              Swal.fire('Success', 'Password changed successfully!', 'success')
-                .then(() => {
-                  window.location.href = "{{ route('login') }}";
-                });
+              Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: 'Your password has been changed successfully.',
+                confirmButtonText: 'Log In Now'
+              }).then(() => {
+                window.location.href = "{{ route('login') }}";
+              });
             } else {
-              Swal.fire('Error', data.message || 'Failed to reset password', 'error');
+              console.error('Password reset error:', data);
+              Swal.fire({
+                icon: 'error',
+                title: 'Password Reset Failed',
+                text: data.message || 'Failed to reset password',
+                confirmButtonText: 'Try Again'
+              });
             }
           } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', 'Something went wrong. Please try again.', 'error');
+            console.error('Network error:', error);
+            
+            let errorMessage = 'Could not connect to the server.';
+            let errorDetail = 'Please check your internet connection and try again.';
+            
+            if (error.name === 'AbortError') {
+              errorMessage = 'Request timeout';
+              errorDetail = 'The server took too long to respond. Please try again later.';
+            }
+            
+            Swal.fire({
+              icon: 'error',
+              title: 'Connection Error',
+              text: errorMessage,
+              footer: errorDetail,
+              confirmButtonText: 'Try Again'
+            });
           }
         },
 
         tryAgain() {
+          // Only allow trying again if not in cooldown
+          if (this.resendCountdown > 0) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Please wait',
+              text: `You need to wait ${this.resendCountdown} seconds before requesting a new code`,
+              timer: 3000,
+              showConfirmButton: false
+            });
+            return;
+          }
+          
           this.step = 1;
           if (this.resendTimer) {
             clearInterval(this.resendTimer);

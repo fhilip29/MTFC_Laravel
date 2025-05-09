@@ -14,11 +14,11 @@ class PricingController extends Controller
     public function gym()
     {
         $userHasActive = false;
-        $isTrainer = false;
+        $userRole = null;
         
         if (Auth::check()) {
             $user = Auth::user();
-            $isTrainer = $user->role === 'trainer';
+            $userRole = $user->role;
             
             $userHasActive = $user->subscriptions()
                 ->where('type', 'gym')
@@ -27,7 +27,7 @@ class PricingController extends Controller
                 ->exists();
         }
         
-        return view('pricing.gym', compact('userHasActive', 'isTrainer'));
+        return view('pricing.gym', compact('userHasActive', 'userRole'));
     }
     
     /**
@@ -36,11 +36,11 @@ class PricingController extends Controller
     public function boxing()
     {
         $userHasActive = false;
-        $isTrainer = false;
+        $userRole = null;
         
         if (Auth::check()) {
             $user = Auth::user();
-            $isTrainer = $user->role === 'trainer';
+            $userRole = $user->role;
             
             $userHasActive = $user->subscriptions()
                 ->where('type', 'boxing')
@@ -49,7 +49,7 @@ class PricingController extends Controller
                 ->exists();
         }
         
-        return view('pricing.boxing', compact('userHasActive', 'isTrainer'));
+        return view('pricing.boxing', compact('userHasActive', 'userRole'));
     }
     
     /**
@@ -58,11 +58,11 @@ class PricingController extends Controller
     public function muay()
     {
         $userHasActive = false;
-        $isTrainer = false;
+        $userRole = null;
         
         if (Auth::check()) {
             $user = Auth::user();
-            $isTrainer = $user->role === 'trainer';
+            $userRole = $user->role;
             
             $userHasActive = $user->subscriptions()
                 ->where('type', 'muay')
@@ -71,7 +71,7 @@ class PricingController extends Controller
                 ->exists();
         }
         
-        return view('pricing.muay', compact('userHasActive', 'isTrainer'));
+        return view('pricing.muay', compact('userHasActive', 'userRole'));
     }
     
     /**
@@ -80,11 +80,11 @@ class PricingController extends Controller
     public function jiu()
     {
         $userHasActive = false;
-        $isTrainer = false;
+        $userRole = null;
         
         if (Auth::check()) {
             $user = Auth::user();
-            $isTrainer = $user->role === 'trainer';
+            $userRole = $user->role;
             
             $userHasActive = $user->subscriptions()
                 ->where('type', 'jiu')
@@ -93,6 +93,6 @@ class PricingController extends Controller
                 ->exists();
         }
         
-        return view('pricing.jiu', compact('userHasActive', 'isTrainer'));
+        return view('pricing.jiu', compact('userHasActive', 'userRole'));
     }
 } 

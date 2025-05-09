@@ -220,17 +220,26 @@ class PaymentController extends Controller
                     'waiver_accepted' => $subscriptionData['waiver_accepted'] ?? false
                 ]);
                 
-                // Create invoice record
-                Invoice::create([
-                    'user_id' => auth()->id(),
-                    'subscription_id' => $subscription->id,
-                    'amount' => $subscriptionData['amount'],
-                    'description' => "{$subscriptionData['type']} - {$subscriptionData['plan']} Plan",
-                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                    'payment_status' => 'paid',
-                    'payment_method' => 'PayMongo',
-                    'payment_reference' => $referenceNumber,
-                    'paid_at' => now()
+                // Log the subscription creation
+                \Log::info('Subscription created via online payment', [
+                    'subscription_id' => $subscription->id, 
+                    'type' => $subscription->type,
+                    'plan' => $subscription->plan
+                ]);
+                
+                // Create invoice record using InvoiceController for consistency
+                $invoiceController = app(\App\Http\Controllers\InvoiceController::class);
+                $invoice = $invoiceController->storeSubscriptionInvoice(
+                    auth()->id(),
+                    $subscription->id, // Pass the subscription ID directly
+                    $subscriptionData['amount'],
+                    'paid'
+                );
+                
+                \Log::info('Invoice created for subscription payment', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'subscription_id' => $subscription->id
                 ]);
                 
                 // Get the subscription type for redirect
@@ -241,13 +250,6 @@ class PaymentController extends Controller
                 if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
                     $route = 'pricing.gym';
                 }
-                
-                // Log the redirect route for debugging
-                Log::info('Redirecting to route after subscription payment', [
-                    'route' => $route,
-                    'subscription_type' => $type,
-                    'subscription_data' => $subscriptionData
-                ]);
                 
                 // Redirect to appropriate pricing page with success message
                 return redirect()->route($route)->with('success', 'Your subscription has been activated successfully!');
@@ -562,15 +564,27 @@ class PaymentController extends Controller
                 'waiver_accepted' => true
             ]);
             
-            // Create invoice for the subscription
-            $this->invoiceController = app(InvoiceController::class);
-            $subscriptionDetails = ucfirst($qrData['type']) . ' - ' . ucfirst($qrData['plan']) . ' Plan';
-            $this->invoiceController->storeSubscriptionInvoice(
+            \Log::info('Subscription created via QR cash verification', [
+                'subscription_id' => $subscription->id,
+                'type' => $subscription->type,
+                'plan' => $subscription->plan,
+                'user_id' => $subscription->user_id
+            ]);
+            
+            // Create invoice for the subscription using InvoiceController for consistency
+            $invoiceController = app(\App\Http\Controllers\InvoiceController::class);
+            $invoice = $invoiceController->storeSubscriptionInvoice(
                 $qrData['user_id'],
-                $subscriptionDetails,
+                $subscription->id, // Pass the subscription ID directly
                 $qrData['amount'],
                 'completed'
             );
+            
+            \Log::info('Invoice created for QR cash payment', [
+                'invoice_id' => $invoice->id,
+                'invoice_number' => $invoice->invoice_number,
+                'subscription_id' => $subscription->id
+            ]);
             
             return response()->json([
                 'success' => true,
@@ -587,6 +601,10 @@ class PaymentController extends Controller
                     'amount' => $subscription->price,
                     'start_date' => $subscription->start_date,
                     'end_date' => $subscription->end_date
+                ],
+                'invoice' => [
+                    'id' => $invoice->id,
+                    'number' => $invoice->invoice_number
                 ]
             ]);
         } catch (\Exception $e) {
@@ -625,7 +643,7 @@ class PaymentController extends Controller
                     'total_amount' => $request->amount,
                     'payment_method' => 'Cash',
                     'payment_status' => 'Paid',
-                    'reference_no' => 'ORD-' . strtoupper(Str::random(8)),
+                    'reference_no' => 'ORD-' . strtoupper(\Illuminate\Support\Str::random(8)),
                     'street' => $orderData['shipping']['street'] ?? '',
                     'barangay' => $orderData['shipping']['barangay'] ?? '',
                     'city' => $orderData['shipping']['city'] ?? '',
@@ -649,21 +667,32 @@ class PaymentController extends Controller
                     $orderItem->save();
                 }
                 
-                // Create invoice
-                $invoice = new Invoice([
-                    'user_id' => auth()->id(),
-                    'type' => 'product',
-                    'amount' => $request->amount,
-                    'description' => 'Order #' . $order->reference_no,
-                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                    'payment_status' => 'paid',
-                    'payment_method' => 'Cash',
-                    'payment_reference' => $request->reference,
-                    'paid_at' => now(),
-                    'invoice_date' => now()
-                ]);
+                // Create invoice using InvoiceController for consistency
+                $invoiceController = app(\App\Http\Controllers\InvoiceController::class);
                 
-                $invoice->save();
+                // Prepare items for invoice
+                $invoiceItems = [];
+                foreach ($orderData['items'] as $item) {
+                    $invoiceItems[] = [
+                        'id' => $item['id'],
+                        'name' => $item['name'],
+                        'price' => $item['price'],
+                        'quantity' => $item['quantity'],
+                        'payment_method' => 'Cash'
+                    ];
+                }
+                
+                $invoice = $invoiceController->storeProductInvoice(
+                    auth()->id(),
+                    $invoiceItems,
+                    $request->amount
+                );
+                
+                \Log::info('Invoice created for product cash payment', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'order_id' => $order->id
+                ]);
                 
                 return response()->json([
                     'success' => true,
@@ -682,30 +711,35 @@ class PaymentController extends Controller
                     'is_active' => true,
                     'start_date' => now(),
                     'end_date' => $this->calculateEndDate($orderData['plan']),
-                    'amount' => $request->amount,
+                    'price' => $request->amount,
                     'payment_reference' => $request->reference,
                     'payment_status' => 'paid',
+                    'payment_method' => 'Cash',
                     'waiver_accepted' => $orderData['waiver_accepted'] ?? false
                 ]);
                 
                 $subscription->save();
                 
-                // Create invoice
-                $invoice = new Invoice([
-                    'user_id' => auth()->id(),
+                \Log::info('Subscription created via cash payment', [
                     'subscription_id' => $subscription->id,
-                    'type' => 'subscription',
-                    'amount' => $request->amount,
-                    'description' => "{$orderData['type']} - {$orderData['plan']} Plan",
-                    'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                    'payment_status' => 'paid',
-                    'payment_method' => 'Cash',
-                    'payment_reference' => $request->reference,
-                    'paid_at' => now(),
-                    'invoice_date' => now()
+                    'type' => $subscription->type,
+                    'plan' => $subscription->plan
                 ]);
                 
-                $invoice->save();
+                // Create invoice using InvoiceController for consistency
+                $invoiceController = app(\App\Http\Controllers\InvoiceController::class);
+                $invoice = $invoiceController->storeSubscriptionInvoice(
+                    auth()->id(),
+                    $subscription->id,
+                    $request->amount,
+                    'paid'
+                );
+                
+                \Log::info('Invoice created for subscription cash payment', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                    'subscription_id' => $subscription->id
+                ]);
                 
                 return response()->json([
                     'success' => true,

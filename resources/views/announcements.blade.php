@@ -107,35 +107,17 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const searchInput = document.getElementById('searchAnnouncement');
+    const searchInput = document.querySelector('input[name="search"]');
     const cards = document.querySelectorAll('.announcement-card');
     const filterButtons = document.querySelectorAll('.filter-btn');
     const emptyState = document.getElementById('emptyState');
     const grid = document.getElementById('announcementsGrid');
     let debounceTimer;
 
-    // Bind input event to the search input field
-    searchInput.addEventListener('input', () => {
-        clearTimeout(debounceTimer); // Clear previous timer
-        debounceTimer = setTimeout(filterAnnouncements, 200); // Trigger search after 200ms
-    });
-
-    // Bind filter button click event
-    filterButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Reset filter button active states
-            filterButtons.forEach(btn => btn.classList.remove('active', 'bg-red-600', 'text-white'));
-            filterButtons.forEach(btn => btn.classList.add('bg-gray-200', 'text-gray-700'));
-            button.classList.remove('bg-gray-200', 'text-gray-700');
-            button.classList.add('active', 'bg-red-600', 'text-white');
-            filterAnnouncements(); // Re-filter based on the selected filter
-        });
-    });
-
     // Function to filter announcements based on search term and filter button
     function filterAnnouncements() {
         const searchTerm = searchInput.value.toLowerCase().trim();
-        const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
+        const activeFilter = document.querySelector('.filter-btn.bg-red-600').textContent.trim().toLowerCase();
         let visibleCount = 0;
 
         cards.forEach(card => {
@@ -159,12 +141,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (match) {
                 card.style.display = ''; // Show the card if it matches the search/filter
                 visibleCount++;
-                highlight(titleEl, searchTerm); // Highlight the matching search term in the title
-                highlight(contentEl, searchTerm); // Highlight the matching search term in the content
             } else {
                 card.style.display = 'none'; // Hide the card if it doesn't match the search/filter
-                unhighlight(titleEl); // Remove highlight from the title
-                unhighlight(contentEl); // Remove highlight from the content
             }
         });
 
@@ -173,21 +151,15 @@ document.addEventListener('DOMContentLoaded', function () {
         grid.style.display = visibleCount === 0 ? 'none' : 'grid';
     }
 
-    // Function to highlight the matching search term in the given element
-    function highlight(el, term) {
-        if (!term) return unhighlight(el); // If no term, unhighlight
-
-        const text = el.textContent;
-        const regex = new RegExp(`(${term})`, 'gi'); // Case-insensitive search
-        el.innerHTML = text.replace(regex, '<mark class="bg-yellow-200">$1</mark>'); // Wrap the matched term with a highlight
+    // Bind input event to the search input field
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer); // Clear previous timer
+            debounceTimer = setTimeout(filterAnnouncements, 200); // Trigger search after 200ms
+        });
     }
 
-    // Function to remove highlights from the given element
-    function unhighlight(el) {
-        el.innerHTML = el.textContent; // Restore the original text content (removes highlights)
-    }
-
-    // Initial run of filtering
+    // Initial filter on page load
     filterAnnouncements();
 });
 

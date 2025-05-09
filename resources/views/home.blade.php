@@ -30,7 +30,7 @@
         <h1>Manila Total Fitness Center:</h1>
         <h2>Prepare Yourself At All Times</h2>
         <p>
-            Achieve your fitness goals with personalized plans, real-time availability updates, and a supportive community.
+        Unleash your full potential with custom fitness plans, live class updates, and a community that drives you to succeed.
         </p>
     </div>
 </section>

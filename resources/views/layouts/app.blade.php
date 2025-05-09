@@ -110,13 +110,15 @@
         
         @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
         !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart')
-        && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history'))
+        && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages')
+        && !Request::is('checkout') && !Request::is('user/*'))
             <div class="h-[400px]"></div>
         @endif
     </main>
 
     
-    @if (!Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('profile'))
+    @if (!Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('profile') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages' )
+    && !Request::is('checkout') && !Request::is('profile/qr') && !Request::is('user/*'))
         @include('components.footer')
     @endif
 

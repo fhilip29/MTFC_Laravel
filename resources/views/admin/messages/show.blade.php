@@ -38,8 +38,8 @@
                     @endif
                     <div>
                         <h3 class="text-white font-semibold">{{ $message->sender->full_name }}</h3>
-                        <p class="text-sm text-[#9CA3AF]">{{ $message->sender->email }}</p>
-                        <p class="text-xs text-[#9CA3AF] mt-1">
+                        <p class="text-sm text-white">{{ $message->sender->email }}</p>
+                        <p class="text-xs text-white mt-1">
                             {{ \Carbon\Carbon::parse($message->created_at)->format('M d, Y h:i A') }}
                         </p>
                     </div>
@@ -48,8 +48,8 @@
 
             <!-- Message Content -->
             <div class="mb-6">
-                <div class="p-4 bg-[#111827] rounded-lg">
-                    <div class="text-[#9CA3AF] whitespace-pre-wrap">
+                <div class="bg-[#111827] rounded-lg" style="padding:0 !important;">
+                    <div class="text-white whitespace-pre-wrap text-left" style="padding:0 !important; margin:0 !important;">
                         {!! nl2br(e($message->content)) !!}
                     </div>
                 </div>
@@ -80,11 +80,11 @@
             <div class="p-5">
                 <div class="space-y-6">
                     @foreach($message->replies as $reply)
-                        <div class="relative pl-8 before:absolute before:left-3 before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-500">
+                        <div class="relative before:absolute before:left-3 before:top-0 before:bottom-0 before:w-0.5 before:bg-blue-500">
                             <div class="absolute left-0 top-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
                                 <i class="fas fa-reply text-xs text-white"></i>
                             </div>
-                            <div class="bg-[#111827] rounded-lg overflow-hidden">
+                            <div class="bg-[#111827] rounded-lg overflow-hidden ml-8">
                                 <div class="p-3 bg-[#1E293B] border-b border-[#374151] flex justify-between items-center">
                                     <div class="flex items-center space-x-3">
                                         @if($reply->sender->profile_image)
@@ -96,15 +96,19 @@
                                         @endif
                                         <div>
                                             <h4 class="text-white text-sm font-semibold">{{ $reply->sender->full_name }}</h4>
-                                            <p class="text-xs text-[#9CA3AF]">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y h:i A') }}</p>
+                                            <p class="text-xs text-white">{{ \Carbon\Carbon::parse($reply->created_at)->format('M d, Y h:i A') }}</p>
                                         </div>
                                     </div>
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-{{ $reply->sender->role === 'admin' ? 'red' : 'blue' }}-500 bg-opacity-20 text-{{ $reply->sender->role === 'admin' ? 'red' : 'blue' }}-500">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium 
+                                        {{ $reply->sender->role === 'admin' ? 'bg-red-500' : '' }}
+                                        {{ $reply->sender->role === 'trainer' ? 'bg-purple-500' : '' }}
+                                        {{ $reply->sender->role === 'member' ? 'bg-blue-500' : '' }}
+                                        text-white">
                                         {{ ucfirst($reply->sender->role) }}
                                     </span>
                                 </div>
-                                <div class="p-4">
-                                    <div class="text-[#9CA3AF] text-sm whitespace-pre-wrap">
+                                <div class="px-4 py-4">
+                                    <div class="text-white text-sm whitespace-pre-wrap">
                                         {!! nl2br(e($reply->content)) !!}
                                     </div>
                                 </div>

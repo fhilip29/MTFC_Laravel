@@ -51,10 +51,10 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3 px-4 font-medium {{ $message->is_read ? 'text-[#9CA3AF]' : 'text-white' }}">
-                                        {{ $message->subject }}
+                                    <td class="py-3 px-4 font-medium {{ $message->is_read ? 'text-white' : 'text-white' }}">
+                                        <div class="pl-0">{{ $message->subject }}</div>
                                         @if(!$message->is_read)
-                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
+                                            <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500 text-white">
                                                 New
                                             </span>
                                         @endif

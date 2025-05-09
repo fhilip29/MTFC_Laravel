@@ -29,7 +29,7 @@
             <p class="text-sm text-black font-semibold">Manila Total Fitness Center</p>
             <p class="text-sm text-black font-semibold">3rd Floor YMCA Bldg. 350 Villegas St. Ermita, Manila, Philippines</p>
             <p class="text-sm text-black font-semibold">0998 558 5911</p>
-            <p class="text-sm text-black font-semibold">fhilipkr.lorenzo@adamson.edu.ph</p>
+            <p class="text-sm text-black font-semibold">mtfc987@gmail.com</p>
         </div>
 
         <!-- Legal -->

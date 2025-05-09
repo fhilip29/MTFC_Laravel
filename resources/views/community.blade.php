@@ -9,34 +9,49 @@
     body {
         background-color: #0f0f0f;
         overflow-x: hidden;
+        margin: 0;
+        padding: 0;
     }
     
     .page-container {
         display: flex;
         position: relative;
-        min-height: calc(100vh - 60px); /* Adjust for header height */
+        min-height: 100vh;
+        padding-top: 56px;
     }
     
     .sidebar {
+        position: fixed;
+        top: 56px;
+        left: 0;
         width: 256px;
+        height: calc(100vh - 56px);
         background-color: #1a1a1a;
         border-right: 1px solid #2a2a2a;
-        position: sticky;
-        top: 60px; /* Match header height */
-        height: calc(100vh - 56px); /* Increased from 60px to make sidebar taller */
         overflow-y: auto;
         z-index: 10;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
     
     .content-area {
         flex: 1;
         min-width: 0;
         overflow-x: hidden;
+        margin-left: 256px;
+        padding-top: 56px;
+        position: relative;
     }
     
     @media (max-width: 1023px) {
         .sidebar {
             display: none;
+        }
+        .content-area {
+            margin-left: 0;
         }
     }
     
@@ -77,21 +92,32 @@
         border-color: #ffffff;
     }
     
-    .image-grid-1 { grid-template-columns: repeat(1, 1fr); }
-    .image-grid-2 { grid-template-columns: repeat(2, 1fr); }
-    .image-grid-3 { grid-template-columns: repeat(3, 1fr); }
-    .image-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .image-grid-1 { grid-template-columns: repeat(1, 300px) !important; }
+    .image-grid-2 { grid-template-columns: repeat(2, 300px) !important; }
+    .image-grid-3 { grid-template-columns: repeat(3, 300px) !important; }
+    .image-grid-4 { grid-template-columns: repeat(4, 300px) !important; }
+    .image-grid-5 { grid-template-columns: repeat(5, 300px) !important; }
+    
+    .post-image-container {
+        width: 300px !important;
+        height: 300px !important;
+        overflow: hidden !important;
+        border-radius: 8px !important;
+        margin-right: 16px !important;
+        flex: 0 0 300px !important;
+        padding: 8px !important;
+    }
     
     .post-image {
-        max-height: 500px;
-        width: 100%;
-        object-fit: cover;
-        border-radius: 8px;
-        cursor: pointer;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        border-radius: 4px !important;
     }
     
     .post-image-sm {
-        height: 200px;
+        width: 80px;
+        height: 80px;
     }
     
     /* Transition effects */
@@ -134,6 +160,35 @@
     
     .dropdown-item:hover {
         background-color: #2a2a2a;
+    }
+
+    .image-grid {
+        display: flex !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        padding: 16px !important;
+        gap: 16px !important;
+        scroll-snap-type: x mandatory !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: -8px !important;
+    }
+
+    .image-grid::-webkit-scrollbar {
+        height: 8px !important;
+    }
+
+    .image-grid::-webkit-scrollbar-track {
+        background: #1a1a1a !important;
+        border-radius: 4px !important;
+    }
+
+    .image-grid::-webkit-scrollbar-thumb {
+        background: #4a4a4a !important;
+        border-radius: 4px !important;
+    }
+
+    .image-grid::-webkit-scrollbar-thumb:hover {
+        background: #5a5a5a !important;
     }
 </style>
 @endsection
@@ -478,20 +533,22 @@
                                         $gridClass = 'image-grid-1';
                                         if ($imageCount == 2) $gridClass = 'image-grid-2';
                                         elseif ($imageCount == 3) $gridClass = 'image-grid-3';
-                                        elseif ($imageCount > 3) $gridClass = 'image-grid-4';
+                                        elseif ($imageCount == 4) $gridClass = 'image-grid-4';
+                                        elseif ($imageCount >= 5) $gridClass = 'image-grid-5';
                                     @endphp
                                     
-                                    <div class="grid gap-2 {{ $gridClass }}">
+                                    <div class="image-grid {{ $gridClass }}">
                                         @foreach ($post->images as $index => $image)
-                                            @if ($imageCount <= 3 || $index < 4)
-                                                <div class="overflow-hidden rounded-lg {{ $imageCount > 3 && $index == 3 && $post->images->count() > 4 ? 'relative' : '' }}">
+                                            @if ($index < 5)
+                                                <div class="post-image-container {{ $imageCount > 5 && $index == 4 ? 'relative' : '' }}" style="width: 300px !important; height: 300px !important;">
                                                     <img src="{{ asset('storage/' . $image->path) }}" 
-                                                        class="post-image {{ $imageCount > 1 ? 'post-image-sm' : '' }}"
-                                                        alt="Post image">
+                                                        class="post-image"
+                                                        alt="Post image"
+                                                        style="width: 300px !important; height: 300px !important; object-fit: cover !important;">
                                                         
-                                                    @if ($imageCount > 3 && $index == 3 && $post->images->count() > 4)
+                                                    @if ($imageCount > 5 && $index == 4)
                                                         <div class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                                                            <span class="text-white text-2xl font-bold">+{{ $post->images->count() - 4 }}</span>
+                                                            <span class="text-white text-2xl font-bold">+{{ $post->images->count() - 5 }}</span>
                                                         </div>
                                                     @endif
                                                 </div>

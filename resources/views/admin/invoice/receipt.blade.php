@@ -187,7 +187,7 @@
         <a href="#" onclick="downloadPDF()" class="btn btn-success">
             <i class="fas fa-download"></i> Download PDF
         </a>
-        <a href="javascript:window.close()" class="btn btn-secondary">
+        <a href="{{ route('admin.invoice.show', $invoice->id) }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>

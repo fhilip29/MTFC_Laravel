@@ -33,6 +33,13 @@ class AdminOrderController extends Controller
         try {
             $order = Order::with('items.product', 'user')
                 ->findOrFail($id);
+            
+            // Add full image URL for each product
+            foreach ($order->items as $item) {
+                if ($item->product && $item->product->image) {
+                    $item->product->image = asset($item->product->image);
+                }
+            }
                 
             return response()->json([
                 'success' => true,

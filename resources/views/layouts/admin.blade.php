@@ -286,9 +286,6 @@
 <body>
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="/" class="nav-button home" title="Go to Home">
-                <i class="fas fa-home"></i>
-            </a>
             <div class="logo-container">
                 <a href="/admin/dashboard" title="Go to Dashboard">
                     <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="MTFC Logo">
@@ -305,8 +302,12 @@
             </button>
         </div>
         <div class="nav-links">
-            <a href="/admin/dashboard" class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}">
+            <a href="/" class="nav-link">
                 <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="/admin/dashboard" class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}">
+                <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
             <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin/members/admin_members') ? 'active' : '' }}">

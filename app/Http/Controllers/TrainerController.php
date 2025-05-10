@@ -66,10 +66,29 @@ class TrainerController extends Controller
             $instructedTypes = explode(',', $trainer->instructor_for); // Assuming instructor_for is comma-separated
             $instructedTypes = array_map('trim', $instructedTypes);
 
-            $trainer->instructed_clients_count = User::whereHas('activeSubscriptions', function($query) use ($instructedTypes) {
-                $query->whereIn('type', $instructedTypes);
-            })->where('role', '!=', 'trainer') // Ensure we count clients, not other trainers
-              ->where('id', '!=', $trainer->user_id) // Exclude the trainer themselves
+            // Map instructor_for values to subscription type values
+            $mappedTypes = [];
+            foreach ($instructedTypes as $type) {
+                switch ($type) {
+                    case 'gym':
+                        $mappedTypes[] = 'gym';
+                        break;
+                    case 'boxing':
+                        $mappedTypes[] = 'boxing';
+                        break;
+                    case 'muay-thai':
+                        $mappedTypes[] = 'muay';
+                        break;
+                    case 'jiu-jitsu':
+                        $mappedTypes[] = 'jiu';
+                        break;
+                }
+            }
+
+            $trainer->instructed_clients_count = User::whereHas('activeSubscriptions', function($query) use ($mappedTypes) {
+                $query->whereIn('type', $mappedTypes);
+            })->where('role', 'member') // Count only members
+              ->where('is_archived', false) // Only non-archived users
               ->count();
 
             // Count active subscriptions for the trainer's own user account
@@ -588,36 +607,56 @@ class TrainerController extends Controller
         $instructorTypes = explode(',', $trainer->instructor_for);
         $instructorTypes = array_map('trim', $instructorTypes);
         
+        // Map instructor_for values to subscription type values
+        $mappedTypes = [];
+        foreach ($instructorTypes as $type) {
+            switch ($type) {
+                case 'gym':
+                    $mappedTypes[] = 'gym';
+                    break;
+                case 'boxing':
+                    $mappedTypes[] = 'boxing';
+                    break;
+                case 'muay-thai':
+                    $mappedTypes[] = 'muay';
+                    break;
+                case 'jiu-jitsu':
+                    $mappedTypes[] = 'jiu';
+                    break;
+            }
+        }
+        
         $members = User::where('role', 'member')
             ->where('is_archived', false)
-            ->whereHas('subscriptions', function($query) use ($instructorTypes) {
+            ->whereHas('subscriptions', function($query) use ($mappedTypes) {
                 $query->where('is_active', true)
                       ->where(function($q) {
                            // Either end_date is null or end_date is in the future
                            $q->whereNull('end_date')
                              ->orWhere('end_date', '>', now());
                       })
-                      ->whereIn('type', $instructorTypes);
+                      ->whereIn('type', $mappedTypes);
             })
-            ->with(['subscriptions' => function($query) use ($instructorTypes) {
+            ->with(['subscriptions' => function($query) use ($mappedTypes) {
                 $query->where('is_active', true)
                       ->where(function($q) {
                            $q->whereNull('end_date')
                              ->orWhere('end_date', '>', now());
                       })
-                      ->whereIn('type', $instructorTypes);
+                      ->whereIn('type', $mappedTypes);
             }])
             ->get();
             
-        // Count active members
+        // Count active members (instructed clients)
         $activeMembers = $members->count();
+        $trainer->instructed_clients_count = $activeMembers;
         
         // Calculate the number of new students (joined in the last 30 days)
         $newStudents = User::where('role', 'member')
             ->where('is_archived', false)
-            ->whereHas('subscriptions', function($query) use ($instructorTypes) {
+            ->whereHas('subscriptions', function($query) use ($mappedTypes) {
                 $query->where('is_active', true)
-                      ->whereIn('type', $instructorTypes)
+                      ->whereIn('type', $mappedTypes)
                       ->where('created_at', '>=', now()->subDays(30));
             })
             ->count();

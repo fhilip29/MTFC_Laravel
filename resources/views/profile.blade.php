@@ -4,6 +4,8 @@
 
 @section('head')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <style>
     /* Animation for sidebar toggle icon */
     .rotate-icon {
@@ -290,9 +292,9 @@
                 <a href="{{ route('subscription.history') }}" class="flex-1 bg-gray-800 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-history mr-2"></i> View Subscriptions
                 </a>
-                <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" class="flex-1">
+                <form action="{{ route('subscription.cancel', $activeSubscription->id) }}" method="POST" class="flex-1" id="cancelSubscriptionForm">
                     @csrf
-                    <button type="submit" onclick="return confirm('Are you sure you want to cancel your subscription?')" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 text-sm md:text-base">
+                    <button type="button" onclick="confirmCancelSubscription()" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 text-sm md:text-base">
                         <i class="fas fa-ban mr-2"></i> Cancel Subscription
                     </button>
                 </form>
@@ -671,6 +673,24 @@
         // Check initially and then every minute
         checkUnreadMessages();
         setInterval(checkUnreadMessages, 60000);
+        
+        // SweetAlert subscription cancellation confirmation
+        window.confirmCancelSubscription = function() {
+            Swal.fire({
+                title: 'Cancel Subscription?',
+                text: 'Are you sure you want to cancel your subscription? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Yes, cancel it!',
+                cancelButtonText: 'No, keep it'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('cancelSubscriptionForm').submit();
+                }
+            });
+        };
     });
 </script>
 

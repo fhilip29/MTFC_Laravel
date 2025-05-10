@@ -162,11 +162,11 @@
         }
 
         .nav-button.home {
-            left: 0.5rem;
+            left: 1rem;
         }
 
         .nav-button.profile {
-            right: 0.5rem;
+            right: 1rem;
         }
 
         .nav-button i {
@@ -291,6 +291,9 @@
                     <img src="{{ asset('assets/MTFC_LOGO.PNG') }}" alt="MTFC Logo">
                 </a>
             </div>
+            <a href="/" class="nav-button home" title="Go to Website">
+                <i class="fas fa-home text-xl"></i>
+            </a>
             <a href="/admin/profile" class="nav-button profile" title="Profile Settings">
                 <div class="w-8 h-8 rounded-full overflow-hidden border-2 border-white">
                     <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" 
@@ -302,10 +305,6 @@
             </button>
         </div>
         <div class="nav-links">
-            <a href="/" class="nav-link">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
             <a href="/admin/dashboard" class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>

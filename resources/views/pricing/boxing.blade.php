@@ -89,7 +89,7 @@
                     </li>
                 </ul>
                 <div class="flex justify-between items-center mt-auto">
-                    <span class="text-lg font-semibold text-gray-800">₱2,500 / session</span>
+                    <span class="text-lg font-semibold text-gray-800">₱300 / session</span>
                     @if(Auth::check())
                         @if($userHasActive)
                             <span class="text-sm px-3 py-1 bg-gray-100 text-gray-600 rounded-full">Active</span>

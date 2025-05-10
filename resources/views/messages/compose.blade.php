@@ -177,9 +177,47 @@
                 placeholder: 'Select or search for a recipient',
                 allowClear: true,
                 width: '100%',
-                dropdownCssClass: 'select2-dropdown-large'
+                dropdownCssClass: 'select2-dropdown-large',
+                minimumInputLength: 0,
+                templateResult: formatRecipient,
+                templateSelection: formatRecipient,
+                escapeMarkup: function(m) { return m; }
+            });
+
+            // Focus behavior - open dropdown on focus
+            $('.select2-recipient').on('select2:open', function() {
+                setTimeout(function() {
+                    $('.select2-search__field').focus();
+                }, 100);
             });
         });
+        
+        // Format recipient options with role badge
+        function formatRecipient(recipient) {
+            if (!recipient.id) return recipient.text;
+            
+            let roleClass = 'bg-gray-500';
+            let role = '';
+            
+            if (recipient.text.includes('(Admin)')) {
+                roleClass = 'bg-red-500';
+                role = 'Admin';
+            } else if (recipient.text.includes('(Trainer)')) {
+                roleClass = 'bg-blue-500';
+                role = 'Trainer';
+            } else if (recipient.text.includes('(Member)')) {
+                roleClass = 'bg-green-500';
+                role = 'Member';
+            }
+            
+            // Extract just the name (remove the role part)
+            let name = recipient.text.split(' (')[0];
+            
+            return '<div class="flex items-center py-2">' +
+                   '<span class="font-medium">' + name + '</span>' +
+                   (role ? '<span class="ml-2 px-2 py-1 text-xs rounded-full text-white ' + roleClass + '">' + role + '</span>' : '') +
+                   '</div>';
+        }
         
         // Form validation
         if (form) {
@@ -266,6 +304,20 @@
     
     .select2-results__option {
         padding: 10px;
+    }
+    
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #f3f4f6;
+        color: #111827;
+    }
+    
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #e5e7eb;
+    }
+    
+    .select2-dropdown {
+        border-color: #D1D5DB;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 </style>
 @endsection 

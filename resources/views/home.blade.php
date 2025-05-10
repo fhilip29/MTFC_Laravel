@@ -38,51 +38,93 @@
 
 
 <!-- Community Dashboard Section -->
-<section class="community-dashboard" data-animate>
-    <h2>Community Dashboard</h2>
-    <div class="dashboard-container">
-        <div class="dashboard-image">
-            <img src="{{ asset('assets/dashboard.png') }}" alt="Community">
+<section class="community-dashboard bg-[#1e1e1e] py-16 relative overflow-hidden" data-animate>
+    <!-- Background pattern -->
+    <div class="absolute inset-0 opacity-5">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
+    </div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+            <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">COMMUNITY</span>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Community Dashboard</h2>
+            <p class="text-gray-400 max-w-xl mx-auto">Connect with fellow fitness enthusiasts and get inspired on your wellness journey.</p>
         </div>
-        <div class="dashboard-content">
-            <div class="message">
-                <div class="icon"><i class="fas fa-reply"></i></div>
-                <div class="text">
-                    <span class="name">Sarah</span>
-                    <p>Welcome, Mike! I'd recommend checking out the personalized plans feature - it helped me a lot when I was starting out. Also, don't miss the Zumba classes on Tuesdays, they're a blast!</p>
+
+        <div class="dashboard-container flex flex-col lg:flex-row items-start gap-8">
+            <div class="dashboard-image lg:w-1/2">
+                <img src="{{ asset('assets/dashboard.png') }}" alt="Community" class="rounded-xl shadow-2xl transform hover:-translate-y-2 transition-all duration-500 w-full">
+            </div>
+            
+            <div class="dashboard-content lg:w-1/2">
+                <div class="space-y-4">
+                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 overflow-hidden rounded-full">
+                                <img src="{{ asset('assets/profile1.jpg') }}" alt="Sarah" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Sarah&background=FA5455&color=fff'">
+                            </div>
+                            <div class="text">
+                                <span class="name block text-white font-bold mb-1">Sarah</span>
+                                <p class="text-gray-300 text-sm">Welcome, Mike! I'd recommend checking out the personalized plans feature - it helped me a lot when I was starting out. Also, don't miss the Zumba classes on Tuesdays, they're a blast!</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 overflow-hidden rounded-full">
+                                <img src="{{ asset('assets/profile2.jpg') }}" alt="MTFC" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=MTFC&background=FA5455&color=fff'">
+                            </div>
+                            <div class="text">
+                                <span class="name block text-white font-bold mb-1">MTFC</span>
+                                <p class="text-gray-300 text-sm">Welcome to the ActiveGym community, Sarah! We're thrilled to have you. Don't hesitate to reach out if you have any questions.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <a href="{{ route('community') }}">
+                            <button class="community-button bg-[#FA5455] text-white hover:bg-[#e84142] transition px-8 py-3 rounded-lg font-semibold transform hover:-translate-y-1 hover:shadow-lg">
+                                <i class="fas fa-users mr-2"></i> Join the Community Now!
+                            </button>
+                        </a>
+                    </div>
                 </div>
             </div>
-            <div class="message">
-                <div class="icon"><i class="fas fa-dumbbell"></i></div>
-                <div class="text">
-                    <span class="name">MTFC</span>
-                    <p>Welcome to the ActiveGym community, Sarah! We're thrilled to have you. Don't hesitate to reach out if you have any questions.</p>
-                </div>
-            </div>
-            <a href="{{ route('community') }}">
-                <button class="community-button bg-red-900 text-white hover:bg-red-800 transition">
-                Join the Community Now!
-                </button>
-            </a>
         </div>
     </div>
 </section>
 
 <!-- About Us Section -->
-<section class="about-us" data-animate>
-    <h2>About Us</h2>
-    <h3>Stronger Together, Healthier Forever</h3>
-    <div class="about-container"> 
-        <p>Manila Total Fitness Center is dedicated to helping you achieve a healthier, stronger lifestyle. With top-notch equipment, expert guidance, and a supportive community, we empower you to reach your fitness goals and embrace wellness as a way of life.</p>
-        <div class="about-images">
-            <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1">
-            <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2">
+<section class="about-us bg-[#1e1e1e] py-16 relative overflow-hidden" data-animate>
+    <!-- Background pattern -->
+    <div class="absolute inset-0 opacity-5">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
+    </div>
+
+    <div class="container mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+            <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">OUR STORY</span>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">About Us</h2>
+            <h3 class="text-xl text-[#FA5455] mb-4">Stronger Together, Healthier Forever</h3>
         </div>
-        <a href="{{ route('about') }}">
-            <button class="about-button bg-red-900 text-white hover:bg-red-800 transition">
-            Learn more
-            </button>
-        </a>
+
+        <div class="about-container max-w-4xl mx-auto"> 
+            <p class="text-gray-300 text-center mb-8">Manila Total Fitness Center is dedicated to helping you achieve a healthier, stronger lifestyle. With top-notch equipment, expert guidance, and a supportive community, we empower you to reach your fitness goals and embrace wellness as a way of life.</p>
+            
+            <div class="about-images flex flex-col md:flex-row gap-6 mb-8">
+                <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1" class="rounded-xl shadow-lg w-full">
+                <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2" class="rounded-xl shadow-lg w-full">
+            </div>
+            
+            <div class="text-center">
+                <a href="{{ route('about') }}">
+                    <button class="about-button bg-[#FA5455] text-white hover:bg-[#e84142] transition px-8 py-3 rounded-lg font-semibold transform hover:-translate-y-1 hover:shadow-lg">
+                        <i class="fas fa-info-circle mr-2"></i> Learn More
+                    </button>
+                </a>
+            </div>
+        </div>
     </div>
 </section>
 
@@ -92,57 +134,79 @@
     $chunks = $topRatedProducts->chunk(4);
 @endphp
 
-<div class="bg-[#121212] mb-0 pb-16">
-    <section class="products-section py-16 pb-16" x-data="cartHandler">
-        <div class="container mx-auto my-10">
-            <h2 class="text-center mb-8 text-white">Most Purchased Products</h2>
+<div class="bg-[#1e1e1e] mb-0 py-16 relative overflow-hidden">
+    <!-- Background pattern -->
+    <div class="absolute inset-0 opacity-5">
+        <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
+    </div>
+
+    <section class="products-section relative z-10" x-data="cartHandler">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">TOP SELLERS</span>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Most Purchased Products</h2>
+                <p class="text-gray-400 max-w-xl mx-auto">Quality fitness equipment and merchandise to support your journey to a stronger, healthier you.</p>
+            </div>
 
             @if($topRatedProducts->isEmpty())
                 <p class="text-center text-white text-lg">No Products Available Yet</p>
             @else
-                <div id="topItemsCarousel" class="carousel slide" data-bs-ride="carousel">
-                    <div class="carousel-inner">
-                        @foreach ($chunks as $chunkIndex => $chunk)
-                            <div class="carousel-item {{ $chunkIndex === 0 ? 'active' : '' }}">
-                                <div class="d-flex justify-content-center gap-4 flex-wrap">
-                                    @foreach ($chunk as $product)
-                                        <div class="bg-white rounded-lg shadow-lg overflow-hidden mb-4" style="width: 16rem; max-width: 100%;">
-                                            <img src="{{ asset($product->image) }}" class="w-full h-40 object-cover" alt="{{ $product->name }}">
-
-                                            <div class="p-3">
-                                                <h3 class="text-md font-semibold mb-1">{{ $product->name }}</h3>
-                                                <p class="text-gray-600 text-sm mb-2">₱{{ number_format($product->price, 2) }}</p>
-                                                <div class="flex justify-between items-center">
-                                                    <button @click="showProductModal({
-                                                        id: {{ $product->id }},
-                                                        name: '{{ addslashes($product->name) }}',
-                                                        price: {{ $product->price }},
-                                                        image: '{{ asset($product->image) }}',
-                                                        description: '{{ addslashes($product->description) }}',
-                                                        stock: {{ $product->stock }}
-                                                    })" class="flex items-center gap-2 text-red-600 hover:text-red-800 text-sm px-3 py-1 rounded-full border border-red-600 hover:bg-red-50 transition-all">
-                                                        <i class="fas fa-eye"></i>
-                                                        <span>View</span>
-                                                    </button>
-
-                                                    <button @click="addToCart({
-                                                        id: {{ $product->id }},
-                                                        name: '{{ addslashes($product->name) }}',
-                                                        price: {{ $product->price }},
-                                                        image: '{{ asset($product->image) }}',
-                                                        stock: {{ $product->stock }}
-                                                    })" class="flex items-center gap-2 bg-red-600 text-white px-3 py-1 rounded-full text-sm hover:bg-red-700 transition-all">
-                                                        <i class="fas fa-shopping-cart"></i>
-                                                        <span>Add</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    @foreach($topRatedProducts as $product)
+                        <div class="bg-[#222] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col group">
+                            <div class="relative overflow-hidden h-56">
+                                <img src="{{ asset($product->image) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" alt="{{ $product->name }}">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
+                                <div class="absolute top-4 right-4">
+                                    <span class="bg-[#FA5455] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">HOT</span>
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
+                            
+                            <div class="p-5 flex-1 flex flex-col">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="text-lg font-bold text-white">{{ $product->name }}</h3>
+                                </div>
+                                
+                                <p class="text-gray-400 text-sm mb-4 flex-1">{{ \Illuminate\Support\Str::limit($product->description, 60) }}</p>
+                                
+                                <div class="mt-auto">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <span class="text-xl font-bold text-white">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="text-sm text-gray-400">{{ $product->stock }} in stock</span>
+                                    </div>
+                                    
+                                    <div class="flex space-x-2">
+                                        <button @click="showProductModal({
+                                            id: {{ $product->id }},
+                                            name: '{{ addslashes($product->name) }}',
+                                            price: {{ $product->price }},
+                                            image: '{{ asset($product->image) }}',
+                                            description: '{{ addslashes($product->description) }}',
+                                            stock: {{ $product->stock }}
+                                        })" class="flex-1 bg-[#333] text-white py-2 px-4 rounded-lg hover:bg-[#444] transition flex items-center justify-center">
+                                            <i class="fas fa-eye mr-2"></i> View
+                                        </button>
+                                        
+                                        <button @click="addToCart({
+                                            id: {{ $product->id }},
+                                            name: '{{ addslashes($product->name) }}',
+                                            price: {{ $product->price }},
+                                            image: '{{ asset($product->image) }}',
+                                            stock: {{ $product->stock }}
+                                        })" class="flex-1 bg-[#FA5455] text-white py-2 px-4 rounded-lg hover:bg-[#e84142] transition flex items-center justify-center">
+                                            <i class="fas fa-shopping-cart mr-2"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                
+                <div class="text-center mt-10">
+                    <a href="{{ route('shop') }}" class="inline-block bg-[#FA5455] hover:bg-[#e84142] text-white font-semibold py-3 px-8 rounded-lg transition duration-300 transform hover:-translate-y-1 hover:shadow-lg no-underline">
+                        View All Products <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
                 </div>
             @endif
         </div>
@@ -173,11 +237,11 @@
                                         <p class="text-sm text-gray-700 mb-4" x-text="activeProduct?.description || 'High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.'"></p>
                                         <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
                                         @auth
-                                        <button @click="addToCart(activeProduct); modalOpen = false" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                                        <button @click="addToCart(activeProduct); modalOpen = false" class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition">
                                             Add to Cart
                                         </button>
                                         @else
-                                        <button @click="showLoginPrompt()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition">
+                                        <button @click="showLoginPrompt()" class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition">
                                             Login to Add to Cart
                                         </button>
                                         @endauth
@@ -202,6 +266,9 @@
         </div>
     </section>
 </div>
+
+<!-- Add dark spacer div for consistent spacing before footer -->
+<div class="bg-[#1e1e1e] py-16"></div>
 
 <script>
     document.addEventListener('alpine:init', () => {

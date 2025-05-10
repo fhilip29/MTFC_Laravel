@@ -111,8 +111,8 @@
         @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
         !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart')
         && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages')
-        && !Request::is('checkout') && !Request::is('user/*'))
-            <div class="h-[400px]"></div>
+        && !Request::is('checkout') && !Request::is('user/*') && !Request::is('about') && !Request::is('shop'))
+            <!-- Empty space div removed -->
         @endif
     </main>
 

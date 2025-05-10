@@ -228,19 +228,19 @@
                         @foreach($tags as $tagItem)
                         <a href="{{ route('community.tag', $tagItem->slug) }}" 
                            class="flex items-center space-x-2 {{ isset($tag) && $tag == $tagItem->slug ? 'text-white bg-[#2a2a2a]' : 'text-gray-400 hover:text-white' }} transition-colors p-2 rounded hover:bg-[#2a2a2a]">
-                            <i class="fas {{ 
-                                $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
-                                ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
-                                ($tagItem->slug == 'boxing' ? '' : 
-                                ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
-                                ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
-                                ($tagItem->slug == 'cardio' ? 'fa-running' : 
-                                ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
-                                ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
-                                ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag'))))))))
-                            }}"></i>
                             @if($tagItem->slug == 'boxing')
-                                @include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block'])
+                                @include('partials.boxing-icon', ['class' => 'w-4 h-4'])
+                            @else
+                                <i class="fas {{ 
+                                    $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
+                                    ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
+                                    ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
+                                    ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
+                                    ($tagItem->slug == 'cardio' ? 'fa-running' : 
+                                    ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
+                                    ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
+                                    ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag')))))))
+                                }}"></i>
                             @endif
                             <span>{{ $tagItem->name }}</span>
                         </a>
@@ -312,22 +312,22 @@
                     </a>
                     @foreach($tags as $tagItem)
                     <a href="{{ route('community.tag', $tagItem->slug) }}" 
-                       class="flex-shrink-0 px-4 py-2 {{ isset($tag) && $tag == $tagItem->slug ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
-                        <i class="fas {{ 
-                            $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
-                            ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
-                            ($tagItem->slug == 'boxing' ? '' : 
-                            ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
-                            ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
-                            ($tagItem->slug == 'cardio' ? 'fa-running' : 
-                            ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
-                            ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
-                            ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag'))))))))
-                        }} mr-2"></i>
+                       class="flex-shrink-0 px-4 py-2 {{ isset($tag) && $tag == $tagItem->slug ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a] flex items-center">
                         @if($tagItem->slug == 'boxing')
-                            @include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block mr-2'])
+                            <span class="mr-2">@include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block'])</span>
+                        @else
+                            <i class="fas {{ 
+                                $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
+                                ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
+                                ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
+                                ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
+                                ($tagItem->slug == 'cardio' ? 'fa-running' : 
+                                ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
+                                ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
+                                ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag')))))))
+                            }} mr-2"></i>
                         @endif
-                        {{ $tagItem->name }}
+                        <span>{{ $tagItem->name }}</span>
                     </a>
                     @endforeach
                 </div>
@@ -379,19 +379,19 @@
                                         @foreach($tags as $tagItem)
                                         <label class="inline-flex items-center bg-[#252525] text-gray-300 px-3 py-2 rounded-full hover:bg-[#2a2a2a] cursor-pointer transition-all duration-200">
                                             <input type="checkbox" name="tags[]" value="{{ $tagItem->id }}" class="hidden">
-                                            <i class="fas {{ 
-                                                $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
-                                                ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
-                                                ($tagItem->slug == 'boxing' ? '' : 
-                                                ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
-                                                ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
-                                                ($tagItem->slug == 'cardio' ? 'fa-running' : 
-                                                ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
-                                                ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
-                                                ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag'))))))))
-                                            }} mr-1"></i>
                                             @if($tagItem->slug == 'boxing')
-                                                @include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block mr-1'])
+                                                @include('partials.boxing-icon', ['class' => 'w-4 h-4 mr-1'])
+                                            @else
+                                                <i class="fas {{ 
+                                                    $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
+                                                    ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
+                                                    ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
+                                                    ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
+                                                    ($tagItem->slug == 'cardio' ? 'fa-running' : 
+                                                    ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
+                                                    ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
+                                                    ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag')))))))
+                                                }} mr-1"></i>
                                             @endif
                                             {{ $tagItem->name }}
                                         </label>

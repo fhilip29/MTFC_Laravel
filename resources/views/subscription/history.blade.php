@@ -87,9 +87,9 @@
                                         </td>
                                         <td class="py-3 md:py-4 text-xs md:text-sm">
                                             @if($subscription->isActive())
-                                                <form action="{{ route('subscription.cancel', $subscription->id) }}" method="POST">
+                                                <form action="{{ route('subscription.cancel', $subscription->id) }}" method="POST" id="cancelForm{{ $subscription->id }}">
                                                     @csrf
-                                                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this subscription?')" 
+                                                    <button type="button" onclick="confirmCancel({{ $subscription->id }})" 
                                                         class="inline-flex items-center text-red-600 hover:text-red-800 transition">
                                                         <i class="fas fa-ban mr-1"></i> Cancel
                                                     </button>
@@ -130,4 +130,26 @@
         box-shadow: 0 10px 15px rgba(0,0,0,0.1);
     }
 </style>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    function confirmCancel(subscriptionId) {
+        Swal.fire({
+            title: 'Cancel Subscription?',
+            text: 'Are you sure you want to cancel this subscription? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, cancel it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('cancelForm' + subscriptionId).submit();
+            }
+        });
+    }
+</script>
 @endsection 

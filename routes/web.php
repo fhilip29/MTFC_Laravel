@@ -464,6 +464,7 @@ Route::middleware(['auth'])->group(function() {
 Route::middleware(['auth'])->group(function() {
     Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('user.messages');
     Route::get('/messages/compose', [\App\Http\Controllers\MessageController::class, 'compose'])->name('user.messages.compose');
+    Route::get('/messages/sent', [\App\Http\Controllers\MessageController::class, 'sent'])->name('user.messages.sent');
     Route::get('/messages/{id}', [\App\Http\Controllers\MessageController::class, 'show'])->name('user.messages.show');
     Route::post('/messages', [\App\Http\Controllers\MessageController::class, 'store'])->name('user.messages.store');
     Route::post('/messages/{id}/reply', [\App\Http\Controllers\MessageController::class, 'reply'])->name('user.messages.reply');

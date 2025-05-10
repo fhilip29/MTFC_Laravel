@@ -44,7 +44,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-[#9CA3AF]">Method:</span>
-                            <span class="text-white">Cash</span>
+                            <span class="text-white">{{ ucfirst($invoice->payment_method ?: 'Online') }}</span>
                         </div>
                     </div>
                 </div>

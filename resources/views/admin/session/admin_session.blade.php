@@ -102,8 +102,8 @@
                                     </td>
                                     <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? ($session->guest_name ?? 'Guest User') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF] capitalize">{{ $session->user->role ?? 'guest' }}</td> 
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('M d, Y') }}</td>
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->format('h:i A') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('M d, Y') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full 
                                             {{ $session->status === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white' }}">
@@ -685,7 +685,8 @@
                 },
                 body: JSON.stringify({
                     qr_code: qrCode,
-                    status: scanMode
+                    status: scanMode,
+                    timezone: 'Asia/Manila' // Explicitly set Philippines timezone
                 })
             })
             .then(response => response.json())
@@ -743,9 +744,13 @@
             const newRow = document.createElement('tr');
             newRow.className = 'hover:bg-[#374151] transition-colors';
             
+            // Convert date to Philippines time
             const date = new Date(data.time);
-            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-            const formattedTime = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            // Format using Philippine timezone
+            const options = { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' };
+            const timeOptions = { timeZone: 'Asia/Manila', hour: 'numeric', minute: 'numeric', hour12: true };
+            const formattedDate = date.toLocaleDateString('en-US', options);
+            const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
             const initials = data.full_name ? data.full_name.substring(0, 2).toUpperCase() : 'G';
             const userRole = data.role || 'guest'; // Get role from response
             
@@ -977,11 +982,11 @@
             
             // Send data to server
             const formData = new FormData();
-            formData.append('session_id', guestId);
             formData.append('guest_name', guestName);
             formData.append('mobile_number', guestPhone);
             formData.append('status', 'OUT');
             formData.append('_token', '{{ csrf_token() }}');
+            formData.append('timezone', 'Asia/Manila'); // Add Philippines timezone
             
             fetch('{{ route("admin.session.store") }}', {
                 method: 'POST',
@@ -1107,6 +1112,7 @@
             formData.append('mobile_number', guestPhone);
             formData.append('status', 'IN'); // Always IN for the check in tab
             formData.append('_token', '{{ csrf_token() }}');
+            formData.append('timezone', 'Asia/Manila'); // Add Philippines timezone
             
             fetch('{{ route("admin.session.store") }}', {
                 method: 'POST',

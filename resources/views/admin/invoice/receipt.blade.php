@@ -214,6 +214,12 @@
                 </div>
             </div>
             
+            <div class="invoice-info">
+                <div>
+                    <strong>Payment Method:</strong> {{ ucfirst($invoice->payment_method ?: 'Online') }}
+                </div>
+            </div>
+            
             <div class="client-info">
                 <strong>{{ $invoice->user ? $invoice->user->full_name : 'WALKIN-GUEST' }}</strong><br>
                 @if($invoice->user)
@@ -250,7 +256,7 @@
         </table>
         
         <div style="text-align: center; font-size: 11px; margin: 10px 0;">
-            <strong>Payment Method:</strong> Cash<br>
+            <strong>Payment Method:</strong> {{ ucfirst($invoice->payment_method ?: 'Online') }}<br>
             <strong>Payment Status:</strong> Paid
         </div>
         

@@ -34,6 +34,24 @@ class MessageController extends Controller
     }
     
     /**
+     * Display a listing of the user's sent messages
+     *
+     * @return \Illuminate\View\View
+     */
+    public function sent()
+    {
+        $user = Auth::user();
+        
+        // Get sent messages for this user
+        $sentMessages = Message::where('sender_id', $user->id)
+            ->with('recipient')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        return view('messages.sent', compact('sentMessages'));
+    }
+    
+    /**
      * Display the specified message
      *
      * @param int $id

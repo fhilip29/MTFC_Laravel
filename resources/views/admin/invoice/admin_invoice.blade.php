@@ -51,7 +51,6 @@
                         <th class="px-3 sm:px-4 py-3">Invoice Number</th>
                         <th class="px-3 sm:px-4 py-3">Client</th>
                         <th class="px-3 sm:px-4 py-3">Type</th>
-                        <th class="px-3 sm:px-4 py-3">Amount</th>
                         <th class="px-3 sm:px-4 py-3">Date</th>
                         <th class="px-3 sm:px-4 py-3 text-center">Actions</th>
                     </tr>
@@ -68,7 +67,6 @@
                                     {{ ucfirst($invoice->type) }}
                                 </span>
                             </td>
-                            <td class="px-3 sm:px-4 py-3 text-white text-xs sm:text-sm">₱{{ number_format($invoice->total_amount, 2) }}</td>
                             <td class="px-3 sm:px-4 py-3 text-[#9CA3AF] text-xs sm:text-sm">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</td>
                             <td class="px-3 sm:px-4 py-3 text-center">
                                 <div class="flex justify-center space-x-2">
@@ -443,7 +441,7 @@
                 const invoiceNumber = row.cells[0].textContent.toLowerCase();
                 const clientName = row.cells[1].textContent.toLowerCase();
                 const type = row.cells[2].textContent.toLowerCase();
-                const date = row.cells[4].textContent;
+                const date = row.cells[3].textContent;
                 
                 // Parse the date for comparison
                 let shouldShow = true;

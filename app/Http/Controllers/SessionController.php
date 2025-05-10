@@ -94,7 +94,55 @@ class SessionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Error processing guest checkout: ' . $e->getMessage()], 500);
             }
         }
-        // Priority 3: Guest Check-In (creates a new guest session with status 'IN')
+        // Priority 3: Guest Check-Out (creates a new guest session with status 'OUT')
+        elseif ($request->has('guest_name') && $request->input('status') === 'OUT') {
+            try {
+                $request->validate([
+                    'guest_name' => 'required|string|max:255',
+                    'mobile_number' => 'required|string|max:20', 
+                    'status' => 'required|in:OUT',
+                ]);
+    
+                $session = Sessions::create([
+                    'user_id' => null, 
+                    'guest_name' => $request->guest_name,
+                    'mobile_number' => $request->mobile_number,
+                    'time' => Carbon::now(),
+                    'status' => 'OUT', // Explicitly OUT
+                ]);
+    
+                return response()->json([
+                    'success' => true,
+                    'data' => [
+                        'id' => $session->id,
+                        'user_id' => null,
+                        'full_name' => $request->guest_name,
+                        'mobile_number' => $request->mobile_number,
+                        'role' => 'guest',
+                        'time' => $session->time,
+                        'status' => $session->status,
+                    ]
+                ]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Guest Check-out Validation Error', [
+                    'errors' => $e->errors(), 
+                    'request' => $request->all()
+                ]);
+                return response()->json(['success' => false, 'error' => 'Validation failed.', 'errors' => $e->errors()], 422);
+            } catch (\Exception $e) {
+                \Log::error('Guest Check-out Error', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'request' => $request->all()
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Error processing guest check-out: ' . $e->getMessage()
+                ], 500);
+            }
+        }
+        // Priority 4: Guest Check-In (creates a new guest session with status 'IN')
         elseif ($request->has('guest_name') && $request->input('status') === 'IN') {
             try {
                 $request->validate([

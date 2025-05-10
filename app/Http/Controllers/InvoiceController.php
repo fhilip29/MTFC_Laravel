@@ -68,14 +68,15 @@ class InvoiceController extends Controller
     /**
      * Store a subscription invoice
      */
-    public function storeSubscriptionInvoice($userId, $subscriptionDetails, $amount, $paymentStatus = 'completed')
+    public function storeSubscriptionInvoice($userId, $subscriptionDetails, $amount, $paymentStatus = 'completed', $paymentMethod = null)
     {
         // Log subscription invoice creation
         \Log::info('Creating subscription invoice', [
             'user_id' => $userId,
             'details' => $subscriptionDetails,
             'amount' => $amount,
-            'status' => $paymentStatus
+            'status' => $paymentStatus,
+            'payment_method' => $paymentMethod
         ]);
 
         // Extract subscription ID from details if available
@@ -95,6 +96,7 @@ class InvoiceController extends Controller
             'total_amount' => $amount,
             'invoice_date' => now()->format('Y-m-d'),
             'payment_status' => $paymentStatus,
+            'payment_method' => $paymentMethod ?: 'online', // Set default to 'online' if not provided
             'subscription_id' => $subscriptionId
         ]);
 

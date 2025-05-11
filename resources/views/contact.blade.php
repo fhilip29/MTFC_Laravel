@@ -91,14 +91,14 @@
                 <!-- Google Map -->
                 <div class="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <h2 class="text-2xl font-bold text-black p-6">Our Location</h2>
-                    <div class="aspect-w-16 aspect-h-9 w-full">
+                    <div class="w-full h-96 rounded-lg overflow-hidden shadow-lg">
                         <iframe 
-                            class="w-full h-96"
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.2499097094547!2d120.97985491482959!3d14.583505989819075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ca2336770053%3A0x1b7adb4bb8cee0dc!2sYMCA%20Manila!5e0!3m2!1sen!2sph!4v1651152606128!5m2!1sen!2sph" 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph"
+                            width="100%" 
+                            height="100%" 
                             style="border:0;" 
                             allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
+                            loading="lazy">
                         </iframe>
                     </div>
                 </div>

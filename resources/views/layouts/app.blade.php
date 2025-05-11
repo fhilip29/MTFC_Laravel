@@ -176,6 +176,12 @@
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             
             if (cart[index]) {
+                // Check if increasing quantity would exceed available stock
+                if (cart[index].stock && cart[index].quantity >= cart[index].stock) {
+                    // Just return without updating (silently prevent exceeding stock)
+                    return;
+                }
+                
                 cart[index].quantity++;
                 localStorage.setItem('cart', JSON.stringify(cart));
                 
@@ -389,17 +395,22 @@
                     
                     const itemElement = document.createElement('div');
                     itemElement.className = 'flex items-center space-x-4 border-b pb-4 mb-4 cart-item rounded p-2';
+
+                    // Check if item is at stock limit
+                    const isAtStockLimit = item.stock && item.quantity >= item.stock;
+                    
                     itemElement.innerHTML = `
                         <img src="${item.image || '{{ asset('assets/default-product.jpg') }}'}" alt="${item.name}" class="w-16 h-16 object-cover rounded">
                         <div class="flex-1">
                             <h4 class="text-md font-semibold">${item.name}</h4>
                             <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
+                            ${isAtStockLimit ? `<p class="text-xs text-red-500 font-semibold">Maximum stock reached</p>` : ''}
                             <div class="flex items-center space-x-2 mt-2">
                                 <button type="button" class="decrease-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" data-index="${index}">
                                     <i class="fas fa-minus text-xs"></i>
                                 </button>
                                 <span class="quantity-value text-center w-6">${item.quantity}</span>
-                                <button type="button" class="increase-btn bg-gray-200 text-gray-600 w-6 h-6 rounded-full flex items-center justify-center hover:bg-gray-300" data-index="${index}">
+                                <button type="button" class="increase-btn ${isAtStockLimit ? 'bg-gray-300 cursor-not-allowed' : 'bg-gray-200 hover:bg-gray-300'} text-gray-600 w-6 h-6 rounded-full flex items-center justify-center" data-index="${index}">
                                     <i class="fas fa-plus text-xs"></i>
                                 </button>
                                 <button type="button" class="ml-2 text-red-500 hover:text-red-700" data-index="${index}">

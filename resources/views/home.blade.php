@@ -187,14 +187,14 @@
                                             <i class="fas fa-eye mr-2"></i> View
                                         </button>
                                         
-                                        <button @click="addToCart({
-                                            id: {{ $product->id }},
-                                            name: '{{ addslashes($product->name) }}',
-                                            price: {{ $product->price }},
-                                            image: '{{ asset($product->image) }}',
-                                            stock: {{ $product->stock }}
-                                        })" class="flex-1 bg-[#FA5455] text-white py-2 px-4 rounded-lg hover:bg-[#e84142] transition flex items-center justify-center">
-                                            <i class="fas fa-shopping-cart mr-2"></i> Add
+                                        <button @click="{{ $product->stock > 0 ? 'addToCart({
+                                            id: ' . $product->id . ',
+                                            name: \'' . addslashes($product->name) . '\',
+                                            price: ' . $product->price . ',
+                                            image: \'' . asset($product->image) . '\',
+                                            stock: ' . $product->stock . '
+                                        })' : 'void(0)' }}" class="flex-1 bg-[#FA5455] text-white py-2 px-4 rounded-lg hover:bg-[#e84142] transition flex items-center justify-center {{ $product->stock <= 0 ? 'opacity-60 cursor-not-allowed !bg-gray-500 hover:!bg-gray-500' : '' }}">
+                                            <i class="fas {{ $product->stock > 0 ? 'fa-shopping-cart' : 'fa-ban' }} mr-2"></i> {{ $product->stock > 0 ? 'Add' : 'Sold Out' }}
                                         </button>
                                     </div>
                                 </div>
@@ -235,13 +235,19 @@
                                     <div class="md:w-2/3">
                                         <p class="text-sm text-gray-500 mb-2">Product Details:</p>
                                         <p class="text-sm text-gray-700 mb-4" x-text="activeProduct?.description || 'High-quality fitness equipment designed for both home and gym use. Durable materials ensure long-lasting performance.'"></p>
-                                        <p class="text-lg font-bold text-gray-900 mb-4">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
+                                        <p class="text-lg font-bold text-gray-900 mb-2">₱<span x-text="Number(activeProduct?.price).toFixed(2)"></span></p>
+                                        <p class="text-sm text-gray-600 mb-4">Stock: <span x-text="activeProduct?.stock || 0"></span> available</p>
                                         @auth
-                                        <button @click="addToCart(activeProduct); modalOpen = false" class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition">
-                                            Add to Cart
+                                        <button 
+                                            @click="activeProduct.stock > 0 ? (addToCart(activeProduct), modalOpen = false) : void(0)" 
+                                            class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition w-full"
+                                            :class="{'opacity-60 cursor-not-allowed !bg-gray-500 hover:!bg-gray-500': activeProduct?.stock <= 0}"
+                                        >
+                                            <span x-show="activeProduct?.stock > 0">Add to Cart</span>
+                                            <span x-show="activeProduct?.stock <= 0">Out of Stock</span>
                                         </button>
                                         @else
-                                        <button @click="showLoginPrompt()" class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition">
+                                        <button @click="showLoginPrompt()" class="bg-[#FA5455] text-white px-4 py-2 rounded hover:bg-[#e84142] transition w-full">
                                             Login to Add to Cart
                                         </button>
                                         @endauth

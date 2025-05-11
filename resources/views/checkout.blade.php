@@ -251,27 +251,30 @@
             const itemPrice = parseFloat(item.price) * item.quantity;
             
             itemElement.innerHTML = `
-                <div class="flex items-center space-x-4">
-                    <input type="checkbox" data-index="${index}" data-price="${item.price}" 
-                           class="item-checkbox w-5 h-5 text-red-600 rounded focus:ring-red-500" checked>
-                    <img src="${item.image || '{{ asset("assets/default-product.jpg") }}'}" 
-                         alt="${item.name}" class="w-16 h-16 object-cover rounded">
-                    <div>
-                        <h3 class="font-medium">${item.name}</h3>
-                        <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
-                        <div class="flex items-center space-x-2 mt-2">
-                            <button type="button" class="quantity-btn decrease-btn bg-gray-200 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none" data-index="${index}">
-                                <i class="fas fa-minus text-xs"></i>
-                            </button>
-                            <span class="quantity-value text-center w-8" data-index="${index}">${item.quantity}</span>
-                            <button type="button" class="quantity-btn increase-btn bg-gray-200 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none" data-index="${index}">
-                                <i class="fas fa-plus text-xs"></i>
-                            </button>
+                <div class="flex items-center justify-between pb-4 border-b border-gray-200 checkout-item rounded p-2 mb-2">
+                    <div class="flex items-center space-x-4">
+                        <input type="checkbox" data-index="${index}" data-price="${item.price}" 
+                               class="item-checkbox w-5 h-5 text-red-600 rounded focus:ring-red-500" checked>
+                        <img src="${item.image || '{{ asset("assets/default-product.jpg") }}'}" 
+                             alt="${item.name}" class="w-16 h-16 object-cover rounded">
+                        <div>
+                            <h3 class="font-medium">${item.name}</h3>
+                            <p class="text-sm text-gray-500">₱${parseFloat(item.price).toFixed(2)} per item</p>
+                            <p class="text-xs text-gray-500">Available: ${item.stock} items</p>
+                            <div class="flex items-center space-x-2 mt-2">
+                                <button type="button" class="quantity-btn decrease-btn bg-gray-200 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none" data-index="${index}">
+                                    <i class="fas fa-minus text-xs"></i>
+                                </button>
+                                <span class="quantity-value text-center w-8" data-index="${index}">${item.quantity}</span>
+                                <button type="button" class="quantity-btn increase-btn bg-gray-200 text-gray-600 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 focus:outline-none" data-index="${index}">
+                                    <i class="fas fa-plus text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <p class="font-semibold item-total" data-index="${index}">₱${itemPrice.toFixed(2)}</p>
+                    <div class="text-right">
+                        <p class="font-semibold item-total" data-index="${index}">₱${itemPrice.toFixed(2)}</p>
+                    </div>
                 </div>
             `;
             
@@ -310,10 +313,28 @@
         increaseButtons.forEach(button => {
             button.addEventListener('click', function() {
                 const index = parseInt(this.dataset.index);
-                cart[index].quantity += 1;
-                updateItemDisplay(index);
-                updateTotals();
-                saveCart();
+                // Check if we've reached the stock limit
+                if (cart[index].quantity < cart[index].stock) {
+                    cart[index].quantity += 1;
+                    updateItemDisplay(index);
+                    updateTotals();
+                    saveCart();
+                } else {
+                    // Visual feedback when at maximum stock
+                    this.classList.add('bg-red-100');
+                    
+                    // Show stock limit tooltip
+                    const tooltip = document.createElement('div');
+                    tooltip.className = 'absolute -top-8 left-0 right-0 text-xs bg-gray-800 text-white px-2 py-1 rounded text-center z-10';
+                    tooltip.textContent = `Max: ${cart[index].stock} available`;
+                    this.parentNode.style.position = 'relative';
+                    this.parentNode.appendChild(tooltip);
+                    
+                    setTimeout(() => {
+                        this.classList.remove('bg-red-100');
+                        tooltip.remove();
+                    }, 1500);
+                }
             });
         });
         

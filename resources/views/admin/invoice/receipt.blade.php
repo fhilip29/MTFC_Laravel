@@ -174,6 +174,14 @@
         .btn-success:hover {
             background-color: #218838;
         }
+        .btn-custom {
+            background-color: #FA5455;
+            color: white;
+            width: 180px;
+        }
+        .btn-custom:hover {
+            background-color: #e84142;
+        }
         .btn i {
             margin-right: 5px;
         }
@@ -181,14 +189,11 @@
 </head>
 <body>
     <div class="no-print button-container">
-        <button onclick="window.print()" class="btn btn-primary">
+        <button onclick="window.print()" class="btn btn-custom">
             <i class="fas fa-print"></i> Print Receipt
         </button>
-        <a href="#" onclick="downloadPDF()" class="btn btn-success">
+        <a href="#" onclick="downloadPDF()" class="btn btn-custom">
             <i class="fas fa-download"></i> Download PDF
-        </a>
-        <a href="{{ route('admin.invoice.show', $invoice->id) }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
     

@@ -104,12 +104,12 @@
                 <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.1790663571073!2d120.97751048432549!3d14.588870141015025!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397ca21f18a1789%3A0x5e2b67a947ccb95e!2sYMCA%20of%20Manila!5e0!3m2!1sen!2sph!4v1743879656062!5m2!1sen!2sph"
                     width="100%"
-                    height="750"
+                    height="450"
                     style="border:0;"
                     allowfullscreen=""
                     loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade"
-                    class="w-full h-full">
+                    class="w-full h-[600px]">
                 </iframe>
             </div>
 
@@ -159,5 +159,11 @@
 </section>
 
 <!-- Add dark spacer div instead of margin -->
+
+    </div>
+</section>
+
+<!-- Dark spacer div to match the background -->
+<div class="bg-[#1e1e1e] h-24"></div>
 
 @endsection

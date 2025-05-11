@@ -72,18 +72,7 @@ window.addToCart = function(product) {
         confirmButtonColor: '#EF4444',
         timer: 2000,
         showConfirmButton: true,
-        confirmButtonText: 'View Cart'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Open cart drawer instead of redirecting
-            const cartDrawer = document.getElementById('cartDrawer');
-            if (cartDrawer) {
-                cartDrawer.classList.remove('translate-x-full');
-                if (typeof window.renderCart === 'function') {
-                    window.renderCart();
-                }
-            }
-        }
+        confirmButtonText: 'Continue'
     });
     
     // Sync with server if user is authenticated
@@ -168,7 +157,6 @@ function showProductModal(id, name, price, image, description, stock, category, 
     document.getElementById('modalProductDescription').textContent = description || 'No description available';
     document.getElementById('modalProductStock').textContent = stock;
     document.getElementById('modalProductCategory').textContent = category;
-    document.getElementById('modalQuantityInput').value = 1;
     
     // Handle stock display
     if (stock <= 0) {
@@ -189,41 +177,14 @@ function closeProductModal() {
     currentProduct = null;
 }
 
-// Function to decrease quantity in modal
-function decreaseQuantity() {
-    const quantityInput = document.getElementById('modalQuantityInput');
-    const currentValue = parseInt(quantityInput.value);
-    if (currentValue > 1) {
-        quantityInput.value = currentValue - 1;
-        updateModalQuantity();
-    }
-}
-
-// Function to increase quantity in modal
-function increaseQuantity() {
-    const quantityInput = document.getElementById('modalQuantityInput');
-    const currentValue = parseInt(quantityInput.value);
-    const maxStock = currentProduct ? currentProduct.stock : 999;
-    
-    if (currentValue < maxStock) {
-        quantityInput.value = currentValue + 1;
-        updateModalQuantity();
-    }
-}
-
-// Function to update quantity in modal
-function updateModalQuantity() {
-    if (currentProduct) {
-        const quantity = parseInt(document.getElementById('modalQuantityInput').value);
-        currentProduct.quantity = quantity;
-    }
-}
+// Quantity-related functions removed as they are no longer needed
 
 // Function to add to cart from modal
 function addToCartFromModal() {
     if (!currentProduct) return;
     
-    const quantity = parseInt(document.getElementById('modalQuantityInput').value);
+    // Fixed quantity of 1 since quantity selection has been removed
+    const quantity = 1;
     
     if (quantity > 0 && quantity <= currentProduct.stock) {
         // Create product object with quantity
@@ -282,18 +243,7 @@ function addToCartFromModal() {
                                 <p class="text-gray-700 text-sm md:text-base" id="modalProductDescription">Loading description...</p>
                             </div>
                             <div id="modalQuantitySection" class="flex flex-col space-y-2">
-                                <div class="flex items-center space-x-3">
-                                    <label class="text-sm font-medium text-gray-500">Quantity:</label>
-                                    <div class="flex items-center">
-                                        <button type="button" onclick="decreaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-l-md w-9 h-9 flex items-center justify-center focus:outline-none">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" id="modalQuantityInput" min="1" value="1" class="w-12 h-9 text-center border-gray-200 focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" oninput="updateModalQuantity()" />
-                                        <button type="button" onclick="increaseQuantity()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-r-md w-9 h-9 flex items-center justify-center focus:outline-none">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
+                                <!-- Quantity section removed as requested -->
                                 @auth
                                 @if(Auth::user()->role === 'admin')
                                 <button disabled class="w-full bg-gray-400 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg flex items-center justify-center gap-2 shadow-md opacity-70 cursor-not-allowed">

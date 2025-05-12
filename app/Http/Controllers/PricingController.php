@@ -24,7 +24,7 @@ class PricingController extends Controller
             
             $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
-                ->where('end_date', '>', now())
+                ->latest()
                 ->first();
                 
             if ($activeSubscription) {
@@ -53,7 +53,7 @@ class PricingController extends Controller
             
             $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
-                ->where('end_date', '>', now())
+                ->latest()
                 ->first();
                 
             if ($activeSubscription) {
@@ -82,7 +82,7 @@ class PricingController extends Controller
             
             $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
-                ->where('end_date', '>', now())
+                ->latest()
                 ->first();
                 
             if ($activeSubscription) {
@@ -111,7 +111,7 @@ class PricingController extends Controller
             
             $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
-                ->where('end_date', '>', now())
+                ->latest()
                 ->first();
                 
             if ($activeSubscription) {

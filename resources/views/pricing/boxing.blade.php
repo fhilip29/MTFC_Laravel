@@ -112,6 +112,9 @@
                             <x-check-icon /> One boxing class
                         </li>
                         <li class="flex items-start gap-2">
+                            <x-check-icon /> Sessions tracked in your account
+                        </li>
+                        <li class="flex items-start gap-2">
                             <x-check-icon /> Free use of gym for the day
                         </li>
                         <li class="flex items-start gap-2">

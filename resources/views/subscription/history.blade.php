@@ -50,6 +50,7 @@
                                     <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Price</th>
                                     <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Start Date</th>
                                     <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">End Date</th>
+                                    <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Sessions</th>
                                     <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Status</th>
                                     <th class="pb-3 md:pb-4 text-gray-500 font-medium text-xs md:text-sm">Actions</th>
                                 </tr>
@@ -62,7 +63,7 @@
                                                 @if($subscription->type === 'gym') bg-green-100 text-green-800
                                                 @elseif($subscription->type === 'boxing') bg-red-100 text-red-800
                                                 @elseif($subscription->type === 'muay') bg-purple-100 text-purple-800
-                                                @elseif($subscription->type === 'jiu') bg-blue-100 text-blue-800
+                                                @elseif($subscription->type === 'jiu-jitsu') bg-blue-100 text-blue-800
                                                 @endif
                                             ">
                                                 {{ ucfirst($subscription->type) }}
@@ -76,6 +77,16 @@
                                                 {{ $subscription->end_date->format('M d, Y') }}
                                             @else
                                                 <span class="text-gray-400">Per-session</span>
+                                            @endif
+                                        </td>
+                                        <td class="py-3 md:py-4 text-xs md:text-sm text-gray-600">
+                                            @if($subscription->plan === 'per-session')
+                                                <span class="font-medium">{{ $subscription->sessions_remaining ?? 'Unlimited' }}</span>
+                                                @if($subscription->sessions_used > 0)
+                                                    <span class="text-xs text-gray-500">({{ $subscription->sessions_used }} used)</span>
+                                                @endif
+                                            @else
+                                                <span class="text-gray-400">-</span>
                                             @endif
                                         </td>
                                         <td class="py-3 md:py-4 text-xs md:text-sm">

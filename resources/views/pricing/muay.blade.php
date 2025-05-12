@@ -76,7 +76,7 @@
                         </li>
                     </ul>
                     <div class="flex justify-between items-center mt-auto">
-                        <span class="text-lg font-semibold text-gray-800">₱2,600 / Monthly</span>
+                        <span class="text-lg font-semibold text-gray-800">₱2,600 / month</span>
                         @if(Auth::check())
                             @if($userHasActive)
                                 @if($activeType == 'muay' && $activePlan == 'monthly')
@@ -110,6 +110,9 @@
                     <ul class="text-sm text-gray-700 space-y-2 mb-6">
                         <li class="flex items-start gap-2">
                             <x-check-icon /> One Muay Thai class
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <x-check-icon /> Sessions tracked in your account
                         </li>
                         <li class="flex items-start gap-2">
                             <x-check-icon /> Free use of gym for the day

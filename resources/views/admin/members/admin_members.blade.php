@@ -18,6 +18,9 @@
         document.getElementById('edit-plan').value = subscription.plan;
         document.getElementById('edit-subscription-id').value = subscription.id;
         
+        // Show/hide daily option based on type
+        toggleDailyOption();
+        
         // Show/hide cancel button based on subscription status
         const cancelBtn = document.getElementById('cancel-subscription-btn');
         if (subscription.is_active) {
@@ -209,7 +212,12 @@
                                             @click="showSubscriptionModal = true; currentMemberId = {{ $member->id }}; 
                                                 fetch('/admin/members/'+{{ $member->id }}+'/subscriptions')
                                                 .then(response => response.json())
-                                                .then(data => { subscriptions = data; })"
+                                                .then(data => { 
+                                                    subscriptions = data;
+                                                    setTimeout(function() {
+                                                        toggleAddDailyOption();
+                                                    }, 100);
+                                                })"
                                             class="text-blue-400 hover:text-blue-300 transition-colors" 
                                             title="Manage Subscription">
                                             <i class="fas fa-crown"></i>
@@ -276,10 +284,11 @@
                     <div class="py-4" x-show="currentMember">
                         <div class="flex flex-col md:flex-row gap-6">
                             <div class="flex flex-col items-center">
-                                <img :src="currentMember?.profile_image ? '/storage/' + currentMember.profile_image : '/assets/default-profile.jpg'" 
+                                <img :src="currentMember?.profile_image ? '/' + currentMember.profile_image : '/assets/default-profile.jpg'" 
                                      :alt="currentMember?.full_name" 
                                      class="w-32 h-32 rounded-full object-cover border-4 border-[#374151] mb-2">
                                 <h4 x-text="currentMember?.full_name" class="text-lg font-bold text-white"></h4>
+                                
                                 <div>
                                     <template x-if="currentMember?.active_subscriptions && currentMember.active_subscriptions.length > 0">
                                         <div class="flex flex-wrap justify-center gap-1 mt-1">
@@ -292,7 +301,7 @@
                                                         'bg-green-500': sub.type === 'gym'
                                                     }"
                                                     class="px-2 py-1 rounded-full text-xs font-medium text-white"
-                                                    x-text="sub.type.charAt(0).toUpperCase() + sub.type.slice(1)"
+                                                    x-text="sub.type === 'jiu-jitsu' ? 'Jiu' : (sub.type.charAt(0).toUpperCase() + sub.type.slice(1))"
                                                 ></span>
                                             </template>
                                         </div>
@@ -394,6 +403,7 @@
                                             <th class="px-4 py-3 text-left">Price</th>
                                             <th class="px-4 py-3 text-left">Start Date</th>
                                             <th class="px-4 py-3 text-left">End Date</th>
+                                            <th class="px-4 py-3 text-left">Sessions</th>
                                             <th class="px-4 py-3 text-left">Status</th>
                                             <th class="px-4 py-3 text-center">Actions</th>
                                         </tr>
@@ -403,9 +413,20 @@
                                             <tr class="hover:bg-[#374151] transition-colors">
                                                 <td class="px-4 py-3 text-white" x-text="subscription.type.charAt(0).toUpperCase() + subscription.type.slice(1)"></td>
                                                 <td class="px-4 py-3" x-text="subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)"></td>
-                                                <td class="px-4 py-3" x-text="'$' + subscription.price"></td>
+                                                <td class="px-4 py-3" x-text="'₱' + subscription.price"></td>
                                                 <td class="px-4 py-3" x-text="subscription.start_date ? new Date(subscription.start_date).toLocaleDateString() : 'N/A'"></td>
                                                 <td class="px-4 py-3" x-text="subscription.end_date ? new Date(subscription.end_date).toLocaleDateString() : 'N/A'"></td>
+                                                <td class="px-4 py-3">
+                                                    <template x-if="subscription.plan === 'per-session'">
+                                                        <span>
+                                                            <span x-text="subscription.sessions_remaining !== null ? subscription.sessions_remaining : 'Unlimited'"></span>
+                                                            <span class="text-xs text-gray-400" x-show="subscription.sessions_used > 0" x-text="'(' + subscription.sessions_used + ' used)'"></span>
+                                                        </span>
+                                                    </template>
+                                                    <template x-if="subscription.plan !== 'per-session'">
+                                                        <span>-</span>
+                                                    </template>
+                                                </td>
                                                 <td class="px-4 py-3">
                                                     <span 
                                                         :class="subscription.is_active ? 'bg-green-500' : 'bg-red-500'" 
@@ -513,6 +534,126 @@
                                                             title="Cancel"
                                                             x-show="subscription.is_active">
                                                             <i class="fas fa-ban"></i>
+                                                        </button>
+                                                        
+                                                        <!-- Add sessions button for per-session plans -->
+                                                        <button 
+                                                            x-show="subscription.plan === 'per-session'"
+                                                            @click="
+                                                                Swal.fire({
+                                                                    title: 'Add Sessions',
+                                                                    text: 'Enter the number of sessions to add:',
+                                                                    input: 'number',
+                                                                    inputAttributes: {
+                                                                        min: 1,
+                                                                        max: 100,
+                                                                        step: 1
+                                                                    },
+                                                                    inputValue: 1,
+                                                                    showCancelButton: true,
+                                                                    confirmButtonColor: '#3B82F6',
+                                                                    cancelButtonColor: '#6B7280',
+                                                                    confirmButtonText: 'Add',
+                                                                    cancelButtonText: 'Cancel',
+                                                                    background: '#1F2937',
+                                                                    color: '#FFFFFF',
+                                                                    customClass: {
+                                                                        popup: 'rounded-lg border border-[#374151]',
+                                                                        title: 'text-white text-xl',
+                                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                                        input: 'bg-[#374151] text-white border border-[#4B5563] rounded px-3 py-2',
+                                                                        confirmButton: 'rounded-md px-4 py-2',
+                                                                        cancelButton: 'rounded-md px-4 py-2'
+                                                                    },
+                                                                    preConfirm: (sessions) => {
+                                                                        if (!sessions || sessions < 1) {
+                                                                            Swal.showValidationMessage('Please enter a valid number of sessions');
+                                                                            return false;
+                                                                        }
+                                                                        return sessions;
+                                                                    }
+                                                                }).then((result) => {
+                                                                    if (result.isConfirmed) {
+                                                                        const sessions = result.value;
+                                                                        
+                                                                        fetch('/admin/members/'+currentMemberId+'/subscriptions/'+subscription.id+'/add-sessions', {
+                                                                            method: 'POST',
+                                                                            headers: {
+                                                                                'Content-Type': 'application/json',
+                                                                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                                                                            },
+                                                                            body: JSON.stringify({
+                                                                                sessions: sessions
+                                                                            })
+                                                                        })
+                                                                        .then(response => response.json())
+                                                                        .then(data => {
+                                                                            if (data.success) {
+                                                                                // Refresh the subscriptions list
+                                                                                fetch('/admin/members/'+currentMemberId+'/subscriptions')
+                                                                                    .then(response => response.json())
+                                                                                    .then(data => { 
+                                                                                        subscriptions = data;
+                                                                                        
+                                                                                        // Update member status in main table
+                                                                                        updateMemberStatusBadge(currentMemberId, true);
+                                                                                        
+                                                                                        // Show success message
+                                                                                        Swal.fire({
+                                                                                            title: 'Success!',
+                                                                                            text: 'Sessions added successfully',
+                                                                                            icon: 'success',
+                                                                                            confirmButtonColor: '#3B82F6',
+                                                                                            background: '#1F2937',
+                                                                                            color: '#FFFFFF',
+                                                                                            customClass: {
+                                                                                                popup: 'rounded-lg border border-[#374151]',
+                                                                                                title: 'text-white text-xl',
+                                                                                                htmlContainer: 'text-[#9CA3AF]',
+                                                                                                confirmButton: 'rounded-md px-4 py-2'
+                                                                                            }
+                                                                                        });
+                                                                                    });
+                                                                            } else {
+                                                                                Swal.fire({
+                                                                                    title: 'Error!',
+                                                                                    text: data.message || 'Failed to add sessions',
+                                                                                    icon: 'error',
+                                                                                    confirmButtonColor: '#3B82F6',
+                                                                                    background: '#1F2937',
+                                                                                    color: '#FFFFFF',
+                                                                                    customClass: {
+                                                                                        popup: 'rounded-lg border border-[#374151]',
+                                                                                        title: 'text-white text-xl',
+                                                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                                                        confirmButton: 'rounded-md px-4 py-2'
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        })
+                                                                        .catch(error => {
+                                                                            console.error('Error:', error);
+                                                                            Swal.fire({
+                                                                                title: 'Error!',
+                                                                                text: 'An error occurred. Please try again.',
+                                                                                icon: 'error',
+                                                                                confirmButtonColor: '#3B82F6',
+                                                                                background: '#1F2937',
+                                                                                color: '#FFFFFF',
+                                                                                customClass: {
+                                                                                    popup: 'rounded-lg border border-[#374151]',
+                                                                                    title: 'text-white text-xl',
+                                                                                    htmlContainer: 'text-[#9CA3AF]',
+                                                                                    confirmButton: 'rounded-md px-4 py-2'
+                                                                                }
+                                                                            });
+                                                                        });
+                                                                    }
+                                                                });
+                                                            "
+                                                            class="text-green-400 hover:text-green-300 transition-colors"
+                                                            title="Add Sessions">
+                                                            <i class="fas fa-plus-circle"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -626,7 +767,7 @@
                             >
                                 <div>
                                     <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
-                                    <select name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <select name="type" id="add-subscription-type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleAddDailyOption()">
                                         <option value="">Select Type</option>
                                         <option value="gym">Gym</option>
                                         <option value="boxing">Boxing</option>
@@ -636,11 +777,11 @@
                                 </div>
                                 <div>
                                     <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
-                                    <select name="plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <select name="plan" id="add-subscription-plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">Select Plan</option>
-                                        <option value="daily">Daily</option>
+                                        <option value="daily" id="add-daily-plan-option" style="display: none;">Daily</option>
                                         <option value="monthly">Monthly</option>
-                                        <option value="per-session">Per Session</option>
+                                        <option value="per-session" id="add-per-session-plan-option">Per Session</option>
                                     </select>
                                 </div>
                             
@@ -716,7 +857,7 @@
                             
                             <div>
                                 <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
-                                <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleDailyOption()">
                                     <option value="">Select Type</option>
                                     <option value="gym">Gym</option>
                                     <option value="boxing">Boxing</option>
@@ -729,9 +870,9 @@
                                 <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
                                 <select id="edit-plan" name="plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Select Plan</option>
-                                    <option value="daily">Daily</option>
+                                    <option value="daily" id="daily-plan-option" style="display: none;">Daily</option>
                                     <option value="monthly">Monthly</option>
-                                    <option value="per-session">Per Session</option>
+                                    <option value="per-session" id="edit-per-session-plan-option">Per Session</option>
                                 </select>
                             </div>
                             
@@ -886,6 +1027,18 @@
         scrollbar-width: thin;
         scrollbar-color: #4B5563 #374151;
     }
+    
+    /* Style for static Jiu label */
+    .static-jiu-label {
+        background-color: #3B82F6; /* Blue for jiu-jitsu */
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: inline-block;
+        margin-top: 0.25rem;
+    }
 </style>
 
 <script>
@@ -909,6 +1062,17 @@
                 });
             });
         }
+        
+        // Initialize type select change handlers
+        const addTypeSelect = document.getElementById('add-subscription-type');
+        if (addTypeSelect) {
+            addTypeSelect.addEventListener('change', toggleAddDailyOption);
+        }
+        
+        // Initialize the daily option visibility for the add subscription form
+        setTimeout(function() {
+            toggleAddDailyOption();
+        }, 100);
     });
 
     function filterMembers(status) {
@@ -935,6 +1099,74 @@
             } else {
                 statusBadge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-gray-500';
                 statusBadge.textContent = 'Inactive';
+            }
+        }
+    }
+
+    function toggleDailyOption() {
+        const typeSelect = document.getElementById('edit-type');
+        const dailyPlanOption = document.getElementById('daily-plan-option');
+        const perSessionOption = document.getElementById('edit-per-session-plan-option');
+        
+        if (typeSelect && dailyPlanOption && perSessionOption) {
+            if (typeSelect.value === 'gym') {
+                // For gym: show daily, hide per-session
+                dailyPlanOption.style.display = 'block';
+                perSessionOption.style.display = 'none';
+                
+                // If per-session was selected but type is gym, change selection
+                const planSelect = document.getElementById('edit-plan');
+                if (planSelect && planSelect.value === 'per-session') {
+                    planSelect.value = '';
+                }
+            } else if (['boxing', 'muay', 'jiu-jitsu'].includes(typeSelect.value)) {
+                // For boxing, muay, jiu-jitsu: hide daily, show per-session
+                dailyPlanOption.style.display = 'none';
+                perSessionOption.style.display = 'block';
+                
+                // If daily was selected but type is not gym, change selection
+                const planSelect = document.getElementById('edit-plan');
+                if (planSelect && planSelect.value === 'daily') {
+                    planSelect.value = '';
+                }
+            } else {
+                // Default or empty selection
+                dailyPlanOption.style.display = 'none';
+                perSessionOption.style.display = 'none';
+            }
+        }
+    }
+
+    function toggleAddDailyOption() {
+        const typeSelect = document.getElementById('add-subscription-type');
+        const dailyPlanOption = document.getElementById('add-daily-plan-option');
+        const perSessionOption = document.getElementById('add-per-session-plan-option');
+        
+        if (typeSelect && dailyPlanOption && perSessionOption) {
+            if (typeSelect.value === 'gym') {
+                // For gym: show daily, hide per-session
+                dailyPlanOption.style.display = 'block';
+                perSessionOption.style.display = 'none';
+                
+                // If per-session was selected but type is gym, change selection
+                const planSelect = document.getElementById('add-subscription-plan');
+                if (planSelect && planSelect.value === 'per-session') {
+                    planSelect.value = '';
+                }
+            } else if (['boxing', 'muay', 'jiu-jitsu'].includes(typeSelect.value)) {
+                // For boxing, muay, jiu-jitsu: hide daily, show per-session
+                dailyPlanOption.style.display = 'none';
+                perSessionOption.style.display = 'block';
+                
+                // If daily was selected but type is not gym, change selection
+                const planSelect = document.getElementById('add-subscription-plan');
+                if (planSelect && planSelect.value === 'daily') {
+                    planSelect.value = '';
+                }
+            } else {
+                // Default or empty selection
+                dailyPlanOption.style.display = 'none';
+                perSessionOption.style.display = 'none';
             }
         }
     }

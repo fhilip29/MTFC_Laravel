@@ -28,7 +28,9 @@ class Subscription extends Model
         'payment_status',
         'payment_reference',
         'waiver_accepted',
-        'cancelled_at'
+        'cancelled_at',
+        'sessions_remaining',
+        'sessions_used'
     ];
 
     /**
@@ -59,13 +61,18 @@ class Subscription extends Model
             return false;
         }
         
-        // For per-session, just check is_active
-        if (!$this->end_date) {
-            return true;
+        // For per-session, check sessions_remaining
+        if ($this->plan === 'per-session') {
+            // If sessions_remaining is null, it means unlimited (legacy data)
+            if ($this->sessions_remaining === null) {
+                return true;
+            }
+            // Otherwise, check if there are sessions remaining
+            return $this->sessions_remaining > 0;
         }
         
         // For time-based plans, check if end_date is in the future
-        return $this->end_date->gt(Carbon::now());
+        return $this->end_date && $this->end_date->gt(Carbon::now());
     }
 
     /**
@@ -74,5 +81,47 @@ class Subscription extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Use a session from the subscription.
+     * 
+     * @return bool Whether the session was successfully used
+     */
+    public function useSession()
+    {
+        // Only applicable for per-session plans
+        if ($this->plan !== 'per-session') {
+            return false;
+        }
+        
+        // Check if active
+        if (!$this->is_active) {
+            return false;
+        }
+        
+        // If sessions_remaining is null (unlimited or legacy data)
+        if ($this->sessions_remaining === null) {
+            $this->sessions_used += 1;
+            $this->save();
+            return true;
+        }
+        
+        // Check if there are sessions remaining
+        if ($this->sessions_remaining <= 0) {
+            return false;
+        }
+        
+        // Use a session
+        $this->sessions_remaining -= 1;
+        $this->sessions_used += 1;
+        
+        // If no sessions left, mark as inactive
+        if ($this->sessions_remaining <= 0) {
+            $this->is_active = false;
+        }
+        
+        $this->save();
+        return true;
     }
 }

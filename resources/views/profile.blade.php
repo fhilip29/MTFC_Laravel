@@ -254,6 +254,17 @@
                         <span class="text-gray-500 text-sm">Plan</span>
                         <span class="font-medium text-sm md:text-base text-gray-800">{{ strtoupper($activeSubscription->plan) }}</span>
                     </div>
+                    @if($activeSubscription->plan === 'per-session')
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 text-sm">Sessions Remaining</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">
+                            {{ $activeSubscription->sessions_remaining ?? 'Unlimited' }}
+                            @if($activeSubscription->sessions_used > 0)
+                            <span class="text-xs text-gray-500 ml-1">({{ $activeSubscription->sessions_used }} used)</span>
+                            @endif
+                        </span>
+                    </div>
+                    @endif
                 </div>
                 <div class="space-y-3 md:space-y-4">
                     <div class="flex justify-between items-center">
@@ -262,7 +273,15 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-gray-500 text-sm">End Date</span>
-                        <span class="font-medium text-sm md:text-base text-gray-800">{{ $activeSubscription->end_date ? $activeSubscription->end_date->format('Y-m-d') : 'N/A' }}</span>
+                        <span class="font-medium text-sm md:text-base text-gray-800">
+                            @if($activeSubscription->end_date)
+                                {{ $activeSubscription->end_date->format('Y-m-d') }}
+                            @elseif($activeSubscription->plan === 'per-session')
+                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded-full">Session-based</span>
+                            @else
+                                N/A
+                            @endif
+                        </span>
                     </div>
                 </div>
             </div>
@@ -284,6 +303,21 @@
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-2">
                     <div class="bg-red-600 h-2 rounded-full" style="width: {{ $percentComplete }}%"></div>
+                </div>
+            </div>
+            @elseif($activeSubscription->plan === 'per-session' && $activeSubscription->sessions_remaining !== null)
+            <!-- Sessions Usage Bar (only for per-session subscriptions) -->
+            @php
+                $totalSessions = $activeSubscription->sessions_remaining + $activeSubscription->sessions_used;
+                $percentRemaining = $totalSessions > 0 ? min(100, max(0, ($activeSubscription->sessions_remaining / $totalSessions) * 100)) : 0;
+            @endphp
+            <div class="mt-4 md:mt-6">
+                <div class="flex justify-between text-xs md:text-sm mb-1 text-gray-600">
+                    <span>Sessions Usage</span>
+                    <span>{{ $activeSubscription->sessions_remaining }} of {{ $totalSessions }} remaining</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: {{ $percentRemaining }}%"></div>
                 </div>
             </div>
             @endif

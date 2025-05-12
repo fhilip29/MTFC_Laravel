@@ -217,7 +217,9 @@ class PaymentController extends Controller
                     'payment_method' => 'PayMongo',
                     'payment_status' => 'paid',
                     'payment_reference' => $referenceNumber,
-                    'waiver_accepted' => $subscriptionData['waiver_accepted'] ?? false
+                    'waiver_accepted' => $subscriptionData['waiver_accepted'] ?? false,
+                    'sessions_remaining' => strtolower($subscriptionData['plan']) === 'per-session' ? 1 : null,
+                    'sessions_used' => 0
                 ]);
                 
                 // Log the subscription creation
@@ -361,6 +363,8 @@ class PaymentController extends Controller
                 return now()->addMonths(3);
             case 'annual':
                 return now()->addYear();
+            case 'per-session':
+                return null; // Per-session plans have no end date
             default:
                 return now()->addMonth(); // Default to monthly
         }
@@ -561,7 +565,9 @@ class PaymentController extends Controller
                 'payment_method' => 'cash',
                 'payment_status' => 'completed',
                 'payment_reference' => $qrData['reference'],
-                'waiver_accepted' => true
+                'waiver_accepted' => true,
+                'sessions_remaining' => strtolower($qrData['plan']) === 'per-session' ? 1 : null,
+                'sessions_used' => 0
             ]);
             
             \Log::info('Subscription created via QR cash verification', [
@@ -715,7 +721,9 @@ class PaymentController extends Controller
                     'payment_reference' => $request->reference,
                     'payment_status' => 'paid',
                     'payment_method' => 'Cash',
-                    'waiver_accepted' => $orderData['waiver_accepted'] ?? false
+                    'waiver_accepted' => $orderData['waiver_accepted'] ?? false,
+                    'sessions_remaining' => strtolower($orderData['plan']) === 'per-session' ? 1 : null,
+                    'sessions_used' => 0
                 ]);
                 
                 $subscription->save();

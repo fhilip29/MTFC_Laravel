@@ -221,7 +221,7 @@ Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers
 Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym');
 Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
 Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
-Route::get('/pricing/jiu', [PricingController::class, 'jiu'])->name('pricing.jiu');
+Route::get('/pricing/jiu-jitsu', [PricingController::class, 'jiu'])->name('pricing.jiu');
 
 // ===================
 // PAYMENT ROUTES
@@ -310,6 +310,7 @@ Route::get('/admin/members/{user}/subscriptions', [AdminMemberController::class,
 Route::post('/admin/members/{user}/subscriptions', [AdminMemberController::class, 'storeSubscription'])->name('admin.members.subscriptions.store');
 Route::put('/admin/members/{user}/subscriptions/{subscription}', [AdminMemberController::class, 'updateSubscription'])->name('admin.members.subscriptions.update');
 Route::post('/admin/members/{user}/subscriptions/{subscription}/cancel', [AdminMemberController::class, 'cancelSubscription'])->name('admin.members.subscriptions.cancel');
+Route::post('/admin/members/{user}/subscriptions/{subscription}/add-sessions', [AdminMemberController::class, 'addSessions'])->name('admin.members.subscriptions.add-sessions');
 Route::post('/admin/members/{user}/archive', [AdminMemberController::class, 'archiveMember'])->name('admin.members.archive');
 
 //Sessions module

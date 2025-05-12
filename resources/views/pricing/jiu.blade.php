@@ -115,10 +115,16 @@
                             <x-check-icon /> Single Jiu Jitsu session
                         </li>
                         <li class="flex items-start gap-2">
+                            <x-check-icon /> Sessions tracked in your account
+                        </li>
+                        <li class="flex items-start gap-2">
                             <x-check-icon /> Gi rental available
                         </li>
                         <li class="flex items-start gap-2">
-                            <x-check-icon /> Perfect for trying it out
+                            <x-check-icon /> Free use of gym for the day
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <x-check-icon /> Shower access
                         </li>
                     </ul>
                     <div class="flex justify-between items-center mt-auto">

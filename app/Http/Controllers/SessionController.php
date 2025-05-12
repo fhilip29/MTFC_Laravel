@@ -32,6 +32,27 @@ class SessionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Invalid QR Code'], 404);
             }
 
+            // For members with per-session subscriptions who are checking IN, use a session
+            if ($request->status === 'IN' && $user->role === 'member') {
+                $activeSubscription = $user->subscriptions()
+                    ->where('is_active', true)
+                    ->where('plan', 'per-session')
+                    ->latest()
+                    ->first();
+                
+                // If user has a per-session subscription, use it
+                if ($activeSubscription) {
+                    $sessionUsed = $activeSubscription->useSession();
+                    // If session usage failed, still let them check in but log a warning
+                    if (!$sessionUsed) {
+                        \Log::warning("User {$user->id} checked in with an inactive or exhausted per-session subscription", [
+                            'user_id' => $user->id,
+                            'subscription_id' => $activeSubscription->id
+                        ]);
+                    }
+                }
+            }
+
             $session = Sessions::create([
                 'user_id' => $user->id,
                 'time' => Carbon::now(),

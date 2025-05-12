@@ -39,7 +39,16 @@ class SubscriptionController extends Controller
             // Check if user already has an active subscription
             $hasActiveSubscription = $user->subscriptions()
                 ->where('is_active', true)
-                ->where('end_date', '>', now())
+                ->where(function($query) {
+                    $query->where('end_date', '>', now())
+                          ->orWhere(function($q) {
+                              $q->where('plan', 'per-session')
+                                ->where(function($sq) {
+                                    $sq->whereNull('sessions_remaining')
+                                       ->orWhere('sessions_remaining', '>', 0);
+                                });
+                          });
+                })
                 ->exists();
                 
             if ($hasActiveSubscription) {
@@ -53,17 +62,40 @@ class SubscriptionController extends Controller
             }
             
             $validated = $request->validate([
-                'type' => 'required|string|in:gym,boxing,muay,jiu',
-                'plan' => 'required|string|in:daily,monthly,quarterly,annual',
+                'type' => 'required|string|in:gym,boxing,muay,jiu-jitsu',
+                'plan' => 'required|string|in:daily,monthly,per-session',
                 'amount' => 'required|numeric|min:0',
                 'payment_method' => 'nullable|string',
                 'payment_status' => 'nullable|string',
                 'waiver_accepted' => 'nullable|boolean'
             ]);
 
-            // Get plan details to determine subscription duration
+            // Validate plan type combinations
+            if ($validated['type'] !== 'gym' && $validated['plan'] === 'daily') {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Daily plan is only available for gym subscriptions.'
+                    ], 400);
+                }
+                return redirect()->back()->with('error', 'Daily plan is only available for gym subscriptions.');
+            }
+
+            if ($validated['type'] === 'gym' && $validated['plan'] === 'per-session') {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Per-session plan is not available for gym subscriptions.'
+                    ], 400);
+                }
+                return redirect()->back()->with('error', 'Per-session plan is not available for gym subscriptions.');
+            }
+
+            // Get plan details to determine subscription duration and sessions
             $duration = null;
             $endDate = null;
+            $sessionsRemaining = null;
+            
             switch ($validated['plan']) {
                 case 'daily':
                     $endDate = now()->addDay();
@@ -71,11 +103,10 @@ class SubscriptionController extends Controller
                 case 'monthly':
                     $endDate = now()->addMonth();
                     break;
-                case 'quarterly':
-                    $endDate = now()->addMonths(3);
-                    break;
-                case 'annual':
-                    $endDate = now()->addYear();
+                case 'per-session':
+                    // For per-session, set 1 initial session and no end date
+                    $sessionsRemaining = 1;
+                    $endDate = null;
                     break;
             }
             
@@ -96,7 +127,9 @@ class SubscriptionController extends Controller
                 'is_active' => $isActive,
                 'payment_method' => $request->payment_method ?? 'unknown',
                 'payment_status' => $request->payment_status ?? 'completed',
-                'waiver_accepted' => $request->waiver_accepted ?? false
+                'waiver_accepted' => $request->waiver_accepted ?? false,
+                'sessions_remaining' => $sessionsRemaining,
+                'sessions_used' => 0
             ]);
 
             // Generate invoice

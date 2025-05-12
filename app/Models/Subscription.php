@@ -65,7 +65,7 @@ class Subscription extends Model
         if ($this->plan === 'per-session') {
             // If sessions_remaining is null, it means unlimited (legacy data)
             if ($this->sessions_remaining === null) {
-                return true;
+            return true;
             }
             // Otherwise, check if there are sessions remaining
             return $this->sessions_remaining > 0;

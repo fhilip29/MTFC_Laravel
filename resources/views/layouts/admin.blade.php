@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>MTFC Admin - @yield('title', 'Dashboard')</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="48x48" href="{{ asset('favicon/favicon-48x48.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('favicon/favicon-192x192.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon/apple-touch-icon.png') }}">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Alpine.js -->
@@ -313,17 +322,13 @@
                 <i class="fas fa-users"></i>
                 <span>Manage Members</span>
             </a>
-            <a href="/admin/orders/admin_orders" class="nav-link {{ request()->is('admin/orders/admin_orders') ? 'active' : '' }}">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Manage Orders</span>
+            <a href="/admin/session/admin_session" class="nav-link {{ request()->is('admin/session/admin_session') ? 'active' : '' }}">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Session Management</span>
             </a>
             <a href="{{ route('admin.invoice.invoice') }}" class="nav-link {{ request()->is('admin/invoice*') ? 'active' : '' }}">
                 <i class="fas fa-file-invoice"></i>
                 <span>Manage Invoice</span>
-            </a>
-            <a href="/admin/session/admin_session" class="nav-link {{ request()->is('admin/session/admin_session') ? 'active' : '' }}">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Session Management</span>
             </a>
             <a href="/admin/trainer/admin_trainer" class="nav-link {{ request()->is('admin/trainer/admin_trainer') ? 'active' : '' }}">
                 <i class="fas fa-dumbbell"></i>
@@ -333,13 +338,17 @@
                 <i class="fas fa-bullhorn"></i>
                 <span>Announce Management</span>
             </a>
-            <a href="/admin/equipment" class="nav-link {{ request()->is('admin/equipment') ? 'active' : '' }}">
-                <i class="fas fa-dumbbell"></i>
-                <span>Gym Equipment</span>
+            <a href="/admin/orders/admin_orders" class="nav-link {{ request()->is('admin/orders/admin_orders') ? 'active' : '' }}">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Manage Orders</span>
             </a>
             <a href="/admin/products" class="nav-link {{ request()->is('admin/products') ? 'active' : '' }}">
                 <i class="fas fa-box"></i>
                 <span>Product Management</span>
+            </a>
+            <a href="/admin/equipment" class="nav-link {{ request()->is('admin/equipment') ? 'active' : '' }}">
+                <i class="fas fa-dumbbell"></i>
+                <span>Gym Equipment</span>
             </a>
             
             <!-- Logout Button at the bottom -->

@@ -267,6 +267,9 @@ class AdminController extends Controller
                         case 'annual':
                             $endDate = $endDate->addYear();
                             break;
+                        case 'per-session':
+                            $endDate = null; // Per-session plans have no end date
+                            break;
                         default:
                             $endDate = $endDate->addMonth(); // Default to monthly
                     }
@@ -284,7 +287,9 @@ class AdminController extends Controller
                             'is_active' => true,
                             'payment_method' => 'cash',
                             'payment_status' => 'paid',
-                            'waiver_accepted' => true
+                            'waiver_accepted' => true,
+                            'sessions_remaining' => strtolower($subscriptionPlan) === 'per-session' ? 1 : null,
+                            'sessions_used' => 0
                         ]
                     );
                     

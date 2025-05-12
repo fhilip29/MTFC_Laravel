@@ -37,31 +37,33 @@
         <div class="absolute inset-0 bg-black opacity-50"></div>
 
         <!-- Main content -->
-        <div class="relative z-10 max-w-7xl mx-auto px-6 py-16">
+        <div class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 py-8 sm:py-16">
             <!-- Title -->
-            <h1 class="text-3xl md:text-5xl font-bold text-white text-center mb-6">Gym Membership Plans</h1>
-            <p class="text-lg text-white text-center mb-10">Access state-of-the-art gym facilities and equipment</p>
+            <h1 class="text-2xl sm:text-3xl md:text-5xl font-bold text-white text-center mb-4 sm:mb-6">Gym Membership Plans</h1>
+            <p class="text-base sm:text-lg text-white text-center mb-6 sm:mb-10">Access state-of-the-art gym facilities and equipment</p>
 
             <!-- Tabs -->
-            <div class="flex justify-center space-x-4 mb-10 overflow-x-auto">
-                <a href="{{ route('pricing.gym') }}" class="px-5 py-2 rounded-md font-semibold bg-gray-300 text-black">
-                    GYM
-                </a>
-                <a href="{{ route('pricing.boxing') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                    Boxing
-                </a>
-                <a href="{{ route('pricing.muay') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                    Muay Thai
-                </a>
-                <a href="{{ route('pricing.jiu') }}" class="px-5 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600">
-                    Jiu-Jitsu
-                </a>
+            <div class="flex justify-center mb-10 w-full overflow-x-auto pb-2 px-2 snap-x scrollbar-hide">
+                <div class="flex space-x-2 md:space-x-4 min-w-max mx-auto">
+                    <a href="{{ route('pricing.gym') }}" class="px-4 py-2 rounded-md font-semibold bg-gray-300 text-black whitespace-nowrap snap-start">
+                        GYM
+                    </a>
+                    <a href="{{ route('pricing.boxing') }}" class="px-4 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600 whitespace-nowrap snap-start">
+                        Boxing
+                    </a>
+                    <a href="{{ route('pricing.muay') }}" class="px-4 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600 whitespace-nowrap snap-start">
+                        Muay Thai
+                    </a>
+                    <a href="{{ route('pricing.jiu') }}" class="px-4 py-2 rounded-md text-white font-semibold bg-gray-700 hover:bg-gray-600 whitespace-nowrap snap-start">
+                        Jiu-Jitsu
+                    </a>
+                </div>
             </div>
 
             <!-- Pricing Cards -->
-            <div class="flex flex-wrap justify-center gap-8">
+            <div class="flex flex-wrap justify-center gap-4 md:gap-8">
                 <!-- Monthly Membership -->
-                <div class="w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col border-2 border-blue-600 card-animation">
+                <div class="w-full sm:w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col border-2 border-blue-600 card-animation">
                     <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
                     <h2 class="text-xl font-bold mb-3">Monthly Membership</h2>
                     <ul class="text-sm text-gray-700 space-y-2 mb-6">
@@ -113,7 +115,7 @@
                 </div>
 
                 <!-- Daily Pass -->
-                <div class="w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col card-animation">
+                <div class="w-full sm:w-80 bg-white rounded-2xl shadow-lg p-6 flex flex-col card-animation">
                     <span class="inline-block text-xs font-semibold text-gray-500 mb-2">Membership</span>
                     <h2 class="text-xl font-bold mb-3">Daily Pass</h2>
                     <ul class="text-sm text-gray-700 space-y-2 mb-6">

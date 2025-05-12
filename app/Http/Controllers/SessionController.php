@@ -68,6 +68,7 @@ class SessionController extends Controller
                     'role' => $user->role,
                     'time' => $session->time,
                     'status' => $session->status,
+                    'profile_image' => $user->profile_image ? asset($user->profile_image) : null
                 ]
             ]);
         } 
@@ -91,6 +92,17 @@ class SessionController extends Controller
                     return response()->json(['success' => false, 'error' => 'This guest is not currently checked IN or has already been checked OUT.'], 400);
                 }
 
+                // Create a new OUT session record instead of modifying the existing one
+                // This ensures both IN and OUT records exist in the session history
+                $outSession = Sessions::create([
+                    'user_id' => null,
+                    'guest_name' => $session->guest_name,
+                    'mobile_number' => $session->mobile_number,
+                    'time' => Carbon::now(),
+                    'status' => 'OUT'
+                ]);
+                
+                // Mark the original session as OUT but keep it in the database
                 $session->status = 'OUT';
                 $session->time = Carbon::now(); // Update time to checkout time
                 $session->save();
@@ -99,12 +111,12 @@ class SessionController extends Controller
                     'success' => true,
                     'message' => 'Guest checked out successfully.',
                     'data' => [ 
-                        'id' => $session->id,
-                        'full_name' => $session->guest_name,
-                        'mobile_number' => $session->mobile_number,
+                        'id' => $outSession->id,
+                        'full_name' => $outSession->guest_name,
+                        'mobile_number' => $outSession->mobile_number,
                         'role' => 'guest',
-                        'time' => $session->time,
-                        'status' => $session->status,
+                        'time' => $outSession->time,
+                        'status' => $outSession->status,
                     ]
                 ]);
             } catch (\Exception $e) {

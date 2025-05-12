@@ -730,6 +730,10 @@
             scannerMessage.textContent = `Member: ${data.full_name} - Successfully scanned for Time ${data.status}!`;
             scannerMessage.classList.add('text-green-500');
             
+            // Log response data for debugging
+            console.log('Successful scan data:', data);
+            console.log('Profile image URL:', data.profile_image);
+            
             // Show success notification
             Swal.fire({
                 title: 'Success!',
@@ -744,66 +748,68 @@
             const newRow = document.createElement('tr');
             newRow.className = 'hover:bg-[#374151] transition-colors';
             
-            // Convert date to Philippines time
-            const date = new Date(data.time);
-            // Format using Philippine timezone
+            const date = new Date();
             const options = { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' };
             const timeOptions = { timeZone: 'Asia/Manila', hour: 'numeric', minute: 'numeric', hour12: true };
             const formattedDate = date.toLocaleDateString('en-US', options);
             const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
-            const initials = data.full_name ? data.full_name.substring(0, 2).toUpperCase() : 'G';
-            const userRole = data.role || 'guest'; // Get role from response
             
-            // Determine avatar color for new row
-            let newRowRoleBgColor = 'bg-gray-600';
-            switch (userRole) {
-                case 'member': newRowRoleBgColor = 'bg-blue-600'; break;
-                case 'trainer': newRowRoleBgColor = 'bg-purple-600'; break;
-                case 'admin': newRowRoleBgColor = 'bg-yellow-600'; break;
+            // Determine the role-specific background color
+            let roleBgColor = 'bg-gray-600'; // Default
+            if (data.role === 'member') {
+                roleBgColor = 'bg-blue-600';
+            } else if (data.role === 'trainer') {
+                roleBgColor = 'bg-purple-600';
+            } else if (data.role === 'admin') {
+                roleBgColor = 'bg-yellow-600';
             }
-
+            
+            // Create the table row with profile image or initials
+            let profileCell = '';
+            if (data.profile_image) {
+                // Use the profile image if available
+                profileCell = `
+                    <td class="px-4 py-3">
+                        <div class="flex items-center">
+                            <img src="${data.profile_image}" alt="${data.full_name}" class="h-9 w-9 rounded-full object-cover">
+                        </div>
+                    </td>
+                `;
+            } else {
+                // Use initials if no profile image
+                profileCell = `
+                    <td class="px-4 py-3">
+                        <div class="flex items-center">
+                            <div class="h-9 w-9 rounded-full ${roleBgColor} flex items-center justify-center text-white font-bold text-xs">
+                                ${data.full_name.substring(0, 2).toUpperCase()}
+                            </div>
+                        </div>
+                    </td>
+                `;
+            }
+            
+            // Build the rest of the row HTML
             newRow.innerHTML = `
-                <td class="px-4 py-3">
-                    <div class="flex items-center">
-                        ${data.profile_image ? 
-                        `<img src="${data.profile_image}" alt="${data.full_name}" class="h-9 w-9 rounded-full object-cover">` : 
-                        `<div class="h-9 w-9 rounded-full ${newRowRoleBgColor} flex items-center justify-center text-white font-bold text-xs">
-                            ${initials}
-                        </div>`}
-                    </div>
-                </td>
-                <td class="px-4 py-3 font-medium text-white">${data.full_name || 'Guest User'}</td>
-                <td class="px-4 py-3 text-[#9CA3AF] capitalize">${userRole}</td>
+                ${profileCell}
+                <td class="px-4 py-3 font-medium text-white">${data.full_name}</td>
+                <td class="px-4 py-3 text-[#9CA3AF] capitalize">${data.role}</td>
                 <td class="px-4 py-3 text-[#9CA3AF]">${formattedDate}</td>
                 <td class="px-4 py-3 text-[#9CA3AF]">${formattedTime}</td>
                 <td class="px-4 py-3">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${data.status === 'IN' ? 'bg-green-500' : 'bg-red-500'} text-white">
-                        ${data.status === 'IN' ? '<i class="fas fa-arrow-right text-xs"></i>' : '<i class="fas fa-arrow-left text-xs"></i>'}
+                    <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full 
+                        ${data.status === 'IN' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}">
+                        ${data.status === 'IN' 
+                            ? '<i class="fas fa-arrow-right text-xs"></i>' 
+                            : '<i class="fas fa-arrow-left text-xs"></i>'}
                         ${data.status}
                     </span>
                 </td>
             `;
             
-            // Insert the new row at the top of the table
             if (tbody.firstChild) {
                 tbody.insertBefore(newRow, tbody.firstChild);
             } else {
                 tbody.appendChild(newRow);
-            }
-            
-            // Reset guest modal input if it was used
-            if (guestNameInput) {
-                 guestNameInput.value = '';
-                 guestNameError.classList.add('hidden');
-            }
-           
-            // Close the modal after a brief delay (applies to both scanner and guest modals)
-            // Use separate close functions if needed, but this might suffice
-            if(scannerModal.classList.contains('hidden') === false) {
-                setTimeout(closeModal, 1500);
-            }
-            if(guestModal.classList.contains('hidden') === false) {
-                setTimeout(closeGuestModalFunction, 1500);
             }
         }
         
@@ -838,7 +844,7 @@
                 checkInTab.classList.add('hidden');
                 
                 // Load checked-in guests when switching to checkout tab
-                fetchCheckedInGuests();
+                loadCheckedInGuests();
             }
         }
         
@@ -852,100 +858,74 @@
             switchToTab('checkOut');
         }
 
-        // Function to fetch checked-in guests
-        function fetchCheckedInGuests() {
-            // Show loading message
-            noGuestsMessage.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Loading guests...';
-            noGuestsMessage.classList.remove('hidden');
-            
-            // Clear previous guest list
-            while (checkedInGuestsList.firstChild && checkedInGuestsList.firstChild !== noGuestsMessage) {
-                checkedInGuestsList.removeChild(checkedInGuestsList.firstChild);
-            }
-            
-            // Log for debugging
-            console.log('Fetching checked-in guests...');
-            
-            // Fetch checked-in guests from the server
-            fetch('{{ route("admin.session.guest-list") }}', {
-                method: 'GET',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Cache-Control': 'no-cache'
-                }
-            })
-            .then(response => {
-                console.log('Guest list response status:', response.status);
-                return response.json();
-            })
-            .then(data => {
-                console.log('Guest list response data:', data);
-                
-                if (data.success && data.guests && data.guests.length > 0) {
-                    // Remove loading message
-                    noGuestsMessage.classList.add('hidden');
-                    
-                    console.log('Found ' + data.guests.length + ' checked-in guests');
-                    
-                    // Create guest list items
-                    data.guests.forEach(guest => {
-                        // Log for debugging
-                        console.log('Adding guest to list:', guest.guest_name);
+        // Load checked-in guests
+        function loadCheckedInGuests() {
+            fetch('{{ route("admin.session.guests") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.guests.length > 0) {
+                        checkedInGuestsList.innerHTML = '';
+                        noGuestsMessage.classList.add('hidden');
                         
-                        const guestItem = document.createElement('div');
-                        guestItem.className = 'flex items-center justify-between border-b border-[#374151] p-4 hover:bg-[#1F2937] transition-colors gap-3 relative';
-                        
-                        const formattedDate = new Date(guest.time).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                        });
-                        
-                        guestItem.innerHTML = `
-                            <div class="flex items-center w-3/5">
-                                <div class="h-10 w-10 rounded-full bg-gray-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-xs mr-3">
-                                    ${guest.guest_name.substring(0, 2).toUpperCase()}
-                                </div>
-                                <div class="overflow-hidden">
-                                    <div class="text-white font-medium truncate">${guest.guest_name}</div>
-                                    <div class="text-[#9CA3AF] text-xs truncate">${guest.mobile_number || 'No phone'} • ${formattedDate}</div>
-                                </div>
-                            </div>
-                            <button class="checkout-guest-btn bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm flex items-center justify-center transition-colors z-40 flex-shrink-0 min-w-[100px] pointer-events-auto relative"
-                                   data-id="${guest.id}" 
-                                   data-name="${guest.guest_name}" 
-                                   data-phone="${guest.mobile_number || ''}">
-                                <i class="fas fa-sign-out-alt mr-2"></i> Check Out
-                            </button>
-                        `;
-                        
-                        // Add to the list
-                        checkedInGuestsList.insertBefore(guestItem, noGuestsMessage);
-                        
-                        // Add click event for checkout button
-                        const checkoutBtn = guestItem.querySelector('.checkout-guest-btn');
-                        checkoutBtn.addEventListener('click', function(e) {
-                            e.stopPropagation(); // Prevent event bubbling
-                            const guestId = this.getAttribute('data-id');
-                            const guestName = this.getAttribute('data-name');
-                            const guestPhone = this.getAttribute('data-phone');
+                        data.guests.forEach(guest => {
+                            // Calculate how long ago guest checked in
+                            const checkinTime = new Date(guest.time);
+                            const now = new Date();
+                            const diffMs = now - checkinTime;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            let timeAgo;
                             
-                            handleGuestCheckout(guestId, guestName, guestPhone);
+                            if (diffMins < 1) {
+                                timeAgo = 'just now';
+                            } else if (diffMins < 60) {
+                                timeAgo = `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+                            } else {
+                                const diffHrs = Math.floor(diffMins / 60);
+                                timeAgo = `${diffHrs} hr${diffHrs > 1 ? 's' : ''} ago`;
+                            }
+                            
+                            const guestItem = document.createElement('div');
+                            guestItem.className = 'flex items-center justify-between p-3 border-b border-[#374151] last:border-0';
+                            guestItem.innerHTML = `
+                                <div class="flex items-center">
+                                    <div class="h-9 w-9 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold text-xs mr-3">
+                                        ${guest.guest_name.substring(0, 2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <p class="text-white text-sm font-medium">${guest.guest_name}</p>
+                                        <p class="text-[#9CA3AF] text-xs">Checked in ${timeAgo}</p>
+                                    </div>
+                                </div>
+                                <button class="checkout-guest-btn p-2 bg-red-600 hover:bg-red-700 text-white rounded-md" 
+                                    data-id="${guest.id}" 
+                                    data-name="${guest.guest_name}" 
+                                    data-phone="${guest.mobile_number}">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            `;
+                            
+                            checkedInGuestsList.appendChild(guestItem);
                         });
-                    });
-                } else {
-                    // No guests found
-                    console.log('No checked-in guests found or empty response');
-                    noGuestsMessage.innerHTML = '<i class="fas fa-info-circle mr-2"></i> No guests currently checked in.';
+                        
+                        // Add event listeners to the checkout buttons
+                        document.querySelectorAll('.checkout-guest-btn').forEach(button => {
+                            button.addEventListener('click', function() {
+                                const guestId = this.getAttribute('data-id');
+                                const guestName = this.getAttribute('data-name');
+                                const guestPhone = this.getAttribute('data-phone');
+                                handleGuestCheckout(guestId, guestName, guestPhone);
+                            });
+                        });
+                    } else {
+                        noGuestsMessage.innerHTML = '<i class="fas fa-info-circle mr-2"></i> No guests currently checked in.';
+                        noGuestsMessage.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching guests:', error);
+                    noGuestsMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2 text-red-500"></i> Error loading guests. Please try again.';
                     noGuestsMessage.classList.remove('hidden');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching guests:', error);
-                noGuestsMessage.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Failed to load guests. Please try again.';
-                noGuestsMessage.classList.remove('hidden');
-            });
+                });
         }
         
         // Function to handle guest checkout
@@ -980,13 +960,11 @@
                 }
             });
             
-            // Send data to server
+            // Send data to server - use session_id to properly update in database
             const formData = new FormData();
-            formData.append('guest_name', guestName);
-            formData.append('mobile_number', guestPhone);
+            formData.append('session_id', guestId); // This is the key change - send session_id to mark specific session as OUT
             formData.append('status', 'OUT');
             formData.append('_token', '{{ csrf_token() }}');
-            formData.append('timezone', 'Asia/Manila'); // Add Philippines timezone
             
             fetch('{{ route("admin.session.store") }}', {
                 method: 'POST',
@@ -1005,13 +983,54 @@
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        // Refresh the guest list
-                        fetchCheckedInGuests();
+                        // Remove the guest from the checked-in list immediately
+                        const guestItem = document.querySelector(`button[data-id="${guestId}"]`).closest('div.flex.items-center.justify-between');
+                        if (guestItem) {
+                            guestItem.remove();
+                            
+                            // Check if there are any guests left
+                            if (checkedInGuestsList.querySelectorAll('div.flex.items-center.justify-between').length === 0) {
+                                noGuestsMessage.innerHTML = '<i class="fas fa-info-circle mr-2"></i> No guests currently checked in.';
+                                noGuestsMessage.classList.remove('hidden');
+                            }
+                        }
                         
-                        // Refresh the main table after a short delay
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 500);
+                        // Add to the session table without refreshing the page
+                        const tbody = document.querySelector('#sessionTable tbody');
+                        const newRow = document.createElement('tr');
+                        newRow.className = 'hover:bg-[#374151] transition-colors';
+                        
+                        const date = new Date();
+                        const options = { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' };
+                        const timeOptions = { timeZone: 'Asia/Manila', hour: 'numeric', minute: 'numeric', hour12: true };
+                        const formattedDate = date.toLocaleDateString('en-US', options);
+                        const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
+                        
+                        newRow.innerHTML = `
+                            <td class="px-4 py-3">
+                                <div class="flex items-center">
+                                    <div class="h-9 w-9 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold text-xs">
+                                        ${guestName.substring(0, 2).toUpperCase()}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 font-medium text-white">${guestName}</td>
+                            <td class="px-4 py-3 text-[#9CA3AF] capitalize">guest</td>
+                            <td class="px-4 py-3 text-[#9CA3AF]">${formattedDate}</td>
+                            <td class="px-4 py-3 text-[#9CA3AF]">${formattedTime}</td>
+                            <td class="px-4 py-3">
+                                <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-red-500 text-white">
+                                    <i class="fas fa-arrow-left text-xs"></i>
+                                    OUT
+                                </span>
+                            </td>
+                        `;
+                        
+                        if (tbody.firstChild) {
+                            tbody.insertBefore(newRow, tbody.firstChild);
+                        } else {
+                            tbody.appendChild(newRow);
+                        }
                     });
                 } else {
                     Swal.fire({

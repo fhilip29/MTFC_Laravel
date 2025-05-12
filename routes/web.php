@@ -316,7 +316,7 @@ Route::post('/admin/members/{user}/archive', [AdminMemberController::class, 'arc
 //Sessions module
 Route::get('/admin/session/admin_session', [SessionController::class, 'index'])->name('admin.session.admin_session');
 Route::post('/admin/sessions/store', [SessionController::class, 'store'])->name('admin.session.store');
-Route::get('/admin/sessions/guest-list', [\App\Http\Controllers\AdminSessionController::class, 'getCheckedInGuests'])->name('admin.session.guest-list');
+Route::get('/admin/sessions/guest-list', [\App\Http\Controllers\AdminSessionController::class, 'getCheckedInGuests'])->name('admin.session.guests');
 
 
 //Products module

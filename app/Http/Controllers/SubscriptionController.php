@@ -36,6 +36,22 @@ class SubscriptionController extends Controller
                 return redirect()->back()->with('error', 'Admins and trainers cannot subscribe to plans.');
             }
             
+            // Check if user already has an active subscription
+            $hasActiveSubscription = $user->subscriptions()
+                ->where('is_active', true)
+                ->where('end_date', '>', now())
+                ->exists();
+                
+            if ($hasActiveSubscription) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You already have an active subscription. Please cancel your current subscription before subscribing to a new plan.'
+                    ], 400);
+                }
+                return redirect()->back()->with('error', 'You already have an active subscription. Please cancel your current subscription before subscribing to a new plan.');
+            }
+            
             $validated = $request->validate([
                 'type' => 'required|string|in:gym,boxing,muay,jiu',
                 'plan' => 'required|string|in:daily,monthly,quarterly,annual',

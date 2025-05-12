@@ -7,6 +7,48 @@
 <!-- Add CSRF token meta tag for AJAX requests -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<style>
+    /* Page transition animation */
+    @keyframes pageTransition {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .page-transition {
+        animation: pageTransition 0.8s ease forwards;
+    }
+    
+    /* Product card animations */
+    @keyframes fadeInUp {
+        from { 
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .product-item {
+        opacity: 0;
+    }
+    
+    .product-item.animated {
+        animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    /* Hero animations */
+    @keyframes heroFadeIn {
+        from { opacity: 0.3; }
+        to { opacity: 1; }
+    }
+    
+    .hero-animation {
+        animation: heroFadeIn 1.5s ease forwards;
+    }
+</style>
+
 <!-- Initialize Cart JS -->
 <script>
 // Global cart functions
@@ -206,7 +248,7 @@ function addToCartFromModal() {
 }
 </script>
 
-<div id="appContainer">
+<div id="appContainer" class="page-transition">
     <!-- Product Detail Modal -->
     <div id="productModal" class="fixed inset-0 z-50 overflow-y-auto hidden">
         <div class="flex items-center justify-center min-h-screen px-4">
@@ -283,7 +325,7 @@ function addToCartFromModal() {
     </div>
 
     <!-- Hero Section -->
-    <section class="relative w-full h-[500px] overflow-hidden">
+    <section class="relative w-full h-[500px] overflow-hidden hero-animation">
         <!-- Background image with overlay -->
         <div class="absolute inset-0 bg-cover bg-center scale-105 transition-transform duration-30000 transform animate-slow-zoom" style="background-image: url('{{ asset('assets/shopping.jpg') }}');"></div>
         <div class="absolute inset-0 bg-gradient-to-b from-black/60 to-black/40"></div>
@@ -570,6 +612,19 @@ function addToCartFromModal() {
 <!-- Pagination Component -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Animate product items with staggered animations
+    const animateProducts = () => {
+        const productItems = document.querySelectorAll('.product-item');
+        productItems.forEach((item, index) => {
+            setTimeout(() => {
+                item.classList.add('animated');
+            }, 100 + (index % 10) * 100); // Stagger the animations by 100ms, reset after 10 items
+        });
+    };
+    
+    // Run animation on page load
+    animateProducts();
+    
     const productSearch = document.getElementById('productSearch');
     if(productSearch) {
         productSearch.addEventListener('input', function() {

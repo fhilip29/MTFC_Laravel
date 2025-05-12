@@ -41,13 +41,13 @@
                             $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
                         @endphp
                         <img src="{{ $profileImage }}"
-                             class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                             class="w-8 h-8 rounded-full object-cover">
                     @elseif(Auth::user()->role === 'admin')
                         <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                             class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                             class="w-8 h-8 rounded-full object-cover">
                     @else
                         <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                             class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                             class="w-8 h-8 rounded-full object-cover">
                     @endif
                 </button>
                 <div x-show="open" @click.outside="open = false"
@@ -85,8 +85,7 @@
             @auth
             <div class="hidden md:flex items-center space-x-4">
                 <a href="{{ route('announcements') }}" class="relative text-gray-600 hover:text-black focus:outline-none">
-                    <i class="fas fa-bell text-xl"></i>
-                    <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <i class="fas fa-bullhorn text-xl"></i>
                 </a>
 
                 <button id="cartButton" class="text-gray-600 hover:text-black focus:outline-none">
@@ -101,13 +100,13 @@
                                 $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
                             @endphp
                             <img src="{{ $profileImage }}"
-                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                                 class="w-8 h-8 rounded-full object-cover">
                         @elseif(Auth::user()->role === 'admin')
                             <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                                 class="w-8 h-8 rounded-full object-cover">
                         @else
                             <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                                 class="w-8 h-8 rounded-full border-2 border-red-500 object-cover">
+                                 class="w-8 h-8 rounded-full object-cover">
                         @endif
                     </button>
                     <div x-show="open" @click.outside="open = false"
@@ -160,8 +159,7 @@
         @auth
         <div class="flex justify-end items-center space-x-4 mb-4">
             <a href="{{ route('announcements') }}" class="text-gray-600 hover:text-black focus:outline-none">
-                <i class="fas fa-bell text-xl"></i>
-                <span class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <i class="fas fa-bullhorn text-xl"></i>
             </a>
 
             <button id="cartButton" class="text-gray-600 hover:text-black focus:outline-none">

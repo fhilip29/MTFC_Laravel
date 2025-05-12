@@ -3,7 +3,38 @@
 @section('title', 'Contact Us')
 
 @section('content')
-<section class="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20">
+<style>
+    /* Page transition fade-in animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .page-transition {
+        animation: fadeIn 0.8s ease forwards;
+    }
+    
+    /* Element animations */
+    .animate-item {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeIn 0.8s ease forwards;
+    }
+    
+    .animate-item:nth-child(1) { animation-delay: 0.2s; }
+    .animate-item:nth-child(2) { animation-delay: 0.4s; }
+    .animate-item:nth-child(3) { animation-delay: 0.6s; }
+    .animate-item:nth-child(4) { animation-delay: 0.8s; }
+    
+    /* Map animation */
+    .map-animation {
+        opacity: 0;
+        transform: translateY(30px);
+        animation: fadeIn 0.8s ease 0.6s forwards;
+    }
+</style>
+
+<section class="bg-white min-h-screen py-12 px-4 md:px-10 lg:px-20 page-transition">
     <div class="max-w-5xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-12">
@@ -18,7 +49,7 @@
                     <h2 class="text-xl font-bold mb-6 text-white border-b border-gray-700 pb-3">Contact Information</h2>
                     
                     <div class="space-y-6">
-                        <div class="flex items-start">
+                        <div class="flex items-start animate-item">
                             <div class="bg-gray-800 p-3 rounded-full mr-4">
                                 <i class="fas fa-map-marker-alt text-white"></i>
                             </div>
@@ -29,7 +60,7 @@
                             </div>
                         </div>
                         
-                        <div class="flex items-start">
+                        <div class="flex items-start animate-item">
                             <div class="bg-gray-800 p-3 rounded-full mr-4">
                                 <i class="fas fa-phone text-white"></i>
                             </div>
@@ -39,7 +70,7 @@
                             </div>
                         </div>
                         
-                        <div class="flex items-start">
+                        <div class="flex items-start animate-item">
                             <div class="bg-gray-800 p-3 rounded-full mr-4">
                                 <i class="fas fa-envelope text-white"></i>
                             </div>
@@ -49,7 +80,7 @@
                             </div>
                         </div>
                         
-                        <div class="flex items-start">
+                        <div class="flex items-start animate-item">
                             <div class="bg-gray-800 p-3 rounded-full mr-4">
                                 <i class="fas fa-clock text-white"></i>
                             </div>
@@ -77,7 +108,7 @@
             
             <!-- Map and Contact Admin Button -->
             <div class="md:col-span-2">
-                <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 mb-8">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 mb-8 animate-item">
                     <h2 class="text-2xl font-bold text-black mb-6">Message Us</h2>
                     <p class="text-gray-700 mb-6">Have questions or need assistance? Our admin support team is here to help you. Click the button below to send a direct message to our admin team.</p>
                     
@@ -89,7 +120,7 @@
                 </div>
                 
                 <!-- Google Map -->
-                <div class="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                <div class="bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden map-animation">
                     <h2 class="text-2xl font-bold text-black p-6">Our Location</h2>
                     <div class="w-full h-96 rounded-lg overflow-hidden shadow-lg">
                         <iframe 

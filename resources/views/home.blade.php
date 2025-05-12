@@ -18,11 +18,104 @@
     
     <!-- Add CSRF token meta tag for AJAX requests -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- Animation Styles -->
+    <style>
+        /* Hero image animation */
+        .hero {
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .hero.loaded {
+            opacity: 1;
+        }
+        
+        .hero-content h1, 
+        .hero-content h2, 
+        .hero-content p {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            transition-delay: 0.5s;
+        }
+        
+        .hero-content h2 {
+            transition-delay: 0.7s;
+        }
+        
+        .hero-content p {
+            transition-delay: 0.9s;
+        }
+        
+        .hero.loaded .hero-content h1,
+        .hero.loaded .hero-content h2,
+        .hero.loaded .hero-content p {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Scroll reveal animation for sections */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px); /* Reduced from 50px for less white gap */
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            background-color: #1e1e1e; /* Add dark background to match the page */
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Staggered animation for grid items */
+        .grid-item {
+            opacity: 0;
+            transform: translateY(20px); /* Reduced from 30px */
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .grid-item.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Fix background color for the entire page */
+        body {
+            background-color: #1e1e1e;
+        }
+        
+        /* Ensure containers maintain dark background */
+        .container {
+            background-color: #1e1e1e;
+        }
+        
+        /* Prevent white background flashes */
+        html {
+            background-color: #1e1e1e;
+        }
+        
+        /* Fix for section gaps */
+        section {
+            margin-top: -1px; /* Prevent gap between sections */
+            position: relative;
+            z-index: 1;
+            background-color: #1e1e1e;
+        }
+        
+        /* Content area fix */
+        #app, main {
+            background-color: #1e1e1e;
+        }
+    </style>
 </head>
 <body>
 
 @section('content')
 
+<div style="background-color: #1e1e1e;">
 <!-- Hero Section -->
 <section class="hero h-[800px]" style="background-image: url('{{ asset('assets/hero.jpg') }}'); height: 900px; max-height: 900px; position: relative;">
     <div class="hero-overlay" style="height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;"></div>
@@ -38,27 +131,27 @@
 
 
 <!-- Community Dashboard Section -->
-<section class="community-dashboard bg-[#1e1e1e] py-16 relative overflow-hidden" data-animate>
+<section class="community-dashboard bg-[#1e1e1e] py-16 relative overflow-hidden reveal">
     <!-- Background pattern -->
     <div class="absolute inset-0 opacity-5">
         <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
     </div>
 
     <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 reveal">
             <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">COMMUNITY</span>
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Community Dashboard</h2>
             <p class="text-gray-400 max-w-xl mx-auto">Connect with fellow fitness enthusiasts and get inspired on your wellness journey.</p>
         </div>
 
         <div class="dashboard-container flex flex-col lg:flex-row items-start gap-8">
-            <div class="dashboard-image lg:w-1/2">
+            <div class="dashboard-image lg:w-1/2 reveal">
                 <img src="{{ asset('assets/dashboard.png') }}" alt="Community" class="rounded-xl shadow-2xl transform hover:-translate-y-2 transition-all duration-500 w-full">
             </div>
             
             <div class="dashboard-content lg:w-1/2">
                 <div class="space-y-4">
-                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300 reveal">
                         <div class="flex items-start gap-4">
                             <div class="flex-shrink-0 w-10 h-10 overflow-hidden rounded-full">
                                 <img src="{{ asset('assets/profile1.jpg') }}" alt="Sarah" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=Sarah&background=FA5455&color=fff'">
@@ -70,7 +163,7 @@
                         </div>
                     </div>
                     
-                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300">
+                    <div class="message bg-[#222] p-4 rounded-xl shadow-lg transform hover:-translate-y-1 transition-all duration-300 reveal">
                         <div class="flex items-start gap-4">
                             <div class="flex-shrink-0 w-10 h-10 overflow-hidden rounded-full">
                                 <img src="{{ asset('assets/profile2.jpg') }}" alt="MTFC" class="w-full h-full object-cover" onerror="this.src='https://ui-avatars.com/api/?name=MTFC&background=FA5455&color=fff'">
@@ -82,7 +175,7 @@
                         </div>
                     </div>
                     
-                    <div class="mt-6 text-center">
+                    <div class="mt-6 text-center reveal">
                         <a href="{{ route('community') }}">
                             <button class="community-button bg-[#FA5455] text-white hover:bg-[#e84142] transition px-8 py-3 rounded-lg font-semibold transform hover:-translate-y-1 hover:shadow-lg">
                                 <i class="fas fa-users mr-2"></i> Join the Community Now!
@@ -96,28 +189,28 @@
 </section>
 
 <!-- About Us Section -->
-<section class="about-us bg-[#1e1e1e] py-16 relative overflow-hidden" data-animate>
+<section class="about-us bg-[#1e1e1e] py-16 relative overflow-hidden reveal">
     <!-- Background pattern -->
     <div class="absolute inset-0 opacity-5">
         <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
     </div>
 
     <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 reveal">
             <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">OUR STORY</span>
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">About Us</h2>
             <h3 class="text-xl text-[#FA5455] mb-4">Stronger Together, Healthier Forever</h3>
         </div>
 
         <div class="about-container max-w-4xl mx-auto"> 
-            <p class="text-gray-300 text-center mb-8">Manila Total Fitness Center is dedicated to helping you achieve a healthier, stronger lifestyle. With top-notch equipment, expert guidance, and a supportive community, we empower you to reach your fitness goals and embrace wellness as a way of life.</p>
+            <p class="text-gray-300 text-center mb-8 reveal">Manila Total Fitness Center is dedicated to helping you achieve a healthier, stronger lifestyle. With top-notch equipment, expert guidance, and a supportive community, we empower you to reach your fitness goals and embrace wellness as a way of life.</p>
             
-            <div class="about-images flex flex-col md:flex-row gap-6 mb-8">
+            <div class="about-images flex flex-col md:flex-row gap-6 mb-8 reveal">
                 <img src="{{ asset('assets/about_1.jpg') }}" alt="Fitness Image 1" class="rounded-xl shadow-lg w-full">
                 <img src="{{ asset('assets/about_2.jpg') }}" alt="Fitness Image 2" class="rounded-xl shadow-lg w-full">
             </div>
             
-            <div class="text-center">
+            <div class="text-center reveal">
                 <a href="{{ route('about') }}">
                     <button class="about-button bg-[#FA5455] text-white hover:bg-[#e84142] transition px-8 py-3 rounded-lg font-semibold transform hover:-translate-y-1 hover:shadow-lg">
                         <i class="fas fa-info-circle mr-2"></i> Learn More
@@ -134,7 +227,7 @@
     $chunks = $topRatedProducts->chunk(4);
 @endphp
 
-<div class="bg-[#1e1e1e] mb-0 py-16 relative overflow-hidden">
+<div class="bg-[#1e1e1e] mb-0 py-16 relative overflow-hidden reveal">
     <!-- Background pattern -->
     <div class="absolute inset-0 opacity-5">
         <div class="absolute inset-0" style="background-image: url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23ffffff\" fill-opacity=\"1\"%3E%3Cpath d=\"M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')"></div>
@@ -142,7 +235,7 @@
 
     <section class="products-section relative z-10" x-data="cartHandler">
         <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12 reveal">
                 <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">TOP SELLERS</span>
                 <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Most Purchased Products</h2>
                 <p class="text-gray-400 max-w-xl mx-auto">Quality fitness equipment and merchandise to support your journey to a stronger, healthier you.</p>
@@ -153,7 +246,7 @@
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     @foreach($topRatedProducts as $product)
-                        <div class="bg-[#222] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col group">
+                        <div class="bg-[#222] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col group grid-item">
                             <div class="relative overflow-hidden h-56">
                                 <img src="{{ asset($product->image) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" alt="{{ $product->name }}">
                                 <div class="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60"></div>
@@ -203,7 +296,7 @@
                     @endforeach
                 </div>
                 
-                <div class="text-center mt-10">
+                <div class="text-center mt-10 reveal">
                     <a href="{{ route('shop') }}" class="inline-block bg-[#FA5455] hover:bg-[#e84142] text-white font-semibold py-3 px-8 rounded-lg transition duration-300 transform hover:-translate-y-1 hover:shadow-lg no-underline">
                         View All Products <i class="fas fa-arrow-right ml-2"></i>
                     </a>
@@ -275,6 +368,7 @@
 
 <!-- Add dark spacer div for consistent spacing before footer -->
 <div class="bg-[#1e1e1e] py-16"></div>
+</div>
 
 <script>
     document.addEventListener('alpine:init', () => {
@@ -406,11 +500,75 @@
             }
         }));
     });
+
+    // Hero image loading animation
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add loaded class to hero after a small delay for smoother animation
+        setTimeout(function() {
+            const hero = document.querySelector('.hero');
+            if (hero) {
+                hero.classList.add('loaded');
+            }
+        }, 200);
+        
+        // Initialize scroll animations
+        initScrollAnimations();
+    });
+    
+    // Scroll animation function
+    function initScrollAnimations() {
+        // Reveal elements on scroll
+        const revealElements = document.querySelectorAll('.reveal');
+        const gridItems = document.querySelectorAll('.grid-item');
+        
+        // Create an observer for the reveal elements
+        const observerReveal = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    // Add a slight delay before animating to prevent flash
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, 50);
+                    observerReveal.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.05, // Reduced threshold to start animation earlier
+            rootMargin: '0px 0px -10px 0px' // Changed from -50px to -10px
+        });
+        
+        // Observe each reveal element
+        revealElements.forEach(el => {
+            // Apply background color immediately to prevent white flash
+            el.style.backgroundColor = '#1e1e1e';
+            observerReveal.observe(el);
+        });
+        
+        // Create an observer for the grid items with staggered animation
+        const observerGrid = new IntersectionObserver((entries) => {
+            entries.forEach((entry, index) => {
+                if (entry.isIntersecting) {
+                    // Add staggered delay based on index
+                    setTimeout(() => {
+                        entry.target.classList.add('active');
+                    }, 50 + (50 * (index % 4))); // Reduced from 100ms to 50ms per item
+                    
+                    observerGrid.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.05, // Reduced threshold
+            rootMargin: '0px 0px -10px 0px' // Changed from -50px to -10px
+        });
+        
+        // Observe each grid item
+        gridItems.forEach((item, index) => {
+            // Set transition delay inline for staggered effect
+            item.style.transitionDelay = `${(index % 4) * 0.05}s`; // Reduced from 0.1s to 0.05s
+            observerGrid.observe(item);
+        });
+    }
 </script>
-
-
-
-
 
 @endsection
 

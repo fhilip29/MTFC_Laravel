@@ -3,94 +3,109 @@
 @section('title', 'Our Trainers')
 
 @section('content')
-<div class="trainers-hero" style="background-image: url('{{ asset('assets/gym-bg.jpg') }}')">
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-        <h1>Choose your Personal Trainer</h1>
-        <h2>in</h2>
-        <h2 class="highlight">MANILA TOTAL FITNESS</h2>
+<style>
+    /* Page transition fade-in animation */
+    @keyframes pageTransition {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .page-transition {
+        opacity: 0;
+        animation: pageTransition 0.8s ease forwards;
+    }
+</style>
+
+<div class="page-transition">
+    <div class="trainers-hero" style="background-image: url('{{ asset('assets/gym-bg.jpg') }}')">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Choose your Personal Trainer</h1>
+            <h2>in</h2>
+            <h2 class="highlight">MANILA TOTAL FITNESS</h2>
+        </div>
     </div>
-</div>
 
-<div class="trainer-filters">
-    <button class="filter-btn active" data-filter="all">All</button>
-    <button class="filter-btn" data-filter="gym">Gym</button>
-    <button class="filter-btn" data-filter="boxing">Boxing</button>
-    <button class="filter-btn" data-filter="muay-thai">Muay Thai</button>
-    <button class="filter-btn" data-filter="jiu-jitsu">Jiu Jitsu</button>
-</div>
+    <div class="trainer-filters">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="gym">Gym</button>
+        <button class="filter-btn" data-filter="boxing">Boxing</button>
+        <button class="filter-btn" data-filter="muay-thai">Muay Thai</button>
+        <button class="filter-btn" data-filter="jiu-jitsu">Jiu Jitsu</button>
+    </div>
 
-<!-- Wrapped in a consistent container div -->
-<div class="trainers-section-container bg-[#121212] py-12">
-    <div class="trainers-container">
-        @forelse($trainers as $trainer)
-        <div class="trainer-card" data-category="{{ strtolower(str_replace(',', ' ', $trainer->instructor_for)) }}">
-            <div class="trainer-image">
-                <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 
-                        ? $trainer->profile_url 
-                        : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" 
-                    alt="{{ $trainer->user->full_name }}">
-            </div>
-            <div class="trainer-info">
-                <h3>{{ $trainer->user->full_name }}</h3>
-                <p class="specialization">{{ $trainer->specialization }}</p>
-                <p class="description">{{ $trainer->short_intro }}</p>
-                <div class="schedule">
-                    <h4>Instructor Schedule:</h4>
-                    <div class="schedule-times">
-                        @forelse($trainer->formatted_schedule as $day => $hours)
-                            <p>{{ $day }}: {{ $hours }}</p>
-                        @empty
-                            <p>No schedule available</p>
-                        @endforelse
+    <!-- Wrapped in a consistent container div -->
+    <div class="trainers-section-container bg-[#121212] py-12">
+        <div class="trainers-container">
+            @forelse($trainers as $trainer)
+            <div class="trainer-card" data-category="{{ strtolower(str_replace(',', ' ', $trainer->instructor_for)) }}">
+                <div class="trainer-image">
+                    <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 
+                            ? $trainer->profile_url 
+                            : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" 
+                        alt="{{ $trainer->user->full_name }}">
+                </div>
+                <div class="trainer-info">
+                    <h3>{{ $trainer->user->full_name }}</h3>
+                    <p class="specialization">{{ $trainer->specialization }}</p>
+                    <p class="description">{{ $trainer->short_intro }}</p>
+                    <div class="schedule">
+                        <h4>Instructor Schedule:</h4>
+                        <div class="schedule-times">
+                            @forelse($trainer->formatted_schedule as $day => $hours)
+                                <p>{{ $day }}: {{ $hours }}</p>
+                            @empty
+                                <p>No schedule available</p>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-        @empty
-        <!-- Sample Trainer Cards as fallbacks -->
-        <div class="trainer-card" data-category="boxing gym">
-            <div class="trainer-image">
-                <img src="{{ asset('assets/about_1.jpg') }}" alt="Mark Reges Cruz">
-            </div>
-            <div class="trainer-info">
-                <h3>Mark Reges Cruz</h3>
-                <p class="specialization">Boxing & Gym Instructor</p>
-                <p class="description">Mark Reges Cruz is a skilled boxing and gym instructor with a strong martial arts background.</p>
-                <div class="schedule">
-                    <h4>Instructor Schedule:</h4>
-                    <div class="schedule-times">
-                        <p>Mon: 9am - 5pm</p>
-                        <p>Tue: 9am - 5pm</p>
-                        <p>Wed: 9am - 5pm</p>
-                        <p>Thu: 9am - 5pm</p>
-                        <p>Fri: 9am - 5pm</p>
+            @empty
+            <!-- Sample Trainer Cards as fallbacks -->
+            <div class="trainer-card" data-category="boxing gym">
+                <div class="trainer-image">
+                    <img src="{{ asset('assets/about_1.jpg') }}" alt="Mark Reges Cruz">
+                </div>
+                <div class="trainer-info">
+                    <h3>Mark Reges Cruz</h3>
+                    <p class="specialization">Boxing & Gym Instructor</p>
+                    <p class="description">Mark Reges Cruz is a skilled boxing and gym instructor with a strong martial arts background.</p>
+                    <div class="schedule">
+                        <h4>Instructor Schedule:</h4>
+                        <div class="schedule-times">
+                            <p>Mon: 9am - 5pm</p>
+                            <p>Tue: 9am - 5pm</p>
+                            <p>Wed: 9am - 5pm</p>
+                            <p>Thu: 9am - 5pm</p>
+                            <p>Fri: 9am - 5pm</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="trainer-card" data-category="taekwondo gym">
-            <div class="trainer-image">
-                <img src="{{ asset('assets/about_2.jpg') }}" alt="Isabella Mae Navarro">
-            </div>
-            <div class="trainer-info">
-                <h3>Isabella Mae Navarro</h3>
-                <p class="specialization">Woman Gym Instructor</p>
-                <p class="description">Isabella Mae Navarro is a skilled taekwondo and gym instructor.</p>
-                <div class="schedule">
-                    <h4>Instructor Schedule:</h4>
-                    <div class="schedule-times">
-                        <p>Mon: 9am - 5pm</p>
-                        <p>Tue: 9am - 5pm</p>
-                        <p>Wed: 9am - 5pm</p>
-                        <p>Sat: 9am - 5pm</p>
-                        <p>Sun: 9am - 5pm</p>
+            <div class="trainer-card" data-category="taekwondo gym">
+                <div class="trainer-image">
+                    <img src="{{ asset('assets/about_2.jpg') }}" alt="Isabella Mae Navarro">
+                </div>
+                <div class="trainer-info">
+                    <h3>Isabella Mae Navarro</h3>
+                    <p class="specialization">Woman Gym Instructor</p>
+                    <p class="description">Isabella Mae Navarro is a skilled taekwondo and gym instructor.</p>
+                    <div class="schedule">
+                        <h4>Instructor Schedule:</h4>
+                        <div class="schedule-times">
+                            <p>Mon: 9am - 5pm</p>
+                            <p>Tue: 9am - 5pm</p>
+                            <p>Wed: 9am - 5pm</p>
+                            <p>Sat: 9am - 5pm</p>
+                            <p>Sun: 9am - 5pm</p>
+                        </div>
                     </div>
                 </div>
             </div>
+            @endforelse
         </div>
-        @endforelse
     </div>
 </div>
 

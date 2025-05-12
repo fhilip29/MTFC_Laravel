@@ -15,19 +15,26 @@ class PricingController extends Controller
     {
         $userHasActive = false;
         $userRole = null;
+        $activeType = null;
+        $activePlan = null;
         
         if (Auth::check()) {
             $user = Auth::user();
             $userRole = $user->role;
             
-            $userHasActive = $user->subscriptions()
-                ->where('type', 'gym')
+            $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
                 ->where('end_date', '>', now())
-                ->exists();
+                ->first();
+                
+            if ($activeSubscription) {
+                $userHasActive = true;
+                $activeType = $activeSubscription->type;
+                $activePlan = $activeSubscription->plan;
+            }
         }
         
-        return view('pricing.gym', compact('userHasActive', 'userRole'));
+        return view('pricing.gym', compact('userHasActive', 'userRole', 'activeType', 'activePlan'));
     }
     
     /**
@@ -37,19 +44,26 @@ class PricingController extends Controller
     {
         $userHasActive = false;
         $userRole = null;
+        $activeType = null;
+        $activePlan = null;
         
         if (Auth::check()) {
             $user = Auth::user();
             $userRole = $user->role;
             
-            $userHasActive = $user->subscriptions()
-                ->where('type', 'boxing')
+            $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
                 ->where('end_date', '>', now())
-                ->exists();
+                ->first();
+                
+            if ($activeSubscription) {
+                $userHasActive = true;
+                $activeType = $activeSubscription->type;
+                $activePlan = $activeSubscription->plan;
+            }
         }
         
-        return view('pricing.boxing', compact('userHasActive', 'userRole'));
+        return view('pricing.boxing', compact('userHasActive', 'userRole', 'activeType', 'activePlan'));
     }
     
     /**
@@ -59,19 +73,26 @@ class PricingController extends Controller
     {
         $userHasActive = false;
         $userRole = null;
+        $activeType = null;
+        $activePlan = null;
         
         if (Auth::check()) {
             $user = Auth::user();
             $userRole = $user->role;
             
-            $userHasActive = $user->subscriptions()
-                ->where('type', 'muay')
+            $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
                 ->where('end_date', '>', now())
-                ->exists();
+                ->first();
+                
+            if ($activeSubscription) {
+                $userHasActive = true;
+                $activeType = $activeSubscription->type;
+                $activePlan = $activeSubscription->plan;
+            }
         }
         
-        return view('pricing.muay', compact('userHasActive', 'userRole'));
+        return view('pricing.muay', compact('userHasActive', 'userRole', 'activeType', 'activePlan'));
     }
     
     /**
@@ -81,18 +102,25 @@ class PricingController extends Controller
     {
         $userHasActive = false;
         $userRole = null;
+        $activeType = null;
+        $activePlan = null;
         
         if (Auth::check()) {
             $user = Auth::user();
             $userRole = $user->role;
             
-            $userHasActive = $user->subscriptions()
-                ->where('type', 'jiu')
+            $activeSubscription = $user->subscriptions()
                 ->where('is_active', true)
                 ->where('end_date', '>', now())
-                ->exists();
+                ->first();
+                
+            if ($activeSubscription) {
+                $userHasActive = true;
+                $activeType = $activeSubscription->type;
+                $activePlan = $activeSubscription->plan;
+            }
         }
         
-        return view('pricing.jiu', compact('userHasActive', 'userRole'));
+        return view('pricing.jiu', compact('userHasActive', 'userRole', 'activeType', 'activePlan'));
     }
 } 

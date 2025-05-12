@@ -119,24 +119,11 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             <div class="flex justify-center space-x-3">
-                                <button
-                                    onclick="openPaymentDetailsModal({
-                                        id: '{{ $invoice->invoice_number }}',
-                                        date: '{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('Y-m-d') }}',
-                                        type: '{{ ucfirst($invoice->type) }}',
-                                        amount: '{{ number_format($invoice->total_amount, 2) }}',
-                                        items: {{ json_encode($invoice->items->map(function($item) {
-                                            return [
-                                                'description' => $item->description,
-                                                'amount' => number_format($item->amount, 2)
-                                            ];
-                                        })) }}
-                                    }, '{{ $invoice->id }}')"
-                                    class="text-gray-600 hover:text-gray-900 transition"
-                                    title="View Details"
-                                >
+                                <a href="{{ route('user.payment.details', $invoice->id) }}" 
+                                   class="text-gray-600 hover:text-gray-900 transition"
+                                   title="View Details">
                                     <i class="fas fa-eye"></i>
-                                </button>
+                                </a>
                                 
                                 <a href="{{ route('user.payments.receipt', $invoice->id) }}" target="_blank" class="text-gray-600 hover:text-gray-900 transition" title="Download Receipt">
                                     <i class="fas fa-download"></i>

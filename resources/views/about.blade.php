@@ -4,6 +4,35 @@
 @section('title', 'About Us')
 
 @section('content')
+<style>
+    /* Fade-in animation keyframes */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-on-scroll {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .animate-on-scroll.active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    /* Banner animations */
+    .animate-fade-in {
+        animation: fadeIn 0.8s ease forwards;
+    }
+    
+    .animate-slide-in {
+        animation: fadeIn 0.8s ease 0.2s forwards;
+        opacity: 0;
+    }
+</style>
+
 <!-- Banner Section -->
 <section class="relative text-white h-[400px] md:h-[450px] overflow-hidden">
     <div class="absolute inset-0 bg-black">
@@ -27,7 +56,7 @@
     <div class="container mx-auto px-6 md:px-8 relative z-10">
         <div class="flex flex-col lg:flex-row gap-12 items-start">
             <!-- Text Content Column -->
-            <div class="lg:w-2/3 space-y-12 animate-fade-in">
+            <div class="lg:w-2/3 space-y-12 animate-on-scroll">
                 <!-- About Us -->
                 <div class="bg-[#222] p-8 rounded-xl shadow-lg">
                     <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center">
@@ -43,7 +72,7 @@
                 </div>
 
                 <!-- Community -->
-                <div class="bg-[#222] p-8 rounded-xl shadow-lg">
+                <div class="bg-[#222] p-8 rounded-xl shadow-lg animate-on-scroll">
                     <h2 class="text-2xl md:text-3xl font-bold text-white mb-6 flex items-center">
                         <span class="inline-block w-12 h-1 bg-[#FA5455] mr-4"></span>
                         Community
@@ -58,7 +87,7 @@
             </div>
 
             <!-- Image Column -->
-            <div class="lg:w-1/3 sticky top-24 animate-slide-in">
+            <div class="lg:w-1/3 sticky top-24 animate-on-scroll">
                 <div class="bg-[#222] p-4 rounded-xl shadow-xl">
                     <img src="{{ asset('assets/about_3.jpg') }}" alt="Gym" class="w-full h-auto rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-500">
                     
@@ -92,7 +121,7 @@
 <!-- Visit Us Section -->
 <section class="bg-[#1e1e1e] py-16 md:py-20 mb-0">
     <div class="container mx-auto px-6 md:px-8">
-        <div class="text-center mb-12">
+        <div class="text-center mb-12 animate-on-scroll">
             <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">LOCATION</span>
             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Come Visit Us</h2>
             <p class="text-gray-400 max-w-xl mx-auto">We're conveniently located in the heart of Manila, ready to welcome you to our fitness community.</p>
@@ -100,7 +129,7 @@
         
         <div class="flex flex-col lg:flex-row gap-8 items-start">
             <!-- Google Map -->
-            <div class="w-full lg:w-2/3 rounded-xl overflow-hidden shadow-2xl relative">
+            <div class="w-full lg:w-2/3 rounded-xl overflow-hidden shadow-2xl relative animate-on-scroll">
                 <div class="w-full h-96 rounded-lg overflow-hidden shadow-lg">
                     <iframe 
                         src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph"
@@ -114,7 +143,7 @@
             </div>
 
             <!-- Address Info -->
-            <div class="w-full lg:w-1/3">
+            <div class="w-full lg:w-1/3 animate-on-scroll">
                 <div class="bg-[#222] p-8 rounded-xl shadow-lg">
                     <h3 class="text-2xl font-bold text-white mb-6">Our Address</h3>
                     
@@ -165,5 +194,35 @@
 
 <!-- Dark spacer div to match the background -->
 <div class="bg-[#1e1e1e] h-24"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Get all elements that need to animate on scroll
+        const animatedElements = document.querySelectorAll('.animate-on-scroll');
+        
+        // Check if an element is in viewport
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return (
+                rect.top <= (window.innerHeight || document.documentElement.clientHeight) * 0.85
+            );
+        }
+        
+        // Function to check and apply animations
+        function checkScroll() {
+            animatedElements.forEach(element => {
+                if (isInViewport(element)) {
+                    element.classList.add('active');
+                }
+            });
+        }
+        
+        // Initialize - check elements immediately on page load
+        checkScroll();
+        
+        // Add scroll event listener
+        window.addEventListener('scroll', checkScroll);
+    });
+</script>
 
 @endsection

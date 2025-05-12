@@ -41,13 +41,13 @@
                             $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
                         @endphp
                         <img src="{{ $profileImage }}"
-                             class="w-8 h-8 rounded-full object-cover">
+                             class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @elseif(Auth::user()->role === 'admin')
                         <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                             class="w-8 h-8 rounded-full object-cover">
+                             class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @else
                         <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                             class="w-8 h-8 rounded-full object-cover">
+                             class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @endif
                 </button>
                 <div x-show="open" @click.outside="open = false"
@@ -100,13 +100,13 @@
                                 $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
                             @endphp
                             <img src="{{ $profileImage }}"
-                                 class="w-8 h-8 rounded-full object-cover">
+                                 class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @elseif(Auth::user()->role === 'admin')
                             <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                                 class="w-8 h-8 rounded-full object-cover">
+                                 class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @else
                             <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
-                                 class="w-8 h-8 rounded-full object-cover">
+                                 class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @endif
                     </button>
                     <div x-show="open" @click.outside="open = false"

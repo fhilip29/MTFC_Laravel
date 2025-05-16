@@ -66,7 +66,7 @@ class AdminProfileController extends Controller
             }
             
             // Delete old image if exists and not a default image
-            if ($user->profile_image && file_exists(public_path($user->profile_image)) && !str_contains($user->profile_image, 'default-profile')) {
+            if ($user->profile_image && file_exists(public_path($user->profile_image)) && !str_contains($user->profile_image, 'default_profile')) {
                 unlink(public_path($user->profile_image));
             }
 

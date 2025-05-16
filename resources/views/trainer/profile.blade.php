@@ -11,7 +11,7 @@
                 <!-- Profile Picture -->
                 <div class="relative">
                     <div class="h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white overflow-hidden bg-white">
-                        <img src="{{ $trainer->profile_image_url }}" 
+                        <img src="{{ $trainer->profile_image_url ?? asset('assets/default_profile.png') }}" 
                             alt="{{ $trainer->user->full_name }}" 
                             class="w-full h-full object-cover">
                     </div>
@@ -162,7 +162,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="flex items-center">
                                                 <div class="h-10 w-10 rounded-full overflow-hidden bg-gray-200">
-                                                    <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                                    <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default_profile.png') }}" 
                                                         alt="{{ $member->full_name }}" 
                                                         class="h-10 w-10 object-cover">
                                                 </div>

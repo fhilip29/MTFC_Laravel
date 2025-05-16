@@ -373,7 +373,7 @@ class TrainerController extends Controller
                     }
                     
                     // Delete old image if it exists and is not a default image
-                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default-profile')) {
+                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default_profile')) {
                         $oldImagePath = public_path($trainer->profile_url);
                         if (file_exists($oldImagePath)) {
                             unlink($oldImagePath);
@@ -407,7 +407,7 @@ class TrainerController extends Controller
                     }
                     
                     // Delete old image if it exists and is not a default image
-                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default-profile')) {
+                    if ($trainer->profile_url && !str_contains($trainer->profile_url, 'default_profile')) {
                         $oldImagePath = public_path($trainer->profile_url);
                         if (file_exists($oldImagePath)) {
                             unlink($oldImagePath);

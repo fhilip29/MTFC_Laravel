@@ -38,10 +38,10 @@
 <!-- Page Loader -->
 @include('components.loader')
 
-<div class="flex h-screen">
+<div class="flex min-h-screen pt-10">
 
     <!-- LEFT: Sign-up Form -->
-    <div class="flex-1 flex justify-center items-center px-6">
+    <div class="flex-1 flex justify-center items-center px-6 py-8">
         <div class="w-full max-w-md">
 
             <h3 class="text-3xl font-bold text-center mb-2">Sign Up now!</h3>

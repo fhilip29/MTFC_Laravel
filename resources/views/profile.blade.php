@@ -76,7 +76,7 @@
             <div class="relative">
                 <div class="h-24 w-24 md:h-32 md:w-32 bg-gradient-to-r from-red-600 to-red-800 rounded-full p-1">
                     <div class="h-full w-full bg-white rounded-full flex items-center justify-center overflow-hidden">
-                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}" alt="Profile" class="h-full w-full object-cover">
+                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default_profile.png') }}" alt="Profile" class="h-full w-full object-cover">
                     </div>
                 </div>
                 <div class="absolute bottom-2 right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>

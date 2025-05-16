@@ -120,11 +120,24 @@ class PostController extends Controller
 
         // Handle image uploads for the post
         if ($request->hasFile('images')) {
+            // Create directory if it doesn't exist
+            $directory = 'images/community_post';
+            $fullPath = public_path($directory);
+            if (!file_exists($fullPath)) {
+                mkdir($fullPath, 0755, true);
+            }
+            
             foreach ($request->file('images') as $image) {
-                $path = $image->store('posts', 'public');
+                // Generate a unique filename
+                $filename = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                
+                // Move the file to public/images/community_post
+                $image->move($fullPath, $filename);
+                
+                // Save the image path in the database
                 PostImage::create([
                     'post_id' => $post->id,
-                    'path' => $path,
+                    'path' => $directory . '/' . $filename,
                 ]);
             }
         }
@@ -142,8 +155,8 @@ class PostController extends Controller
 
         // Delete associated images if they exist
         foreach ($post->images as $image) {
-            if (file_exists(public_path('storage/' . $image->path))) {
-                unlink(public_path('storage/' . $image->path));
+            if (file_exists(public_path($image->path))) {
+                unlink(public_path($image->path));
             }
             $image->delete();
         }

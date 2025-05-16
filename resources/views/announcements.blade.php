@@ -64,9 +64,9 @@
                 </p>
             </div>
             <div class="px-6 py-4 bg-gray-50 flex justify-end items-center">
-                <button onclick="viewAnnouncement({{ $announcement->id }})" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
+                <a href="{{ route('announcements.show', $announcement) }}" class="text-red-600 hover:text-red-700 text-sm font-medium transition-colors">
                     Read More <i class="fas fa-arrow-right ml-1"></i>
-                </button>
+                </a>
             </div>
         </div>
         @endforeach
@@ -79,27 +79,6 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-900 mb-2">No Announcements Found</h3>
         <p class="text-gray-600">There are no announcements matching your search criteria.</p>
-    </div>
-</div>
-
-<!-- Announcement View Modal -->
-<div id="viewModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="fixed inset-0 bg-black bg-opacity-50" onclick="closeViewModal()"></div>
-        <div class="relative bg-white rounded-xl max-w-2xl w-full shadow-xl">
-            <div class="absolute top-4 right-4">
-                <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <h2 id="modalTitle" class="text-2xl font-bold text-gray-900 mb-2"></h2>
-                <div class="flex items-center gap-4 mb-6">
-                    <span id="modalDate" class="text-sm text-gray-500"></span>
-                </div>
-                <div id="modalContent" class="prose max-w-none"></div>
-            </div>
-        </div>
     </div>
 </div>
 @endsection
@@ -162,23 +141,5 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial filter on page load
     filterAnnouncements();
 });
-
-function viewAnnouncement(id) {
-    fetch(`/api/announcements/${id}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('modalTitle').textContent = data.announcement.title;
-                document.getElementById('modalDate').textContent = new Date(data.announcement.created_at).toLocaleDateString();
-                document.getElementById('modalContent').innerHTML = data.announcement.message;
-                document.getElementById('viewModal').classList.remove('hidden');
-            }
-        })
-        .catch(err => console.error('Error:', err));
-}
-
-function closeViewModal() {
-    document.getElementById('viewModal').classList.add('hidden');
-}
 </script>
 @endpush

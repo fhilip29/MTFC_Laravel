@@ -107,6 +107,7 @@ Route::delete('/posts/{post}', [PostController::class, 'destroy'])->name('posts.
 
 // Public user announcements
 Route::get('/announcements', [AnnouncementController::class, 'userIndex'])->name('announcements');
+Route::get('/announcements/{announcement}', [AnnouncementController::class, 'show'])->name('announcements.show');
 
 // QR Scanner Test Route
 Route::get('/test-scanner', function () {

@@ -185,7 +185,7 @@
                             <tr id="member-row-{{ $member->id }}" class="hover:bg-[#374151] transition-colors">
                                 <td class="px-4 py-3 text-white">
                                     <div class="flex items-center gap-3">
-                                        <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default-profile.jpg') }}" 
+                                        <img src="{{ $member->profile_image ? asset($member->profile_image) : asset('assets/default_profile.png') }}" 
                                              alt="{{ $member->full_name }}" class="w-10 h-10 rounded-full object-cover">
                                         <div class="flex flex-col">
                                             <span class="font-medium">{{ $member->full_name }}</span>
@@ -284,7 +284,7 @@
                     <div class="py-4" x-show="currentMember">
                         <div class="flex flex-col md:flex-row gap-6">
                             <div class="flex flex-col items-center">
-                                <img :src="currentMember?.profile_image ? '/' + currentMember.profile_image : '/assets/default-profile.jpg'" 
+                                <img :src="currentMember?.profile_image ? '/' + currentMember.profile_image : '/assets/default_profile.png'" 
                                      :alt="currentMember?.full_name" 
                                      class="w-32 h-32 rounded-full object-cover border-4 border-[#374151] mb-2">
                                 <h4 x-text="currentMember?.full_name" class="text-lg font-bold text-white"></h4>

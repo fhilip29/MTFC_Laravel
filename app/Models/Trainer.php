@@ -34,7 +34,7 @@ class Trainer extends Model
     public function getProfileImageUrlAttribute()
     {
         if (empty($this->profile_url)) {
-            return asset('assets/default-profile.jpg');
+            return asset('assets/default_profile.png');
         }
         
         // Check if profile_url is already a full URL or base64 image

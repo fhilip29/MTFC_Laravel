@@ -64,6 +64,8 @@ class AnnouncementController extends Controller
                 'message' => 'required|string',
                 'schedule_date' => 'nullable|date_format:Y-m-d',
                 'schedule_time' => 'nullable|date_format:H:i',
+                'is_scheduled' => 'nullable|boolean',
+                'is_pending' => 'nullable|boolean',
             ]);
 
             $data = [
@@ -72,7 +74,7 @@ class AnnouncementController extends Controller
                 'created_by' => Auth::id(),
             ];
 
-            if ($request->filled('schedule_date') && $request->filled('schedule_time')) {
+            if ($request->input('is_scheduled') == 1 && $request->filled('schedule_date') && $request->filled('schedule_time')) {
                 $scheduledAt = Carbon::createFromFormat('Y-m-d H:i', $request->schedule_date . ' ' . $request->schedule_time);
 
                 if ($scheduledAt->isPast()) {
@@ -80,21 +82,36 @@ class AnnouncementController extends Controller
                 }
 
                 $data['scheduled_at'] = $scheduledAt;
-                $data['is_active'] = 'pending';
+                $data['is_active'] = 'pending'; // Set to pending for scheduled announcements
             } else {
                 $data['scheduled_at'] = null;
-                $data['is_active'] = $request->has('is_active') ? 'active' : 'inactive';
+                $data['is_active'] = $request->has('is_active') && $request->input('is_active') == 1 ? 'active' : 'inactive';
             }
 
             DB::beginTransaction();
             Announcement::create($data);
             DB::commit();
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Announcement created successfully.'
+                ]);
+            }
+
             return redirect()->route('admin.promotion.admin_promo')->with('success', 'Announcement created successfully.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating announcement', ['error' => $e->getMessage()]);
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while creating the announcement: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return back()->withErrors(['error' => 'An error occurred while creating the announcement.'])->withInput();
         }
     }
@@ -116,6 +133,8 @@ class AnnouncementController extends Controller
                 'message' => 'required|string',
                 'schedule_date' => 'nullable|date_format:Y-m-d',
                 'schedule_time' => 'nullable|date_format:H:i',
+                'is_scheduled' => 'nullable|boolean',
+                'is_pending' => 'nullable|boolean',
             ]);
 
             $data = [
@@ -123,7 +142,8 @@ class AnnouncementController extends Controller
                 'message' => $validated['message'],
             ];
 
-            if ($request->filled('schedule_date') && $request->filled('schedule_time')) {
+            // If is_scheduled is true and both date and time are provided
+            if ($request->input('is_scheduled') == 1 && $request->filled('schedule_date') && $request->filled('schedule_time')) {
                 $scheduledAt = Carbon::createFromFormat('Y-m-d H:i', $request->schedule_date . ' ' . $request->schedule_time);
 
                 if ($scheduledAt->isPast()) {
@@ -131,27 +151,56 @@ class AnnouncementController extends Controller
                 }
 
                 $data['scheduled_at'] = $scheduledAt;
-                $data['is_active'] = 'pending';
+                $data['is_active'] = 'pending'; // Always set to pending for scheduled
             } else {
+                // Explicitly set scheduled_at to null when unchecking the schedule_later checkbox
                 $data['scheduled_at'] = null;
-                $data['is_active'] = $request->has('is_active') ? 'active' : 'inactive';
+                $data['is_active'] = $request->has('is_active') && $request->input('is_active') == 1 ? 'active' : 'inactive';
             }
 
             $announcement->update($data);
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Announcement updated successfully.'
+                ]);
+            }
+
             return redirect()->route('admin.promotion.admin_promo')->with('success', 'Announcement updated successfully.');
 
         } catch (\Exception $e) {
-            Log::error('Error updating announcement', ['error' => $e->getMessage()]);
+            Log::error('Error updating announcement', ['error' => $e->getMessage(), 'request' => $request->all()]);
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while updating the announcement: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return back()->withErrors(['error' => 'An error occurred while updating the announcement.'])->withInput();
         }
     }
 
-    // 🔍 Show details
+    // 🔍 Show details (admin view)
     public function show($id)
     {
         $announcement = Announcement::findOrFail($id);
-        return view('admin.announcements.show', compact('announcement'));
+        
+        // Check if the announcement is active for non-admin users
+        if (Auth::check() && Auth::user()->role === 'admin') {
+            // Admin can view all announcements regardless of status
+            return view('announcement-detail', compact('announcement'));
+        } else {
+            // Regular users can only view active announcements
+            if ($announcement->is_active === 'active') {
+                return view('announcement-detail', compact('announcement'));
+            } else {
+                return redirect()->route('announcements')
+                    ->with('error', 'The requested announcement is not available.');
+            }
+        }
     }
 
     // ❌ Delete announcement

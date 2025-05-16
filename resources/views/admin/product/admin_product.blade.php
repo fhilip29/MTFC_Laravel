@@ -76,8 +76,7 @@
                             data-status="{{ $product->status }}"
                             data-product-id="{{ $product->id }}"
                             data-stock="{{ $product->stock }}"
-                            data-price="{{ $product->price }}"
-                            data-discount="{{ $product->discount }}">
+                            data-price="{{ $product->price }}">
                             <td class="py-4 px-4 align-middle">
                                 @if($product->image)
                                     <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="w-16 h-16 object-contain rounded-md">
@@ -104,10 +103,10 @@
                             </td>
                             <td class="py-4 px-4 text-center align-middle">
                                 <div class="flex justify-center gap-2">
-                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Edit Product" onclick="openEditModal('{{ $product->id }}', '{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}', '{{ $product->discount }}')">
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Edit Product" onclick="openEditModal('{{ $product->id }}', '{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}')">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="View Details" onclick="openViewModal('{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}', '{{ $product->discount }}')">
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="View Details" onclick="openViewModal('{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}')">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="#" class="text-red-400 hover:text-red-300 cursor-pointer" title="Delete Product" onclick="confirmDelete('{{ $product->name }}', '{{ $product->id }}')">
@@ -171,27 +170,12 @@
                             <input type="number" id="productPrice" name="price" min="0" step="0.01" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
                         </div>
                         <div>
-                            <label for="productDiscount" class="block text-sm font-medium text-[#9CA3AF] mb-1">Discount (%)</label>
-                            <input type="number" id="productDiscount" name="discount" min="0" max="100" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" value="0">
-                            <p class="text-xs text-[#9CA3AF] mt-1 flex items-center gap-1">
-                                <span>Set 0 for no discount</span>
-                                <i class="fas fa-info-circle cursor-help" title="Discount is calculated as: Original Price × (1 - Discount/100)"></i>
+                            <label for="productStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock</label>
+                            <input type="number" id="productStock" name="stock" min="0" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">
+                                0: Out of Stock | 1-15: Low Stock | 16+: In Stock
                             </p>
                         </div>
-                    </div>
-                    <div>
-                        <label for="productStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock</label>
-                        <input type="number" id="productStock" name="stock" min="0" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
-                        <p class="text-xs text-[#9CA3AF] mt-1">
-                            0: Out of Stock | 1-15: Low Stock | 16+: In Stock
-                        </p>
-                    </div>
-                    <div>
-                        <label for="productFinalPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Final Price (after discount)</label>
-                        <input type="text" id="productFinalPrice" class="w-full py-2 px-3 bg-[#303642] border border-[#4B5563] text-white rounded-md focus:outline-none cursor-not-allowed" readonly>
-                        <p class="text-xs text-[#9CA3AF] mt-1">
-                            Automatically calculated
-                        </p>
                     </div>
                     
                     <div>
@@ -348,25 +332,10 @@
                             <input type="number" id="editProductPrice" name="price" min="0" step="0.01" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
                         </div>
                         <div>
-                            <label for="editProductDiscount" class="block text-sm font-medium text-[#9CA3AF] mb-1">Discount (%)</label>
-                            <input type="number" id="editProductDiscount" name="discount" min="0" max="100" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" value="0">
-                            <p class="text-xs text-[#9CA3AF] mt-1 flex items-center gap-1">
-                                <span>Set 0 for no discount</span>
-                                <i class="fas fa-info-circle cursor-help" title="Discount is calculated as: Original Price × (1 - Discount/100)"></i>
-                            </p>
-                        </div>
-                        <div>
                             <label for="editProductStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock</label>
                             <input type="number" id="editProductStock" name="stock" min="0" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
                             <p class="text-xs text-[#9CA3AF] mt-1">
                                 0: Out of Stock | 1-15: Low Stock | 16+: In Stock
-                            </p>
-                        </div>
-                        <div>
-                            <label for="editFinalPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Final Price (after discount)</label>
-                            <input type="text" id="editFinalPrice" class="w-full py-2 px-3 bg-[#303642] border border-[#4B5563] text-white rounded-md focus:outline-none cursor-not-allowed" readonly>
-                            <p class="text-xs text-[#9CA3AF] mt-1">
-                                Automatically calculated
                             </p>
                         </div>
                     </div>
@@ -421,21 +390,11 @@
 <script>
 // Product price calculation functions
 function calculateDiscountedPrice(price, discount) {
-    const discountAmount = parseFloat(price) * (parseFloat(discount) / 100);
-    const finalPrice = parseFloat(price) - discountAmount;
-    return finalPrice.toFixed(2);
+    return parseFloat(price).toFixed(2);
 }
 
 function updateFinalPrice(priceInput, discountInput, finalPriceInput) {
-    const price = parseFloat(priceInput.value) || 0;
-    const discount = parseFloat(discountInput.value) || 0;
-    
-    if (price > 0) {
-        const finalPrice = calculateDiscountedPrice(price, discount);
-        finalPriceInput.value = '₱' + finalPrice;
-    } else {
-        finalPriceInput.value = '';
-    }
+    // No longer needed as discount feature is removed
 }
 
 // Export products to CSV
@@ -458,7 +417,7 @@ function exportToCSV() {
     let csvContent = "data:text/csv;charset=utf-8,";
     
     // Add headers
-    csvContent += "Product Name,Category,Status,Stock,Price,Discount,Final Price\n";
+    csvContent += "Product Name,Category,Status,Stock,Price\n";
     
     // Add data rows
     rows.forEach(row => {
@@ -467,10 +426,8 @@ function exportToCSV() {
         const status = row.querySelector('td:nth-child(4) span').textContent.trim();
         const stock = row.dataset.stock || '0';
         const price = row.dataset.price || '0';
-        const discount = row.dataset.discount || '0';
-        const finalPrice = calculateDiscountedPrice(price, discount);
         
-        csvContent += `"${name}","${category}","${status}","${stock}","${price}","${discount}%","${finalPrice}"\n`;
+        csvContent += `"${name}","${category}","${status}","${stock}","${price}"\n`;
     });
     
     // Create download link
@@ -683,41 +640,17 @@ document.addEventListener('DOMContentLoaded', function() {
         color: '#fff'
     });
     @endif
-    
-    // Price calculation for Add Product form
-    const productPrice = document.getElementById('productPrice');
-    const productDiscount = document.getElementById('productDiscount');
-    const productFinalPrice = document.getElementById('productFinalPrice');
-    
-    if (productPrice && productDiscount && productFinalPrice) {
-        productPrice.addEventListener('input', function() {
-            updateFinalPrice(productPrice, productDiscount, productFinalPrice);
-        });
-        
-        productDiscount.addEventListener('input', function() {
-            updateFinalPrice(productPrice, productDiscount, productFinalPrice);
-        });
-    }
 });
 
 // View Product Modal Functions
-function openViewModal(name, category, description, price, status, image, stock = 0, discount = 0) {
+function openViewModal(name, category, description, price, status, image, stock = 0) {
     // Set product details
     document.getElementById('viewProductName').textContent = name;
     document.getElementById('viewProductCategory').textContent = category;
     
     // Display original and discounted price if discount exists
     const priceElement = document.getElementById('viewProductPrice');
-    if (discount && discount > 0) {
-        const finalPrice = calculateDiscountedPrice(price, discount);
-        priceElement.innerHTML = `
-            <span class="line-through text-gray-400">₱${parseFloat(price).toFixed(2)}</span>
-            <span class="text-green-500">₱${finalPrice}</span>
-            <span class="ml-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">${discount}% OFF</span>
-        `;
-    } else {
-        priceElement.textContent = `₱${parseFloat(price).toFixed(2)}`;
-    }
+    priceElement.textContent = `₱${parseFloat(price).toFixed(2)}`;
     
     document.getElementById('viewProductStock').textContent = stock || 'N/A';
     document.getElementById('viewProductDescription').textContent = description || 'No description available';
@@ -725,7 +658,7 @@ function openViewModal(name, category, description, price, status, image, stock 
     // Store product ID for edit button
     const viewEditBtn = document.getElementById('editFromView');
     viewEditBtn.setAttribute('data-product-info', JSON.stringify({
-        name, category, description, price, status, image, stock, discount
+        name, category, description, price, status, image, stock
     }));
     
     // Set status with appropriate class
@@ -759,7 +692,7 @@ function openViewModal(name, category, description, price, status, image, stock 
 }
 
 // Edit Product Modal Functions
-function openEditModal(id, name, category, description, price, status, image, stock = 0, discount = 0) {
+function openEditModal(id, name, category, description, price, status, image, stock = 0) {
     // Set form action
     document.getElementById('editProductForm').action = `/admin/products/${id}`;
     
@@ -769,14 +702,7 @@ function openEditModal(id, name, category, description, price, status, image, st
     document.getElementById('editProductCategory').value = category;
     document.getElementById('editProductDescription').value = description || '';
     document.getElementById('editProductPrice').value = price;
-    document.getElementById('editProductDiscount').value = discount || 0;
     document.getElementById('editProductStock').value = stock || 0;
-    
-    // Calculate and display final price
-    const editPrice = document.getElementById('editProductPrice');
-    const editDiscount = document.getElementById('editProductDiscount');
-    const editFinalPrice = document.getElementById('editFinalPrice');
-    updateFinalPrice(editPrice, editDiscount, editFinalPrice);
     
     // Set current image
     const currentImage = document.getElementById('editCurrentImage');
@@ -803,21 +729,6 @@ function openEditModal(id, name, category, description, price, status, image, st
 
 document.addEventListener('DOMContentLoaded', function() {
     // ... existing code ...
-    
-    // Edit form price calculations
-    const editPrice = document.getElementById('editProductPrice');
-    const editDiscount = document.getElementById('editProductDiscount');
-    const editFinalPrice = document.getElementById('editFinalPrice');
-    
-    if (editPrice && editDiscount && editFinalPrice) {
-        editPrice.addEventListener('input', function() {
-            updateFinalPrice(editPrice, editDiscount, editFinalPrice);
-        });
-        
-        editDiscount.addEventListener('input', function() {
-            updateFinalPrice(editPrice, editDiscount, editFinalPrice);
-        });
-    }
     
     // View modal elements
     const viewProductModal = document.getElementById('viewProductModal');
@@ -903,8 +814,7 @@ document.addEventListener('DOMContentLoaded', function() {
             productInfo.price, 
             productInfo.status, 
             productInfo.image, 
-            productInfo.stock,
-            productInfo.discount
+            productInfo.stock
         );
     });
     

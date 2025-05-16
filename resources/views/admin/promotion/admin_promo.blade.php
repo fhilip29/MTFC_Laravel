@@ -174,11 +174,15 @@
                                 <label class="switch">
                                     <input type="checkbox" 
                                            {{ $announcement->is_active === 'active' ? 'checked' : '' }} 
+                                           {{ $announcement->is_active === 'pending' ? 'disabled' : '' }}
                                            onchange="toggleStatus('{{ $announcement->id }}')">
                                     <span class="slider"></span>
                                 </label>
-                                <span class="status-label text-xs {{ $announcement->is_active === 'active' ? 'text-green-400' : 'text-gray-400' }}">
-                                    {{ $announcement->is_active === 'active' ? 'Active' : 'Inactive' }}
+                                <span class="status-label text-xs 
+                                    {{ $announcement->is_active === 'active' ? 'text-green-400' : 
+                                      ($announcement->is_active === 'pending' ? 'text-yellow-400' : 'text-gray-400') }}">
+                                    {{ $announcement->is_active === 'active' ? 'Active' : 
+                                      ($announcement->is_active === 'pending' ? 'Pending' : 'Inactive') }}
                                 </span>
                             </div>
                         </td>
@@ -206,6 +210,7 @@
             </div>
             <form id="announcementForm" action="{{ route('admin.announcements.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="is_scheduled" value="0" id="is_scheduled_flag">
                 <div class="space-y-4">
                     <div>
                         <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
@@ -227,6 +232,9 @@
                     <div class="flex items-center">
                         <input type="checkbox" name="schedule_later" id="schedule_later" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500">
                         <label for="schedule_later" class="ml-2 text-sm font-medium text-gray-300">Schedule for later</label>
+                        <div class="ml-2 text-xs text-yellow-400" id="schedule_note" style="display: none;">
+                            <i class="fas fa-info-circle"></i> Status will be set to "Pending" until scheduled time
+                        </div>
                     </div>
                     
                     <div id="schedulingOptions" class="hidden space-y-4">
@@ -265,6 +273,7 @@
                 @csrf
                 <input type="hidden" name="_method" value="PUT">
                 <input type="hidden" name="id" x-bind:value="currentAnnouncement?.id">
+                <input type="hidden" name="is_scheduled" value="0" id="edit_is_scheduled_flag">
                 <div class="space-y-4">
                     <div>
                         <label for="edit_title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
@@ -278,9 +287,17 @@
                         <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
                     </div>
                     
+                    <div class="flex items-center" x-show="currentAnnouncement?.is_active !== 'pending'">
+                        <input type="checkbox" name="is_active" id="edit_is_active" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500" x-bind:checked="currentAnnouncement?.is_active === 'active'">
+                        <label for="edit_is_active" class="ml-2 text-sm font-medium text-gray-300">Make announcement active</label>
+                    </div>
+                    
                     <div class="flex items-center">
                         <input type="checkbox" name="schedule_later" id="edit_schedule_later" class="w-4 h-4 text-red-600 bg-gray-700 border-gray-600 rounded focus:ring-red-500" x-bind:checked="currentAnnouncement?.scheduled_at !== null">
                         <label for="edit_schedule_later" class="ml-2 text-sm font-medium text-gray-300">Schedule for later</label>
+                        <div class="ml-2 text-xs text-yellow-400" id="edit_schedule_note" style="display: none;">
+                            <i class="fas fa-info-circle"></i> Status will be set to "Pending" until scheduled time
+                        </div>
                     </div>
                     
                     <div id="editSchedulingOptions" class="hidden space-y-4" x-bind:class="{ 'hidden': !currentAnnouncement?.scheduled_at }">
@@ -361,20 +378,62 @@ document.addEventListener('DOMContentLoaded', function() {
     // Toggle scheduling options in Add modal
     const scheduleLater = document.getElementById('schedule_later');
     const schedulingOptions = document.getElementById('schedulingOptions');
+    const isScheduledFlag = document.getElementById('is_scheduled_flag');
+    const scheduleNote = document.getElementById('schedule_note');
+    const isActiveCheckbox = document.getElementById('is_active');
     
     if (scheduleLater && schedulingOptions) {
         scheduleLater.addEventListener('change', function() {
             schedulingOptions.classList.toggle('hidden', !this.checked);
+            
+            // Set the is_scheduled flag and show note
+            if (this.checked) {
+                isScheduledFlag.value = '1';
+                scheduleNote.style.display = 'block';
+                // When scheduling, disable and uncheck active checkbox
+                if (isActiveCheckbox) {
+                    isActiveCheckbox.checked = false;
+                    isActiveCheckbox.disabled = true;
+                }
+            } else {
+                isScheduledFlag.value = '0';
+                scheduleNote.style.display = 'none';
+                // Re-enable active checkbox when not scheduling
+                if (isActiveCheckbox) {
+                    isActiveCheckbox.disabled = false;
+                }
+            }
         });
     }
     
     // Toggle scheduling options in Edit modal
     const editScheduleLater = document.getElementById('edit_schedule_later');
     const editSchedulingOptions = document.getElementById('editSchedulingOptions');
+    const editIsScheduledFlag = document.getElementById('edit_is_scheduled_flag');
+    const editScheduleNote = document.getElementById('edit_schedule_note');
+    const editIsActiveCheckbox = document.getElementById('edit_is_active');
     
     if (editScheduleLater && editSchedulingOptions) {
         editScheduleLater.addEventListener('change', function() {
             editSchedulingOptions.classList.toggle('hidden', !this.checked);
+            
+            // Set the is_scheduled flag and show note
+            if (this.checked) {
+                editIsScheduledFlag.value = '1';
+                editScheduleNote.style.display = 'block';
+                // When scheduling, disable and uncheck active checkbox
+                if (editIsActiveCheckbox) {
+                    editIsActiveCheckbox.checked = false;
+                    editIsActiveCheckbox.disabled = true;
+                }
+            } else {
+                editIsScheduledFlag.value = '0';
+                editScheduleNote.style.display = 'none';
+                // Re-enable active checkbox when not scheduling
+                if (editIsActiveCheckbox) {
+                    editIsActiveCheckbox.disabled = false;
+                }
+            }
         });
     }
     
@@ -452,6 +511,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         const editScheduleLater = document.getElementById('edit_schedule_later');
                         const editSchedulingOptions = document.getElementById('editSchedulingOptions');
+                        const editScheduleNote = document.getElementById('edit_schedule_note');
+                        const editIsActiveCheckbox = document.getElementById('edit_is_active');
+                        const editIsScheduledFlag = document.getElementById('edit_is_scheduled_flag');
                         
                         if (editScheduleLater && app.currentAnnouncement) {
                             const hasScheduledTime = app.currentAnnouncement.scheduled_at !== null;
@@ -459,6 +521,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             if (editSchedulingOptions) {
                                 editSchedulingOptions.classList.toggle('hidden', !hasScheduledTime);
+                            }
+                            
+                            if (editIsScheduledFlag) {
+                                editIsScheduledFlag.value = hasScheduledTime ? '1' : '0';
+                            }
+                            
+                            if (editScheduleNote) {
+                                editScheduleNote.style.display = hasScheduledTime ? 'block' : 'none';
+                            }
+                            
+                            // If announcement is scheduled, disable the active checkbox
+                            if (editIsActiveCheckbox && hasScheduledTime) {
+                                editIsActiveCheckbox.checked = false;
+                                editIsActiveCheckbox.disabled = true;
+                            } else if (editIsActiveCheckbox) {
+                                editIsActiveCheckbox.disabled = false;
                             }
                         }
                     }, 100);
@@ -504,8 +582,87 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to validate forms
     function formIsValid() {
-        // Add your form validation logic here
-        return true;  // Returning true as a placeholder for real validation
+        // Validate create announcement form
+        if (document.getElementById('announcementForm') && document.getElementById('announcementForm').checkValidity()) {
+            // Check if scheduling is enabled, then validate scheduling fields
+            const scheduleLater = document.getElementById('schedule_later');
+            if (scheduleLater && scheduleLater.checked) {
+                const scheduleDate = document.getElementById('schedule_date');
+                const scheduleTime = document.getElementById('schedule_time');
+                
+                if (!scheduleDate.value || !scheduleTime.value) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please select both date and time for scheduling.',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#DC2626'
+                    });
+                    return false;
+                }
+                
+                // Validate that scheduled date/time is in the future
+                const scheduledDateTime = new Date(scheduleDate.value + 'T' + scheduleTime.value);
+                const now = new Date();
+                
+                if (scheduledDateTime <= now) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Scheduled time must be in the future.',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#DC2626'
+                    });
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Validate edit announcement form
+        if (document.getElementById('editAnnouncementForm') && document.getElementById('editAnnouncementForm').checkValidity()) {
+            // Check if scheduling is enabled, then validate scheduling fields
+            const editScheduleLater = document.getElementById('edit_schedule_later');
+            if (editScheduleLater && editScheduleLater.checked) {
+                const editScheduleDate = document.getElementById('edit_schedule_date');
+                const editScheduleTime = document.getElementById('edit_schedule_time');
+                
+                if (!editScheduleDate.value || !editScheduleTime.value) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Please select both date and time for scheduling.',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#DC2626'
+                    });
+                    return false;
+                }
+                
+                // Validate that scheduled date/time is in the future
+                const scheduledDateTime = new Date(editScheduleDate.value + 'T' + editScheduleTime.value);
+                const now = new Date();
+                
+                if (scheduledDateTime <= now) {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Scheduled time must be in the future.',
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#DC2626'
+                    });
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        return false;
     }
 
     // Show success message if it exists in the session
@@ -603,7 +760,20 @@ function toggleStatus(id) {
     
     // Store the text of the status cell to check if it's in pending state
     const currentStatus = statusCell ? statusCell.textContent.trim() : '';
-    const isPending = currentStatus === 'Pending';
+    
+    // Check if the announcement is in pending state (scheduled)
+    if (currentStatus === 'Pending') {
+        toggleSwitch.checked = false; // Revert toggle switch
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cannot Toggle',
+            text: 'Scheduled announcements cannot be activated manually. They will automatically activate at the scheduled time.',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#DC2626'
+        });
+        return; // Stop execution
+    }
     
     // We're going to send the current checked state as our intended state
     // If the switch is checked, we want to activate, if unchecked, deactivate
@@ -640,10 +810,10 @@ function toggleStatus(id) {
                 statusLabel.className = `status-label text-xs ${currentChecked ? 'text-green-400' : 'text-gray-400'}`;
             }
             
-            // Update status badge in status column, preserving pending status if applicable
-            if (statusCell && !isPending) {
+            // Update status badge in status column
+            if (statusCell) {
                 statusCell.textContent = currentChecked ? 'Active' : 'Inactive';
-                statusCell.className = `px-2 py-1 text-xs rounded-full ${currentChecked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`;
+                statusCell.className = `px-2 py-1 text-xs rounded-full ${currentChecked ? 'bg-green-500' : 'bg-gray-500'}`;
             }
             
             // Show success notification with correct message

@@ -190,6 +190,26 @@
     .image-grid::-webkit-scrollbar-thumb:hover {
         background: #5a5a5a !important;
     }
+
+    /* Responsive adjustments for mobile */
+    @media (max-width: 640px) {
+        .image-grid {
+            flex-wrap: wrap !important;
+            justify-content: center !important;
+        }
+        
+        .post-image-container {
+            width: 100% !important;
+            max-width: 300px !important;
+            height: 250px !important;
+            margin-bottom: 8px !important;
+        }
+        
+        .post-image {
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
 </style>
 @endsection
 
@@ -297,39 +317,71 @@
                             @endif
                         </form>
                         
+                        @auth
                         <button x-data @click="$dispatch('open-modal')" 
                                 class="flex items-center space-x-2 bg-white text-black font-semibold px-5 py-2 rounded-full shadow-lg hover:bg-gray-200 transition-colors">
                             <i class="fas fa-plus"></i>
                             <span class="hidden md:inline">Create Post</span>
                         </button>
+                        @else
+                        <a href="{{ route('login') }}" 
+                           class="flex items-center space-x-2 bg-gray-700 text-white font-semibold px-5 py-2 rounded-full shadow-lg hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="hidden md:inline">Login to Post</span>
+                        </a>
+                        @endauth
                     </div>
                 </div>
 
                 <!-- Mobile category buttons (visible on small screens) -->
-                <div class="flex overflow-x-auto gap-2 mb-6 pb-2 lg:hidden">
-                    <a href="{{ route('community') }}" class="flex-shrink-0 px-4 py-2 bg-[#1a1a1a] rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
-                        <i class="fas fa-home mr-2"></i>All
-                    </a>
-                    @foreach($tags as $tagItem)
-                    <a href="{{ route('community.tag', $tagItem->slug) }}" 
-                       class="flex-shrink-0 px-4 py-2 {{ isset($tag) && $tag == $tagItem->slug ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a] flex items-center">
-                        @if($tagItem->slug == 'boxing')
-                            <span class="mr-2">@include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block'])</span>
-                        @else
-                            <i class="fas {{ 
-                                $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
-                                ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
-                                ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
-                                ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
-                                ($tagItem->slug == 'cardio' ? 'fa-running' : 
-                                ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
-                                ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
-                                ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag')))))))
-                            }} mr-2"></i>
-                        @endif
-                        <span>{{ $tagItem->name }}</span>
-                    </a>
-                    @endforeach
+                <div class="flex flex-col gap-2 mb-6 lg:hidden">
+                    <!-- Navigation options -->
+                    <div class="flex flex-col gap-2 mb-3">
+                        <h3 class="text-xs uppercase text-gray-500 font-semibold mb-1 tracking-wider px-2">Navigation</h3>
+                        <div class="flex overflow-x-auto gap-2 pb-2">
+                            <a href="{{ route('community') }}" class="flex-shrink-0 px-4 py-2 {{ !request()->has('sort') && !request()->has('user') ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
+                                <i class="fas fa-clock mr-2"></i>Recent
+                            </a>
+                            <a href="{{ route('community') }}?sort=popular" class="flex-shrink-0 px-4 py-2 {{ request()->has('sort') && request()->input('sort') === 'popular' ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
+                                <i class="fas fa-fire mr-2"></i>Popular
+                            </a>
+                            @auth
+                            <a href="{{ route('community') }}?user={{ auth()->id() }}" class="flex-shrink-0 px-4 py-2 {{ request()->has('user') && request()->input('user') == auth()->id() ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
+                                <i class="fas fa-user mr-2"></i>My Posts
+                            </a>
+                            @endauth
+                        </div>
+                    </div>
+                    
+                    <!-- Category filter buttons -->
+                    <div class="flex flex-col gap-2">
+                        <h3 class="text-xs uppercase text-gray-500 font-semibold mb-1 tracking-wider px-2">Categories</h3>
+                        <div class="flex overflow-x-auto gap-2 pb-2">
+                            <a href="{{ route('community') }}" class="flex-shrink-0 px-4 py-2 bg-[#1a1a1a] rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a]">
+                                <i class="fas fa-home mr-2"></i>All
+                            </a>
+                            @foreach($tags as $tagItem)
+                            <a href="{{ route('community.tag', $tagItem->slug) }}" 
+                               class="flex-shrink-0 px-4 py-2 {{ isset($tag) && $tag == $tagItem->slug ? 'bg-[#2a2a2a]' : 'bg-[#1a1a1a]' }} rounded-full text-sm text-white border border-[#2a2a2a] hover:bg-[#2a2a2a] flex items-center">
+                                @if($tagItem->slug == 'boxing')
+                                    <span class="mr-2">@include('partials.boxing-icon', ['class' => 'w-4 h-4 inline-block'])</span>
+                                @else
+                                    <i class="fas {{ 
+                                        $tagItem->slug == 'workouts' ? 'fa-dumbbell' : 
+                                        ($tagItem->slug == 'muay-thai' ? 'fa-fist-raised' : 
+                                        ($tagItem->slug == 'jiu-jitsu' ? 'fa-hand-rock' : 
+                                        ($tagItem->slug == 'nutrition' ? 'fa-utensils' : 
+                                        ($tagItem->slug == 'cardio' ? 'fa-running' : 
+                                        ($tagItem->slug == 'strength-training' ? 'fa-dumbbell' : 
+                                        ($tagItem->slug == 'weight-loss' ? 'fa-weight' : 
+                                        ($tagItem->slug == 'community-events' ? 'fa-users' : 'fa-tag')))))))
+                                    }} mr-2"></i>
+                                @endif
+                                <span>{{ $tagItem->name }}</span>
+                            </a>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Create Post Modal -->
@@ -344,7 +396,7 @@
                      style="display: none;">
                     <!-- Modal Content -->
                     <div x-show="open" @click.away="open = false"
-                         class="bg-[#1a1a1a] w-full max-w-xl rounded-xl shadow-2xl overflow-hidden border border-[#2a2a2a]"
+                         class="bg-[#1a1a1a] w-full max-w-xl rounded-xl shadow-2xl overflow-auto max-h-[90vh] border border-[#2a2a2a]"
                          x-transition:enter="transition ease-out duration-300"
                          x-transition:enter-start="opacity-0 transform scale-95"
                          x-transition:enter-end="opacity-100 transform scale-100"
@@ -405,9 +457,9 @@
                                         <label for="imageUpload" class="block w-full border-2 border-dashed border-[#3a3a3a] bg-[#252525] rounded-lg p-6 cursor-pointer text-center hover:border-gray-300 transition">
                                             <div class="flex flex-col items-center justify-center space-y-2">
                                                 <i class="fas fa-cloud-upload-alt text-3xl text-gray-400"></i>
-                                                <span class="text-sm text-gray-400">Click to upload images (Max 5 images)</span>
+                                                <span class="text-sm text-gray-400">Click to upload an image</span>
                                             </div>
-                                            <input id="imageUpload" name="images[]" type="file" multiple accept="image/*" class="hidden" onchange="previewImages(this)">
+                                            <input id="imageUpload" name="images[]" type="file" accept="image/*" class="hidden" onchange="previewImages(this)">
                                         </label>
                                     </div>
 
@@ -541,7 +593,7 @@
                                         @foreach ($post->images as $index => $image)
                                             @if ($index < 5)
                                                 <div class="post-image-container {{ $imageCount > 5 && $index == 4 ? 'relative' : '' }}" style="width: 300px !important; height: 300px !important;">
-                                                    <img src="{{ asset('storage/' . $image->path) }}" 
+                                                    <img src="{{ asset($image->path) }}" 
                                                         class="post-image"
                                                         alt="Post image"
                                                         style="width: 300px !important; height: 300px !important; object-fit: cover !important;">
@@ -560,6 +612,7 @@
 
                             <!-- Post Actions -->
                             <div class="px-4 py-3 border-t border-[#2a2a2a] flex items-center space-x-6 text-gray-400">
+                                @auth
                                 <form method="POST" action="{{ route('posts.like', $post->id) }}" class="like-form">
                                     @csrf
                                     <button type="submit" class="vote-button hover:text-red-400 flex items-center space-x-2 transition-colors">
@@ -572,6 +625,21 @@
                                     <i class="fas fa-comment"></i>
                                     <span>{{ $post->comments->count() }}</span>
                                 </button>
+                                @else
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-heart"></i>
+                                    <span>{{ $post->likes->count() }}</span>
+                                </div>
+                                
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-comment"></i>
+                                    <span>{{ $post->comments->count() }}</span>
+                                </div>
+                                
+                                <a href="{{ route('login') }}" class="text-blue-400 hover:underline text-sm ml-auto">
+                                    <i class="fas fa-sign-in-alt mr-1"></i>Login to interact
+                                </a>
+                                @endauth
                             </div>
 
                             <!-- Comments Section -->
@@ -696,7 +764,7 @@
             });
         }
 
-        // Basic image preview function (without Alpine.js)
+        // Simplified image preview function for handling a single image
         window.previewImages = function(input) {
             const preview = document.getElementById('imagePreview');
             preview.innerHTML = '';
@@ -704,46 +772,33 @@
             if (input.files && input.files.length > 0) {
                 preview.style.display = 'grid';
                 
-                // Limit to 5 images
-                const maxImages = 5;
-                const filesToPreview = Array.from(input.files).slice(0, maxImages);
+                const file = input.files[0];
+                const reader = new FileReader();
                 
-                filesToPreview.forEach((file, index) => {
-                    const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative w-full h-40 rounded overflow-hidden border border-[#3a3a3a]';
                     
-                    reader.onload = function(e) {
-                        const imgContainer = document.createElement('div');
-                        imgContainer.className = 'relative w-full h-40 rounded overflow-hidden border border-[#3a3a3a]';
-                        
-                        const img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.className = 'absolute w-full h-full object-cover rounded';
-                        
-                        const deleteButton = document.createElement('button');
-                        deleteButton.type = 'button';
-                        deleteButton.className = 'absolute top-2 right-2 bg-red-600 text-white text-xs p-1 rounded-full w-6 h-6 flex items-center justify-center';
-                        deleteButton.innerHTML = '&times;';
-                        deleteButton.onclick = function() {
-                            imgContainer.remove();
-                            
-                            // If no more previews, hide the container
-                            if (preview.children.length === 0) {
-                                preview.style.display = 'none';
-                            }
-                        };
-                        
-                        imgContainer.appendChild(img);
-                        imgContainer.appendChild(deleteButton);
-                        preview.appendChild(imgContainer);
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'absolute w-full h-full object-cover rounded';
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.type = 'button';
+                    deleteButton.className = 'absolute top-2 right-2 bg-red-600 text-white text-xs p-1 rounded-full w-6 h-6 flex items-center justify-center';
+                    deleteButton.innerHTML = '&times;';
+                    deleteButton.onclick = function() {
+                        imgContainer.remove();
+                        input.value = '';
+                        preview.style.display = 'none';
                     };
                     
-                    reader.readAsDataURL(file);
-                });
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(deleteButton);
+                    preview.appendChild(imgContainer);
+                };
                 
-                // Show warning if trying to upload more than max
-                if (input.files.length > maxImages) {
-                    alert(`You can only upload a maximum of ${maxImages} images. Only the first ${maxImages} will be used.`);
-                }
+                reader.readAsDataURL(file);
             } else {
                 preview.style.display = 'none';
             }

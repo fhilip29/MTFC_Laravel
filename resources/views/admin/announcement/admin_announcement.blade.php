@@ -235,17 +235,32 @@ $(document).ready(function() {
         const method = isUpdate ? 'PUT' : 'POST';
         
         const formData = {
-    title: $('#title').val(),
-    message: $('#message').val(),
-};
+            title: $('#title').val(),
+            message: $('#message').val(),
+            is_scheduled: $('#schedule_later').is(':checked') ? 1 : 0,
+            is_active: $('#is_active').is(':checked') ? 1 : 0
+        };
         
-if ($('#schedule_later').is(':checked')) {
-    formData.is_active = 0; // Force inactive if scheduled later
-    formData.schedule_date = $('#schedule_date').val();
-    formData.schedule_time = $('#schedule_time').val();
-} else {
-    formData.is_active = $('#is_active').is(':checked') ? 1 : 0;
-}
+        if ($('#schedule_later').is(':checked')) {
+            if (!$('#schedule_date').val() || !$('#schedule_time').val()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Please select both date and time for scheduling.'
+                });
+                return;
+            }
+            
+            formData.schedule_date = $('#schedule_date').val();
+            formData.schedule_time = $('#schedule_time').val();
+            // When scheduling, force status to pending regardless of active checkbox
+            formData.is_active = 0;
+            formData.is_pending = 1; // Add a flag to indicate pending status
+        } else {
+            // Explicitly set scheduled_at to null when unchecking
+            formData.scheduled_at = null;
+            // Use the is_active checkbox value
+        }
         
         $.ajax({
             url: url,
@@ -298,9 +313,18 @@ if ($('#schedule_later').is(':checked')) {
                     const announcement = response.announcement;
                     $('#view-title').text(announcement.title);
                     $('#view-message').html(announcement.message);
-                    $('#view-status').html(announcement.is_active 
-                        ? '<span class="badge bg-success">Active</span>' 
-                        : '<span class="badge bg-secondary">Inactive</span>');
+                    
+                    // Handle different status values including pending
+                    let statusBadge = '';
+                    if (announcement.is_active === 'active') {
+                        statusBadge = '<span class="badge bg-success">Active</span>';
+                    } else if (announcement.is_active === 'pending') {
+                        statusBadge = '<span class="badge bg-warning text-dark">Pending (Scheduled)</span>';
+                    } else {
+                        statusBadge = '<span class="badge bg-secondary">Inactive</span>';
+                    }
+                    
+                    $('#view-status').html(statusBadge);
                     $('#view-created').text(new Date(announcement.created_at).toLocaleString());
                     
                     if(announcement.scheduled_at) {
@@ -338,7 +362,13 @@ if ($('#schedule_later').is(':checked')) {
                     $('#announcement_id').val(announcement.id);
                     $('#title').val(announcement.title);
                     $('#message').val(announcement.message);
-                    $('#is_active').prop('checked', announcement.is_active);
+                    
+                    // Handle active status, considering "pending" as a special case
+                    if (announcement.is_active === 'pending') {
+                        $('#is_active').prop('checked', false);
+                    } else {
+                        $('#is_active').prop('checked', announcement.is_active === 'active');
+                    }
                     
                     if(announcement.scheduled_at) {
                         $('#schedule_later').prop('checked', true).trigger('change');
@@ -417,9 +447,22 @@ if ($('#schedule_later').is(':checked')) {
         const statusLabel = $(this).siblings('label');
         const toggleSwitch = $(this);
         
+        // Check if this announcement is scheduled
+        const rowData = $(this).closest('tr').find('td:eq(2) span').text().trim();
+        if (rowData === 'Pending' || rowData === 'Pending (Scheduled)') {
+            // Prevent toggling for scheduled announcements
+            toggleSwitch.prop('checked', false);
+            Swal.fire({
+                icon: 'warning',
+                title: 'Cannot Toggle',
+                text: 'Scheduled announcements cannot be activated manually. They will automatically activate at the scheduled time.'
+            });
+            return;
+        }
+        
         $.ajax({
-            url: `/admin/announcements/${id}/toggle`,
-            type: 'POST',
+            url: `/admin/announcements/${id}/toggle-active`,
+            type: 'PATCH',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             },
@@ -430,20 +473,25 @@ if ($('#schedule_later').is(':checked')) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Success',
-                        text: response.message,
+                        text: 'Announcement status updated successfully.',
                         timer: 1500
                     });
                 }
             },
-            error: function() {
+            error: function(xhr) {
                 // Revert the switch if there's an error
                 toggleSwitch.prop('checked', !isActive);
                 statusLabel.text(!isActive ? 'Active' : 'Inactive');
                 
+                let errorMessage = 'An error occurred while updating the announcement status.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'An error occurred while updating the announcement status.'
+                    text: errorMessage
                 });
             }
         });

@@ -42,7 +42,7 @@
                 <div class="trainer-image">
                     <img src="{{ $trainer->profile_url && strpos($trainer->profile_url, 'data:image') === 0 
                             ? $trainer->profile_url 
-                            : (asset($trainer->profile_url) ?: asset('assets/default-profile.jpg')) }}" 
+                            : (asset($trainer->profile_url) ?: asset('assets/default_profile.png')) }}" 
                         alt="{{ $trainer->user->full_name }}">
                 </div>
                 <div class="trainer-info">

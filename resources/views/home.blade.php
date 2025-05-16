@@ -224,7 +224,7 @@
 
 <!-- Top Rated Products Section -->
 @php
-    $chunks = $topRatedProducts->chunk(4);
+    $topFourProducts = $topRatedProducts->take(4);
 @endphp
 
 <div class="bg-[#1e1e1e] mb-0 py-16 relative overflow-hidden reveal">
@@ -241,11 +241,11 @@
                 <p class="text-gray-400 max-w-xl mx-auto">Quality fitness equipment and merchandise to support your journey to a stronger, healthier you.</p>
             </div>
 
-            @if($topRatedProducts->isEmpty())
+            @if($topFourProducts->isEmpty())
                 <p class="text-center text-white text-lg">No Products Available Yet</p>
             @else
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    @foreach($topRatedProducts as $product)
+                    @foreach($topFourProducts as $product)
                         <div class="bg-[#222] rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full flex flex-col group grid-item">
                             <div class="relative overflow-hidden h-56">
                                 <img src="{{ asset($product->image) }}" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500" alt="{{ $product->name }}">

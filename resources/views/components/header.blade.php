@@ -38,15 +38,15 @@
                     @if(Auth::user()->role === 'trainer')
                         @php
                             $trainer = App\Models\Trainer::where('user_id', Auth::id())->first();
-                            $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
+                            $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default_profile.png');
                         @endphp
                         <img src="{{ $profileImage }}"
                              class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @elseif(Auth::user()->role === 'admin')
-                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default_profile.png') }}"
                              class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @else
-                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                        <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default_profile.png') }}"
                              class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                     @endif
                 </button>
@@ -78,6 +78,28 @@
                 </div>
             </div>
             @endauth
+            
+            @guest
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" class="flex items-center focus:outline-none">
+                    <img src="{{ asset('assets/default_profile.png') }}"
+                         class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
+                </button>
+                <div x-show="open" @click.outside="open = false"
+                     class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-50 p-3">
+                    <p class="text-sm font-semibold mb-2 text-gray-800">Hello, Guest</p>
+                    <hr>
+                    <div class="mt-2 space-y-1 text-sm">
+                        <a href="{{ route('login') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Login
+                        </a>
+                        <a href="{{ route('signup.form') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
+                            <i class="fas fa-user-plus mr-2"></i>Sign Up
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endguest
         </div>
 
         <!-- Right: User/Profile Area -->
@@ -97,15 +119,15 @@
                         @if(Auth::user()->role === 'trainer')
                             @php
                                 $trainer = App\Models\Trainer::where('user_id', Auth::id())->first();
-                                $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default-profile.jpg');
+                                $profileImage = $trainer && $trainer->profile_image_url ? $trainer->profile_image_url : asset('assets/default_profile.png');
                             @endphp
                             <img src="{{ $profileImage }}"
                                  class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @elseif(Auth::user()->role === 'admin')
-                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default_profile.png') }}"
                                  class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @else
-                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default-profile.jpg') }}"
+                            <img src="{{ Auth::user()->profile_image ? asset(Auth::user()->profile_image) : asset('assets/default_profile.png') }}"
                                  class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
                         @endif
                     </button>
@@ -140,9 +162,25 @@
             @endauth
 
             @guest
-                <a href="{{ route('login') }}" class="bg-red-500 hover:bg-red-600 transition px-4 py-2 rounded text-white text-sm font-semibold">
-                    <i class="fa-solid fa-lock mr-1"></i> Login
-                </a>
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="flex items-center focus:outline-none">
+                        <img src="{{ asset('assets/default_profile.png') }}"
+                             class="w-8 h-8 rounded-full object-cover border-2 border-gray-300 hover:border-red-500 transition-colors">
+                    </button>
+                    <div x-show="open" @click.outside="open = false"
+                         class="absolute right-0 mt-2 w-48 bg-white rounded shadow-lg z-50 p-3">
+                        <p class="text-sm font-semibold mb-2 text-gray-800">Hello, Guest</p>
+                        <hr>
+                        <div class="mt-2 space-y-1 text-sm">
+                            <a href="{{ route('login') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
+                                <i class="fas fa-sign-in-alt mr-2"></i>Login
+                            </a>
+                            <a href="{{ route('signup.form') }}" class="block text-gray-700 hover:bg-gray-100 hover:text-gray-900 px-2 py-1 rounded">
+                                <i class="fas fa-user-plus mr-2"></i>Sign Up
+                            </a>
+                        </div>
+                    </div>
+                </div>
             @endguest
         </div>
     </div>

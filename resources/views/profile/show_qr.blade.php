@@ -13,7 +13,11 @@
         <h1 class="text-2xl font-bold text-gray-800 mb-4">Your Check-In QR Code</h1>
         <div class="bg-gray-50 p-6 rounded-lg inline-block mb-6 border border-gray-200">
             <div class="w-64 h-64 sm:w-72 sm:h-72">
-                {!! QrCode::size(280)->generate($user->qr_code) !!}
+                @if(request()->userAgent() && preg_match('/(android|iphone|ipad|mobile)/i', request()->userAgent()))
+                    {!! QrCode::size(260)->generate($user->qr_code) !!}
+                @else
+                    {!! QrCode::size(280)->generate($user->qr_code) !!}
+                @endif
             </div>
         </div>
         <p class="text-gray-600 text-sm px-4">

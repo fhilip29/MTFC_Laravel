@@ -200,7 +200,7 @@
                 <i class="fas fa-bullhorn text-xl"></i>
             </a>
 
-            <button id="cartButton" class="text-gray-600 hover:text-black focus:outline-none">
+            <button id="mobileCartButton" class="text-gray-600 hover:text-black focus:outline-none relative z-50 p-2">
                 <i class="fas fa-shopping-cart text-xl"></i>
             </button>
         </div>
@@ -225,6 +225,59 @@
                 this.adminProfileModal = !this.adminProfileModal;
             }
         }))
+    });
+    
+    // Add event listener for mobile cart button
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile cart button handling
+        const mobileCartButton = document.getElementById('mobileCartButton');
+        
+        if (mobileCartButton) {
+            console.log('Mobile cart button found and initialized');
+            
+            mobileCartButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Mobile cart button clicked');
+                
+                // Get cart drawer element
+                const cartDrawer = document.getElementById('cartDrawer');
+                
+                if (cartDrawer) {
+                    console.log('Cart drawer found, opening...');
+                    // Remove translation class to make drawer visible
+                    cartDrawer.classList.remove('translate-x-full');
+                    
+                    // Render the cart contents if function is available
+                    if (typeof window.renderCart === 'function') {
+                        console.log('Calling renderCart function');
+                        window.renderCart();
+                    } else {
+                        console.warn('renderCart function not found');
+                    }
+                    
+                    // Ensure drawer has proper z-index to appear above everything
+                    cartDrawer.style.zIndex = '9999'; 
+                } else {
+                    console.error('Cart drawer element not found');
+                }
+                
+                // Close mobile menu if open
+                try {
+                    const mobileMenuToggle = document.querySelector('[x-data]');
+                    
+                    if (mobileMenuToggle && typeof mobileMenuToggle.__x !== 'undefined') {
+                        mobileMenuToggle.__x.updateElements(mobileMenuToggle, () => {
+                            mobileMenuToggle.__x.$data.mobileMenuOpen = false;
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error closing mobile menu:', err);
+                }
+            });
+        } else {
+            console.warn('Mobile cart button not found in DOM');
+        }
     });
 </script>
 @endpush

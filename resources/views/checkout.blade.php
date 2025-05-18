@@ -59,11 +59,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                                <input type="text" name="first_name" value="{{ Auth::user()->first_name ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+                                <input type="text" name="first_name" value="{{ Auth::user()->first_name ?? '' }}" readonly class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" title="Name cannot be changed for security reasons">
+                                <input type="hidden" name="original_first_name" value="{{ Auth::user()->first_name ?? '' }}">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                <input type="text" name="last_name" value="{{ Auth::user()->last_name ?? '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-red-500 focus:border-red-500">
+                                <input type="text" name="last_name" value="{{ Auth::user()->last_name ?? '' }}" readonly class="w-full px-4 py-2 border border-gray-300 rounded-md bg-gray-100 cursor-not-allowed" title="Name cannot be changed for security reasons">
+                                <input type="hidden" name="original_last_name" value="{{ Auth::user()->last_name ?? '' }}">
                             </div>
                         </div>
 
@@ -470,9 +472,9 @@
                     return;
                 }
                 
-                // Get form data
-                const firstName = document.querySelector('input[name="first_name"]').value;
-                const lastName = document.querySelector('input[name="last_name"]').value;
+                // Get form data - use original name values from hidden fields
+                const firstName = document.querySelector('input[name="original_first_name"]').value;
+                const lastName = document.querySelector('input[name="original_last_name"]').value;
                 const street = document.querySelector('input[name="street"]').value;
                 const barangay = document.querySelector('input[name="barangay"]').value;
                 const city = document.querySelector('input[name="city"]').value;
@@ -664,7 +666,12 @@
             formData.append('type', 'product'); // This is a product payment, not a subscription
             formData.append('amount', orderData.amount);
             formData.append('payment_method', 'paymongo');
-            formData.append('billing_name', `${orderData.shipping.first_name} ${orderData.shipping.last_name}`);
+            
+            // Use original name values from hidden fields
+            const originalFirstName = document.querySelector('input[name="original_first_name"]').value;
+            const originalLastName = document.querySelector('input[name="original_last_name"]').value;
+            formData.append('billing_name', `${originalFirstName} ${originalLastName}`);
+            
             formData.append('billing_email', '{{ Auth::user()->email ?? "" }}');
             formData.append('billing_phone', orderData.shipping.phone_number);
             formData.append('order_data', JSON.stringify(orderData));

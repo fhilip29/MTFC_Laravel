@@ -142,7 +142,7 @@
 
     
     @if (!Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('profile') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages' )
-    && !Request::is('checkout') && !Request::is('profile/qr') && !Request::is('user/*'))
+    && !Request::is('checkout') && !Request::is('profile/qr') && !Request::is('user/*') && !Request::is('announcements/*'))
         @include('components.footer')
     @endif
 
@@ -294,6 +294,7 @@
 
         document.addEventListener('DOMContentLoaded', function () {
             const cartButton = document.getElementById('cartButton');
+            const mobileCartButton = document.getElementById('mobileCartButton');
             const cartDrawer = document.getElementById('cartDrawer');
             const closeCart = document.getElementById('closeCart');
             const cartItems = document.getElementById('cartItems');
@@ -329,8 +330,25 @@
                 .catch(error => console.error('Error syncing cart:', error));
             @endauth
 
+            // Make sure cart drawer has proper z-index
+            if (cartDrawer) {
+                cartDrawer.style.zIndex = '9999';
+            }
+
+            // Desktop cart button functionality
             if (cartButton && cartDrawer && closeCart) {
+                // Fix for desktop: ensure touchable area is large enough
+                cartButton.style.position = 'relative';
+                cartButton.style.zIndex = '40';
+                cartButton.style.cursor = 'pointer';
+                
+                // Increase touchable area with padding if needed
+                cartButton.style.padding = '8px';
+                cartButton.style.marginRight = '-8px';
+                
                 cartButton.addEventListener('click', (e) => {
+                    console.log('Desktop cart button clicked');
+                    e.preventDefault();
                     e.stopPropagation(); // Prevent event from bubbling up
                     cartDrawer.classList.remove('translate-x-full');
                     renderCart();
@@ -342,10 +360,11 @@
 
                 // Only close drawer when clicking outside, but not on the drawer or its children
                 window.addEventListener('click', (e) => {
-                    // Only close if drawer is open and click is outside both the drawer and cart button
+                    // Only close if drawer is open and click is outside both the drawer and cart buttons
                     if (!cartDrawer.classList.contains('translate-x-full') && 
                         !cartDrawer.contains(e.target) && 
                         !cartButton.contains(e.target) &&
+                        (mobileCartButton ? !mobileCartButton.contains(e.target) : true) &&
                         !e.target.closest('.confirm-dialog')) { // Don't close if clicking on confirmation dialog
                         cartDrawer.classList.add('translate-x-full');
                     }
@@ -354,6 +373,37 @@
                 // Prevent clicks inside the drawer from closing it
                 cartDrawer.addEventListener('click', (e) => {
                     e.stopPropagation();
+                });
+            }
+            
+            // Mobile cart button functionality (backup in case header.blade.php event listener fails)
+            if (mobileCartButton && cartDrawer) {
+                console.log('Mobile cart button found in app.blade.php');
+                
+                // Ensure mobile cart button has proper z-index and styling
+                mobileCartButton.style.position = 'relative';
+                mobileCartButton.style.zIndex = '60';
+                mobileCartButton.style.cursor = 'pointer';
+                
+                // Add event listener directly in app.blade.php as a backup
+                mobileCartButton.addEventListener('click', (e) => {
+                    console.log('Mobile cart button clicked in app.blade.php');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    cartDrawer.classList.remove('translate-x-full');
+                    renderCart();
+                    
+                    // Try to close mobile menu if open
+                    try {
+                        const mobileMenuToggle = document.querySelector('[x-data]');
+                        if (mobileMenuToggle && typeof mobileMenuToggle.__x !== 'undefined') {
+                            mobileMenuToggle.__x.updateElements(mobileMenuToggle, () => {
+                                mobileMenuToggle.__x.$data.mobileMenuOpen = false;
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Error closing mobile menu:', err);
+                    }
                 });
             }
 

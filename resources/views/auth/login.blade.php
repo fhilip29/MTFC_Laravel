@@ -11,6 +11,9 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -84,13 +87,20 @@
                     required
                 >
 
-                <input 
-                    type="password" 
-                    name="password"
-                    placeholder="Password"
-                    class="p-3 mb-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    required
-                >
+                <div class="relative mb-3">
+                    <input 
+                        type="password" 
+                        name="password"
+                        id="password"
+                        placeholder="Password"
+                        class="p-3 border border-gray-300 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-400 pr-10"
+                        required
+                    >
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700" 
+                            onclick="togglePasswordVisibility()">
+                        <i id="passwordEye" class="fas fa-eye"></i>
+                    </button>
+                </div>
 
                 <div class="text-right text-sm mb-4">
                     <a href="{{ route('forgot_password') }}" class="text-stone-900 hover:underline">Forgot password?</a>
@@ -133,4 +143,21 @@
     </div>
 </div>
 </body>
+<script>
+    // Password toggle visibility
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.getElementById('passwordEye');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        }
+    }
+</script>
 </html>

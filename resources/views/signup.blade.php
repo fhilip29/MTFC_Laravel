@@ -11,6 +11,9 @@
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -32,16 +35,32 @@
             align-items: center;
             z-index: 9999;
         }
+
+        /* Fix for mobile scrolling */
+        body, html {
+            height: auto;
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .signup-container {
+                height: auto;
+                min-height: 100%;
+                padding-bottom: 2rem;
+                overflow-y: auto;
+            }
+        }
     </style>
 </head>
 <body class="bg-[#1D1B20] text-white">
 <!-- Page Loader -->
 @include('components.loader')
 
-<div class="flex min-h-screen pt-10">
+<div class="flex min-h-screen signup-container overflow-auto">
 
     <!-- LEFT: Sign-up Form -->
-    <div class="flex-1 flex justify-center items-center px-6 py-8">
+    <div class="flex-1 flex justify-center items-start px-6 py-8">
         <div class="w-full max-w-md">
 
             <h3 class="text-3xl font-bold text-center mb-2">Sign Up now!</h3>
@@ -129,11 +148,35 @@
                 <input type="tel" name="mobile_number" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
 
-                <input type="password" name="password" placeholder="Password" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                <div class="relative mb-3">
+                    <input type="password" name="password" id="password" placeholder="Password" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"/>
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white" 
+                            onclick="togglePasswordVisibility('password', 'passwordEye')">
+                        <i id="passwordEye" class="fas fa-eye"></i>
+                    </button>
+                </div>
 
-                <input type="password" name="password_confirmation" placeholder="Confirm Password" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                <div class="relative mb-3">
+                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"/>
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                            onclick="togglePasswordVisibility('password_confirmation', 'confirmEye')">
+                        <i id="confirmEye" class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <!-- Password Requirements -->
+                <div class="mb-4 text-xs text-gray-400">
+                    <p class="mb-1">Password must meet the following requirements:</p>
+                    <ul class="pl-5 list-disc space-y-1">
+                        <li id="length" class="text-gray-500">At least 8 characters long</li>
+                        <li id="uppercase" class="text-gray-500">At least one uppercase letter</li>
+                        <li id="lowercase" class="text-gray-500">At least one lowercase letter</li>
+                        <li id="number" class="text-gray-500">At least one number</li>
+                        <li id="special" class="text-gray-500">At least one special character</li>
+                    </ul>
+                </div>
 
                 <div class="flex items-start mb-4 mt-2">
                     <input type="checkbox" id="terms_agreement" name="is_agreed_to_terms" required
@@ -149,7 +192,7 @@
                     Sign Up
                 </button>
 
-                <p class="text-center text-sm mt-6">
+                <p class="text-center text-sm mt-6 mb-8">
                     Already have an account?
                     <a href="{{ route('login') }}" class="text-white font-semibold underline hover:text-purple-300">Log in</a>
                 </p>
@@ -188,6 +231,81 @@
                 otherGenderField.style.display = 'block';
             } else {
                 otherGenderField.style.display = 'none';
+            }
+        });
+        
+        // Password toggle visibility
+        window.togglePasswordVisibility = function(inputId, eyeId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(eyeId);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        };
+        
+        // Password requirements validator
+        const passwordInput = document.getElementById('password');
+        const requirements = {
+            length: document.getElementById('length'),
+            uppercase: document.getElementById('uppercase'),
+            lowercase: document.getElementById('lowercase'),
+            number: document.getElementById('number'),
+            special: document.getElementById('special')
+        };
+        
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Check length
+            if (password.length >= 8) {
+                requirements.length.classList.add('text-green-500');
+                requirements.length.classList.remove('text-gray-500');
+            } else {
+                requirements.length.classList.remove('text-green-500');
+                requirements.length.classList.add('text-gray-500');
+            }
+            
+            // Check uppercase
+            if (/[A-Z]/.test(password)) {
+                requirements.uppercase.classList.add('text-green-500');
+                requirements.uppercase.classList.remove('text-gray-500');
+            } else {
+                requirements.uppercase.classList.remove('text-green-500');
+                requirements.uppercase.classList.add('text-gray-500');
+            }
+            
+            // Check lowercase
+            if (/[a-z]/.test(password)) {
+                requirements.lowercase.classList.add('text-green-500');
+                requirements.lowercase.classList.remove('text-gray-500');
+            } else {
+                requirements.lowercase.classList.remove('text-green-500');
+                requirements.lowercase.classList.add('text-gray-500');
+            }
+            
+            // Check number
+            if (/[0-9]/.test(password)) {
+                requirements.number.classList.add('text-green-500');
+                requirements.number.classList.remove('text-gray-500');
+            } else {
+                requirements.number.classList.remove('text-green-500');
+                requirements.number.classList.add('text-gray-500');
+            }
+            
+            // Check special character
+            if (/[^A-Za-z0-9]/.test(password)) {
+                requirements.special.classList.add('text-green-500');
+                requirements.special.classList.remove('text-gray-500');
+            } else {
+                requirements.special.classList.remove('text-green-500');
+                requirements.special.classList.add('text-gray-500');
             }
         });
     });

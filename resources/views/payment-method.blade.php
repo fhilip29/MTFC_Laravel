@@ -72,25 +72,9 @@
                     </button>
                 </form>
                 
-                <!-- PayMongo Option -->
-                <form id="paymongoForm" action="{{ route('payment.process') }}" method="POST">
-                    @csrf
-                    @if(request()->query('type') === 'product')
-                        <input type="hidden" name="type" value="product">
-                    @else
-                        <input type="hidden" name="type" value="subscription">
-                        <input type="hidden" name="subscription_type" value="{{ request()->query('type', 'gym') }}">
-                    @endif
-                    <input type="hidden" name="plan" value="{{ request()->query('plan') }}">
-                    <input type="hidden" name="amount" value="{{ request()->query('amount') }}">
-                    <input type="hidden" name="waiver_accepted" value="{{ request()->query('waiver_accepted', 0) }}">
-                    <input type="hidden" name="payment_method" value="paymongo">
-                    <input type="hidden" name="billing_name" value="{{ auth()->user()->name ?? 'Guest User' }}">
-                    <input type="hidden" name="billing_email" value="{{ auth()->user()->email ?? '' }}">
-                    <input type="hidden" name="billing_phone" value="{{ auth()->user()->mobile_number ?? '' }}">
-                    <input type="hidden" name="order_data" id="order-data-paymongo">
-                    
-                    <button type="submit" class="w-full bg-[#1e1e1e] hover:bg-[#252525] transition-colors duration-200 p-4 rounded-lg flex items-center justify-between group">
+                <!-- PayMongo Option with programmatic form submission -->
+                <div>
+                    <button onclick="initiatePayMongoPayment()" class="w-full bg-[#1e1e1e] hover:bg-[#252525] transition-colors duration-200 p-4 rounded-lg flex items-center justify-between group">
                         <div class="flex items-center space-x-4">
                             <div class="w-8 h-8 flex items-center justify-center bg-blue-700 rounded-full">
                                 <i class="fas fa-credit-card text-white"></i>
@@ -102,7 +86,19 @@
                         </div>
                         <i class="fas fa-chevron-right text-gray-400 group-hover:text-white transition-colors duration-200"></i>
                     </button>
-                </form>
+                </div>
+                
+                <!-- Hidden data for payment -->
+                <meta name="csrf-token" content="{{ csrf_token() }}">
+                <input type="hidden" id="payment-type" value="{{ request()->query('type') === 'product' ? 'product' : 'subscription' }}">
+                <input type="hidden" id="subscription-type" value="{{ request()->query('type', 'gym') }}">
+                <input type="hidden" id="payment-plan" value="{{ request()->query('plan') }}">
+                <input type="hidden" id="payment-amount" value="{{ request()->query('amount') }}">
+                <input type="hidden" id="waiver-accepted" value="{{ request()->query('waiver_accepted', 0) }}">
+                <input type="hidden" id="billing-name" value="{{ auth()->user()->name ?? 'Guest User' }}">
+                <input type="hidden" id="billing-email" value="{{ auth()->user()->email ?? '' }}">
+                <input type="hidden" id="billing-phone" value="{{ auth()->user()->mobile_number ?? '' }}">
+                <input type="hidden" id="order-data-paymongo-hidden" value="">
             </div>
         </div>
 
@@ -181,6 +177,82 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Payment page loaded');
+    
+    // Function to initialize PayMongo payment
+    window.initiatePayMongoPayment = function() {
+        console.log('Initiating PayMongo payment');
+        
+        // Show loading state on button
+        const payBtn = document.querySelector('button[onclick="initiatePayMongoPayment()"]');
+        if (payBtn) {
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<div class="flex items-center space-x-2"><div class="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div><span>Processing...</span></div>';
+        }
+        
+        // Get form data from hidden fields
+        const paymentType = document.getElementById('payment-type').value;
+        const subscriptionType = document.getElementById('subscription-type').value;
+        const paymentPlan = document.getElementById('payment-plan').value;
+        const paymentAmount = document.getElementById('payment-amount').value;
+        const waiverAccepted = document.getElementById('waiver-accepted').value;
+        const billingName = document.getElementById('billing-name').value;
+        const billingEmail = document.getElementById('billing-email').value;
+        const billingPhone = document.getElementById('billing-phone').value;
+        
+        // Get order data if available
+        const orderDataStr = sessionStorage.getItem('orderData');
+        const orderDataHiddenField = document.getElementById('order-data-paymongo-hidden');
+        if (orderDataStr && orderDataHiddenField) {
+            orderDataHiddenField.value = orderDataStr;
+        }
+        
+        // Create a hidden form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ route("payment.process") }}';
+        form.style.display = 'none';
+        
+        // Add CSRF token
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = '_token';
+        csrfToken.value = document.querySelector('meta[name="csrf-token"]').content;
+        form.appendChild(csrfToken);
+        
+        // Add all necessary fields
+        const fieldsToAdd = [
+            { name: 'type', value: paymentType },
+            { name: 'subscription_type', value: subscriptionType },
+            { name: 'plan', value: paymentPlan },
+            { name: 'amount', value: paymentAmount },
+            { name: 'waiver_accepted', value: waiverAccepted },
+            { name: 'payment_method', value: 'paymongo' },
+            { name: 'billing_name', value: billingName },
+            { name: 'billing_email', value: billingEmail },
+            { name: 'billing_phone', value: billingPhone }
+        ];
+        
+        // Add order data if available
+        if (orderDataStr) {
+            fieldsToAdd.push({ name: 'order_data', value: orderDataStr });
+        }
+        
+        // Append all fields to the form
+        fieldsToAdd.forEach(field => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = field.name;
+            input.value = field.value;
+            form.appendChild(input);
+        });
+        
+        // Append form to document body and submit
+        document.body.appendChild(form);
+        console.log('Submitting form...');
+        form.submit();
+    };
+    
     // Get order data from sessionStorage
     const orderDataStr = sessionStorage.getItem('orderData');
     if (orderDataStr) {

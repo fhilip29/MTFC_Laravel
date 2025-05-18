@@ -117,15 +117,17 @@ class PaymentController extends Controller
                     return redirect()->back()->with('error', 'Failed to create checkout session');
                 }
                 
-                // Show the checkout URL instead of redirecting
+                // Get the checkout URL
                 $checkoutUrl = $checkoutSession['data']['attributes']['checkout_url'];
-                return view('payment.paymongo-link', [
+                
+                // Log the checkout URL for debugging
+                Log::info('Redirecting to PayMongo checkout URL', [
                     'checkout_url' => $checkoutUrl,
-                    'type' => $request->type === 'subscription' ? ($request->subscription_type ?? 'gym') : $request->type,
-                    'plan' => $request->plan ?? null,
-                    'amount' => $request->amount,
                     'reference' => $referenceNumber
                 ]);
+                
+                // Directly redirect to the PayMongo checkout URL
+                return redirect()->away($checkoutUrl);
             }
             
             // Legacy payment flow for other payment methods

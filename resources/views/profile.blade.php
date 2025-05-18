@@ -92,7 +92,11 @@
             <h3 class="text-base md:text-lg font-semibold mb-3 md:mb-4 text-center text-gray-800">Check-In QR</h3>
             <div class="bg-white p-2 md:p-3 rounded-lg flex justify-center cursor-pointer border border-gray-200" id="qrCodeContainer" onclick="openQrModal()">
                 <div class="w-32 h-32 md:w-40 md:h-40">
-                    {!! QrCode::size(150)->generate(Auth::user()->qr_code) !!}
+                    @if(request()->userAgent() && preg_match('/(android|iphone|ipad|mobile)/i', request()->userAgent()))
+                        {!! QrCode::size(130)->generate(Auth::user()->qr_code) !!}
+                    @else
+                        {!! QrCode::size(150)->generate(Auth::user()->qr_code) !!}
+                    @endif
                 </div>
             </div>
             <div class="flex justify-center mt-2">

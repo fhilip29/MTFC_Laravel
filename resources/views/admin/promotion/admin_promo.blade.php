@@ -133,6 +133,38 @@
                         <i class="fas fa-search text-gray-400"></i>
                     </div>
                 </div>
+                
+                <!-- Status Filter -->
+                <div class="relative w-full md:w-40">
+                    <select id="statusFilter" class="bg-gray-700 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full pl-10 p-2.5">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fas fa-filter text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Date Filter -->
+                <div class="flex items-center gap-2 w-full md:w-auto">
+                    <div class="relative w-full md:w-48">
+                        <input type="date" id="dateFilter" class="bg-gray-700 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full pl-10 p-2.5">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-calendar text-gray-400"></i>
+                        </div>
+                    </div>
+                    <button id="clearDateFilter" class="bg-gray-700 hover:bg-gray-600 text-white rounded-lg p-2.5">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <!-- Reset All Filters Button -->
+                <button id="resetAllFilters" class="bg-gray-700 hover:bg-gray-600 text-white rounded-lg px-4 py-2.5 flex items-center gap-2">
+                    <i class="fas fa-undo-alt"></i>
+                    <span>Reset</span>
+                </button>
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -150,7 +182,7 @@
                     @forelse($announcements as $announcement)
                     <tr class="hover:bg-gray-700 transition" data-id="{{ $announcement->id }}">
                         <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $announcement->title }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ $announcement->created_at->format('M d, Y') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $announcement->created_at->format('m/d/Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs rounded-full {{ $announcement->statusClass }}">
                                 {{ $announcement->status }}
@@ -213,14 +245,20 @@
                 <input type="hidden" name="is_scheduled" value="0" id="is_scheduled_flag">
                 <div class="space-y-4">
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
-                        <input type="text" name="title" id="title" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                        <label for="title" class="block text-sm font-medium text-gray-300 mb-1">Title <span class="text-red-500">*</span></label>
+                        <input type="text" name="title" id="title" required 
+                               placeholder="Enter a clear, descriptive title" 
+                               class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                        <div class="text-gray-400 text-xs mt-1">Required. Enter a clear, descriptive title for the announcement</div>
                         <div class="text-red-500 text-xs mt-1">@error('title'){{ $message }}@enderror</div>
                     </div>
                     
                     <div>
-                        <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
-                        <textarea name="message" id="message" rows="5" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"></textarea>
+                        <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message <span class="text-red-500">*</span></label>
+                        <textarea name="message" id="message" rows="5" required 
+                                  placeholder="Enter detailed announcement message" 
+                                  class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5"></textarea>
+                        <div class="text-gray-400 text-xs mt-1">Required. Provide a detailed message for the announcement</div>
                         <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
                     </div>
                     
@@ -240,13 +278,20 @@
                     <div id="schedulingOptions" class="hidden space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date</label>
-                                <input type="date" name="schedule_date" id="schedule_date" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <label for="schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date <span class="text-red-500">*</span></label>
+                                <input type="date" name="schedule_date" id="schedule_date" 
+                                       min="{{ date('Y-m-d', strtotime('+1 day')) }}" 
+                                       required 
+                                       class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <div class="text-gray-400 text-xs mt-1">Select a future date (cannot be today or earlier)</div>
                                 <div class="text-red-500 text-xs mt-1">@error('schedule_date'){{ $message }}@enderror</div>
                             </div>
                             <div>
-                                <label for="schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time</label>
-                                <input type="time" name="schedule_time" id="schedule_time" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <label for="schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time <span class="text-red-500">*</span></label>
+                                <input type="time" name="schedule_time" id="schedule_time" 
+                                       required 
+                                       class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                                <div class="text-gray-400 text-xs mt-1">Select the time when this announcement should become active</div>
                                 <div class="text-red-500 text-xs mt-1">@error('schedule_time'){{ $message }}@enderror</div>
                             </div>
                         </div>
@@ -276,14 +321,22 @@
                 <input type="hidden" name="is_scheduled" value="0" id="edit_is_scheduled_flag">
                 <div class="space-y-4">
                     <div>
-                        <label for="edit_title" class="block text-sm font-medium text-gray-300 mb-1">Title</label>
-                        <input type="text" name="title" id="edit_title" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.title">
+                        <label for="edit_title" class="block text-sm font-medium text-gray-300 mb-1">Title <span class="text-red-500">*</span></label>
+                        <input type="text" name="title" id="edit_title" required 
+                               placeholder="Enter a clear, descriptive title" 
+                               class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                               x-bind:value="currentAnnouncement?.title">
+                        <div class="text-gray-400 text-xs mt-1">Required. Enter a clear, descriptive title for the announcement</div>
                         <div class="text-red-500 text-xs mt-1">@error('title'){{ $message }}@enderror</div>
                     </div>
                     
                     <div>
-                        <label for="edit_message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
-                        <textarea name="message" id="edit_message" rows="5" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-text="currentAnnouncement?.message"></textarea>
+                        <label for="edit_message" class="block text-sm font-medium text-gray-300 mb-1">Message <span class="text-red-500">*</span></label>
+                        <textarea name="message" id="edit_message" rows="5" required 
+                                  placeholder="Enter detailed announcement message" 
+                                  class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                                  x-text="currentAnnouncement?.message"></textarea>
+                        <div class="text-gray-400 text-xs mt-1">Required. Provide a detailed message for the announcement</div>
                         <div class="text-red-500 text-xs mt-1">@error('message'){{ $message }}@enderror</div>
                     </div>
                     
@@ -300,16 +353,25 @@
                         </div>
                     </div>
                     
-                    <div id="editSchedulingOptions" class="hidden space-y-4" x-bind:class="{ 'hidden': !currentAnnouncement?.scheduled_at }">
+                    <div id="edit_schedulingOptions" class="hidden space-y-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label for="edit_schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date</label>
-                                <input type="date" name="schedule_date" id="edit_schedule_date" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.scheduled_at ? currentAnnouncement.scheduled_at.split('T')[0] : ''">
+                                <label for="edit_schedule_date" class="block text-sm font-medium text-gray-300 mb-1">Date <span class="text-red-500">*</span></label>
+                                <input type="date" name="schedule_date" id="edit_schedule_date" 
+                                       min="{{ date('Y-m-d', strtotime('+1 day')) }}" 
+                                       required 
+                                       class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                                       x-bind:value="formatScheduleDate(currentAnnouncement?.scheduled_at)">
+                                <div class="text-gray-400 text-xs mt-1">Select a future date (cannot be today or earlier)</div>
                                 <div class="text-red-500 text-xs mt-1">@error('schedule_date'){{ $message }}@enderror</div>
                             </div>
                             <div>
-                                <label for="edit_schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time</label>
-                                <input type="time" name="schedule_time" id="edit_schedule_time" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" x-bind:value="currentAnnouncement?.scheduled_at ? currentAnnouncement.scheduled_at.split('T')[1].substring(0, 5) : ''">
+                                <label for="edit_schedule_time" class="block text-sm font-medium text-gray-300 mb-1">Time <span class="text-red-500">*</span></label>
+                                <input type="time" name="schedule_time" id="edit_schedule_time" 
+                                       required 
+                                       class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                                       x-bind:value="formatScheduleTime(currentAnnouncement?.scheduled_at)">
+                                <div class="text-gray-400 text-xs mt-1">Select the time when this announcement should become active</div>
                                 <div class="text-red-500 text-xs mt-1">@error('schedule_time'){{ $message }}@enderror</div>
                             </div>
                         </div>
@@ -371,10 +433,13 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
+    <!-- JavaScript -->
+    <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize date filter functionality
+    initDateFilter();
+
     // Toggle scheduling options in Add modal
     const scheduleLater = document.getElementById('schedule_later');
     const schedulingOptions = document.getElementById('schedulingOptions');
@@ -408,7 +473,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Toggle scheduling options in Edit modal
     const editScheduleLater = document.getElementById('edit_schedule_later');
-    const editSchedulingOptions = document.getElementById('editSchedulingOptions');
+    const editSchedulingOptions = document.getElementById('edit_schedulingOptions');
     const editIsScheduledFlag = document.getElementById('edit_is_scheduled_flag');
     const editScheduleNote = document.getElementById('edit_schedule_note');
     const editIsActiveCheckbox = document.getElementById('edit_is_active');
@@ -510,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                         
                         const editScheduleLater = document.getElementById('edit_schedule_later');
-                        const editSchedulingOptions = document.getElementById('editSchedulingOptions');
+                        const editSchedulingOptions = document.getElementById('edit_schedulingOptions');
                         const editScheduleNote = document.getElementById('edit_schedule_note');
                         const editIsActiveCheckbox = document.getElementById('edit_is_active');
                         const editIsScheduledFlag = document.getElementById('edit_is_scheduled_flag');
@@ -589,6 +654,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (scheduleLater && scheduleLater.checked) {
                 const scheduleDate = document.getElementById('schedule_date');
                 const scheduleTime = document.getElementById('schedule_time');
+                
+                // Set default values for scheduling
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                
+                // Format tomorrow's date as YYYY-MM-DD
+                const formattedDate = tomorrow.toISOString().split('T')[0];
+                
+                if (scheduleDate) {
+                    scheduleDate.min = formattedDate;
+                }
                 
                 if (!scheduleDate.value || !scheduleTime.value) {
                     Swal.fire({
@@ -749,6 +825,121 @@ function confirmDelete(id, title) {
 }
 
 // Update the toggleStatus function to handle toggle switches
+// Initialize filter functionality
+function initDateFilter() {
+    const dateFilter = document.getElementById('dateFilter');
+    const clearDateFilter = document.getElementById('clearDateFilter');
+    const searchInput = document.getElementById('searchAnnouncement');
+    const statusFilter = document.getElementById('statusFilter');
+    const resetAllFilters = document.getElementById('resetAllFilters');
+    
+    if (dateFilter && clearDateFilter) {
+        // Allow selection of any date for filtering (including past dates)
+        
+        // Filter announcements when date changes
+        dateFilter.addEventListener('change', function() {
+            filterAnnouncements();
+        });
+        
+        // Clear date filter when clear button is clicked
+        clearDateFilter.addEventListener('click', function() {
+            dateFilter.value = '';
+            filterAnnouncements();
+        });
+    }
+    
+    // Filter announcements when search input changes
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            filterAnnouncements();
+        });
+    }
+    
+    // Status filter functionality
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            filterAnnouncements();
+        });
+    }
+    
+    // Reset all filters
+    if (resetAllFilters) {
+        resetAllFilters.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (dateFilter) dateFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            filterAnnouncements();
+            
+            // Show reset toast notification
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'All filters have been reset',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+                background: '#1F2937',
+                color: '#FFFFFF'
+            });
+        });
+    }
+}
+
+// Filter announcements based on search text, date, and status
+function filterAnnouncements() {
+    const searchText = document.getElementById('searchAnnouncement').value.toLowerCase();
+    const filterDate = document.getElementById('dateFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+    const rows = document.querySelectorAll('tbody tr');
+    let visibleCount = 0;
+    
+    // Remove existing no-results row if it exists
+    const noResultsRow = document.getElementById('no-results-row');
+    if (noResultsRow) {
+        noResultsRow.remove();
+    }
+    
+    rows.forEach(row => {
+        // Skip rows that are not announcement rows (like "no announcements found")
+        if (row.cells.length <= 1) return;
+        
+        const title = row.cells[0].textContent.toLowerCase();
+        const date = row.cells[1].textContent;
+        
+        // Get status from the status cell
+        const statusCell = row.cells[2];
+        let status = '';
+        
+        if (statusCell) {
+            const statusText = statusCell.textContent.trim().toLowerCase();
+            status = statusText;
+        }
+        
+        const matchesSearch = !searchText || title.includes(searchText);
+        const matchesDate = !filterDate || date.includes(filterDate);
+        const matchesStatus = !statusFilter || status.includes(statusFilter);
+        
+        if (matchesSearch && matchesDate && matchesStatus) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Show "No results" message if all rows are hidden
+    if (visibleCount === 0 && rows.length > 0) {
+        const tbody = document.querySelector('tbody');
+        if (tbody) {
+            const noResultsRow = document.createElement('tr');
+            noResultsRow.id = 'no-results-row';
+            noResultsRow.innerHTML = '<td colspan="5" class="px-6 py-4 text-center text-gray-400">No matching announcements found</td>';
+            tbody.appendChild(noResultsRow);
+        }
+    }
+}
+
 function toggleStatus(id) {
     // Find the toggle switch, label, and status badge for this announcement
     const toggleSwitch = document.querySelector(`tr[data-id="${id}"] .switch input`);

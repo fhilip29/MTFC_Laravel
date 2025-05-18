@@ -123,7 +123,7 @@
                     <option value="" disabled selected>Gender</option>
                     <option value="male" class="text-black">Male</option>
                     <option value="female" class="text-black">Female</option>
-                    <option value="other" class="text-black">Other</option>
+                    
                 </select>
                 
                 <div id="otherGenderField" style="display: none;">
@@ -134,19 +134,32 @@
                 <select name="fitness_goal" 
                         class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
                     <option value="" selected>Fitness Goal (Optional)</option>
-                    <option value="lose-weight" class="text-black">Lose Weight</option>
-                    <option value="build-muscle" class="text-black">Build Muscle</option>
-                    <option value="maintain" class="text-black">Maintain</option>
-                    <option value="boxing" class="text-black">Boxing</option>
-                    <option value="muay-thai" class="text-black">Muay Thai</option>
-                    <option value="jiu-jitsu" class="text-black">Jiu-Jitsu</option>
+                    <option value="weight-loss" class="text-black">Weight Loss</option>
+                    <option value="muscle-gain" class="text-black">Build Muscle</option>
+                    <option value="endurance" class="text-black">Improve Endurance</option>
+                    <option value="flexibility" class="text-black">Increase Flexibility</option>
+                    <option value="general-fitness" class="text-black">General Fitness</option>
                 </select>
 
                 <input type="email" name="email" placeholder="Email Address" required
                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
                 
-                <input type="tel" name="mobile_number" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                <div class="mb-3">
+                    <input type="tel" id="mobileNumberInput" name="mobile_number" placeholder="+63 917 123 4567" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded" 
+                           onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                           onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                           onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }" />
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Initialize mobile number input with +63 prefix
+                        const mobileInput = document.getElementById('mobileNumberInput');
+                        if (mobileInput && !mobileInput.value) {
+                            mobileInput.value = '+63 ';
+                        }
+                    });
+                </script>
 
                 <div class="relative mb-3">
                     <input type="password" name="password" id="password" placeholder="Password" required

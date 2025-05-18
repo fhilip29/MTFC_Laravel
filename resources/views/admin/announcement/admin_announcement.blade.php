@@ -42,9 +42,17 @@
                 Announcements
             </div>
             <div class="d-flex align-items-center">
-                <div class="input-group me-2" style="width: 300px;">
-                    <input type="text" class="form-control" id="searchAnnouncement" placeholder="Search announcements...">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <div class="d-flex">
+                    <div class="input-group me-2" style="width: 300px;">
+                        <input type="text" class="form-control" id="searchAnnouncement" placeholder="Search announcements...">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    </div>
+                    <div class="input-group me-2" style="width: 200px;">
+                        <input type="date" class="form-control" id="dateFilter" placeholder="Filter by date">
+                        <button class="btn btn-outline-secondary" type="button" id="clearDateFilter" title="Clear date filter">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 </div>
                 <button type="button" class="btn btn-success" id="addAnnouncementBtn">
                     <i class="fas fa-plus"></i> Create Announcement
@@ -115,14 +123,22 @@
                     <input type="hidden" id="announcement_id">
                     
                     <div class="mb-3">
-                        <label for="title" class="form-label">Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required>
+                        <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title" 
+                               placeholder="Enter announcement title" 
+                               maxlength="100" 
+                               required>
+                        <small class="form-text text-muted">Required. Enter a clear, concise title (max 100 characters)</small>
                         <div class="invalid-feedback" id="title-error"></div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="message" class="form-label">Message</label>
-                        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        <label for="message" class="form-label">Message <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="message" name="message" 
+                                  rows="5" 
+                                  placeholder="Enter detailed announcement message" 
+                                  required></textarea>
+                        <small class="form-text text-muted">Required. Provide a detailed message for the announcement</small>
                         <div class="invalid-feedback" id="message-error"></div>
                     </div>
                     
@@ -147,14 +163,16 @@
                     <div id="schedulingOptions" class="mb-3 d-none">
                         <div class="row">
                             <div class="col-md-6">
-                                <label for="schedule_date" class="form-label">Date</label>
-                                <input type="date" class="form-control" id="schedule_date" name="schedule_date">
+                                <label for="schedule_date" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="schedule_date" name="schedule_date" min="{{ date('Y-m-d', strtotime('+1 day')) }}">
                                 <div class="invalid-feedback" id="schedule_date-error"></div>
+                                <small class="form-text text-muted">Select a future date (tomorrow or later)</small>
                             </div>
                             <div class="col-md-6">
-                                <label for="schedule_time" class="form-label">Time</label>
+                                <label for="schedule_time" class="form-label">Time <span class="text-danger">*</span></label>
                                 <input type="time" class="form-control" id="schedule_time" name="schedule_time">
                                 <div class="invalid-feedback" id="schedule_time-error"></div>
+                                <small class="form-text text-muted">Select the time when the announcement should be published</small>
                             </div>
                         </div>
                     </div>
@@ -205,13 +223,42 @@
 @push('scripts')
 <script>
 $(document).ready(function() {
+    // Set minimum date for scheduling (tomorrow)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
     // Toggle scheduling options
     $('#schedule_later').change(function() {
         if($(this).is(':checked')) {
             $('#schedulingOptions').removeClass('d-none');
+            
+            // Set default date to tomorrow if not already set
+            if(!$('#schedule_date').val()) {
+                $('#schedule_date').val(formatDate(tomorrow));
+            }
+            
+            // Set default time to 9:00 AM if not already set
+            if(!$('#schedule_time').val()) {
+                $('#schedule_time').val('09:00');
+            }
         } else {
             $('#schedulingOptions').addClass('d-none');
         }
+    });
+    
+    // Date filter functionality
+    $('#dateFilter').on('change', function() {
+        filterAnnouncements();
+    });
+    
+    $('#clearDateFilter').on('click', function() {
+        $('#dateFilter').val('');
+        filterAnnouncements();
+    });
+    
+    // Search functionality
+    $('#searchAnnouncement').on('keyup', function() {
+        filterAnnouncements();
     });
     
     // Add Announcement button click
@@ -226,6 +273,11 @@ $(document).ready(function() {
     // Save announcement
     $('#saveAnnouncement').click(function() {
         resetFormErrors();
+        
+        // Validate required fields
+        if (!validateAnnouncementForm()) {
+            return;
+        }
         
         const id = $('#announcement_id').val();
         const isUpdate = id !== '';
@@ -247,6 +299,19 @@ $(document).ready(function() {
                     icon: 'error',
                     title: 'Error',
                     text: 'Please select both date and time for scheduling.'
+                });
+                return;
+            }
+            
+            // Validate that the selected date is in the future
+            const selectedDate = new Date($('#schedule_date').val() + 'T' + $('#schedule_time').val());
+            const now = new Date();
+            
+            if (selectedDate <= now) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Date/Time',
+                    text: 'The scheduled date and time must be in the future.'
                 });
                 return;
             }
@@ -499,21 +564,110 @@ $(document).ready(function() {
     
     // Search functionality
     $('#searchAnnouncement').on('keyup', function() {
-        const value = $(this).val().toLowerCase();
-        $('#announcementsTable tbody tr').filter(function() {
-            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
-        });
-        
-        if($('#announcementsTable tbody tr:visible').length === 0) {
-            if($('#no-results-row').length === 0) {
-                $('#announcementsTable tbody').append('<tr id="no-results-row"><td colspan="4" class="text-center">No matching announcements found</td></tr>');
-            }
-        } else {
-            $('#no-results-row').remove();
-        }
+        filterAnnouncements();
     });
     
-    // Helper functions
+    // Filter announcements based on search text and date
+    function filterAnnouncements() {
+        const searchText = $('#searchAnnouncement').val().toLowerCase();
+        const filterDate = $('#dateFilter').val();
+        
+        // Remove existing no-results row if it exists
+        $('#no-results-row').remove();
+        
+        let visibleCount = 0;
+        
+        $('#announcementsTable tbody tr').each(function() {
+            const $row = $(this);
+            
+            // Skip the "No announcements found" row
+            if ($row.find('td[colspan]').length > 0) return;
+            
+            const title = $row.find('td:first-child').text().toLowerCase();
+            const date = $row.find('td:nth-child(2)').text();
+            
+            const matchesSearch = !searchText || title.includes(searchText);
+            const matchesDate = !filterDate || date.includes(filterDate);
+            
+            if (matchesSearch && matchesDate) {
+                $row.show();
+                visibleCount++;
+            } else {
+                $row.hide();
+            }
+        });
+        
+        // Show "No results" message if all rows are hidden
+        if (visibleCount === 0) {
+            $('#announcementsTable tbody').append('<tr id="no-results-row"><td colspan="4" class="text-center">No matching announcements found</td></tr>');
+        }
+    }
+
+    // Format date to YYYY-MM-DD
+    function formatDate(date) {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
+    }
+
+    // Format time to HH:MM
+    function formatTime(date) {
+        const d = new Date(date);
+        let hours = '' + d.getHours();
+        let minutes = '' + d.getMinutes();
+
+        if (hours.length < 2) hours = '0' + hours;
+        if (minutes.length < 2) minutes = '0' + minutes;
+
+        return [hours, minutes].join(':');
+    }
+    
+    // Validate the announcement form
+    function validateAnnouncementForm() {
+        let isValid = true;
+        
+        // Validate title
+        if (!$('#title').val().trim()) {
+            $('#title').addClass('is-invalid');
+            $('#title-error').text('Title is required');
+            isValid = false;
+        } else if ($('#title').val().length > 100) {
+            $('#title').addClass('is-invalid');
+            $('#title-error').text('Title must be less than 100 characters');
+            isValid = false;
+        }
+        
+        // Validate message
+        if (!$('#message').val().trim()) {
+            $('#message').addClass('is-invalid');
+            $('#message-error').text('Message is required');
+            isValid = false;
+        }
+        
+        // Validate scheduling options if enabled
+        if ($('#schedule_later').is(':checked')) {
+            if (!$('#schedule_date').val()) {
+                $('#schedule_date').addClass('is-invalid');
+                $('#schedule_date-error').text('Date is required');
+                isValid = false;
+            }
+            
+            if (!$('#schedule_time').val()) {
+                $('#schedule_time').addClass('is-invalid');
+                $('#schedule_time-error').text('Time is required');
+                isValid = false;
+            }
+        }
+        
+        return isValid;
+    }
+    
     function resetFormErrors() {
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').text('');

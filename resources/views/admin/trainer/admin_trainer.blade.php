@@ -184,27 +184,42 @@
                         <h4 class="text-white text-lg font-semibold mb-4 border-b border-[#374151] pb-2">Personal Information</h4>
                         
                         <div class="mb-4">
-                            <label for="full_name" class="block text-[#9CA3AF] text-sm font-medium mb-2">Full Name *</label>
-                            <input type="text" id="full_name" name="full_name" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <label for="full_name" class="block text-[#9CA3AF] text-sm font-medium mb-2">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="full_name" name="full_name" placeholder="Enter trainer's full name" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required minlength="3" maxlength="50">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter first and last name (3-50 characters).</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email *</label>
-                            <input type="email" id="email" name="email" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <label for="email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" name="email" placeholder="trainer@example.com" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid email address that the trainer can access.</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="password" class="block text-[#9CA3AF] text-sm font-medium mb-2">Password *</label>
-                            <input type="password" id="password" name="password" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <label for="password" class="block text-[#9CA3AF] text-sm font-medium mb-2">Password <span class="text-red-500">*</span></label>
+                            <input type="password" id="password" name="password" placeholder="Create a secure password" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required minlength="8">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Minimum 8 characters with at least one uppercase letter, number, and special character.</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number</label>
-                            <input type="text" id="mobile_number" name="mobile_number" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <label for="mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="mobile_number" name="mobile_number" placeholder="+63 917 123 4567" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required
+                                onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                                onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid Philippine mobile number (e.g., +63 917 123 4567).</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender *</label>
+                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender <span class="text-red-500">*</span></label>
                             <div class="flex space-x-4">
                                 <label class="inline-flex items-center">
                                     <input type="radio" name="gender" value="male" class="text-blue-500 gender-radio" checked>
@@ -219,6 +234,7 @@
                                     <span class="ml-2 text-white">Other</span>
                                 </label>
                             </div>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the trainer's gender.
                             <!-- Custom gender field, hidden by default -->
                             <div id="otherGenderField" class="mt-3 hidden">
                                 <input type="text" name="other_gender" placeholder="Please specify gender" 
@@ -232,12 +248,15 @@
                         <h4 class="text-white text-lg font-semibold mb-4 border-b border-[#374151] pb-2">Professional Information</h4>
                         
                         <div class="mb-4">
-                            <label for="specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization *</label>
-                            <input type="text" id="specialization" name="specialization" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                            <label for="specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization <span class="text-red-500">*</span></label>
+                            <input type="text" id="specialization" name="specialization" placeholder="e.g., Strength Training, Boxing Coach" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the trainer's area of expertise or specialization.</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
+                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For <span class="text-red-500">*</span></label>
                             <div class="grid grid-cols-2 gap-2">
                                 <label class="inline-flex items-center">
                                     <input type="checkbox" name="instructor_for[]" value="gym" class="text-blue-500">
@@ -256,15 +275,19 @@
                                     <span class="ml-2 text-white">Jiu Jitsu</span>
                                 </label>
                             </div>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction.</p>
                         </div>
                         
                         <div class="mb-4">
                             <label for="short_intro" class="block text-[#9CA3AF] text-sm font-medium mb-2">Bio</label>
-                            <textarea id="short_intro" name="short_intro" rows="3" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"></textarea>
+                            <textarea id="short_intro" name="short_intro" rows="3" 
+                                placeholder="Brief description of trainer's experience and background" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"></textarea>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Optional. A short description of the trainer's experience and background (max 500 characters).</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="profile_image" class="block text-[#9CA3AF] text-sm font-medium mb-2">Profile Image</label>
+                            <label for="profile_image" class="block text-[#9CA3AF] text-sm font-medium mb-2">Profile Image <span class="text-red-500">*</span></label>
                             <div class="flex flex-col space-y-2">
                                 <div class="flex items-center justify-center w-full">
                                     <label for="profile_image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#374151] border-[#4B5563] hover:bg-[#424B5D]">
@@ -276,10 +299,11 @@
                                         <div id="imagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                             <img id="imagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                         </div>
-                                        <input id="profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/gif" class="hidden" />
+                                        <input id="profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/gif" class="hidden" required />
                                     </label>
                                 </div>
                                 <span id="selectedFileName" class="text-xs text-[#9CA3AF]"></span>
+                                <p class="text-xs text-[#9CA3AF]">Required. Upload a professional photo of the trainer. Square images work best.</p>
                             </div>
                         </div>
                     </div>
@@ -357,7 +381,11 @@
                         
                         <div class="mb-4">
                             <label for="edit_mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number *</label>
-                            <input type="text" id="edit_mobile_number" name="mobile_number" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <input type="text" id="edit_mobile_number" name="mobile_number" placeholder="+63 917 123 4567" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                onfocus="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.replace(/^\+63\s*/, ''); this.setSelectionRange(4, this.value.length); }" 
+                                onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
                         </div>
                         
                         <div class="mb-4">
@@ -1186,5 +1214,37 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+    // Initialize mobile number fields with +63 prefix
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize add trainer mobile number field
+        const addMobileInput = document.getElementById('mobile_number');
+        if (addMobileInput && !addMobileInput.value) {
+            addMobileInput.value = '+63 ';
+        }
+        
+        // Initialize when add trainer modal is opened
+        const addTrainerBtn = document.getElementById('addTrainerBtn');
+        if (addTrainerBtn) {
+            addTrainerBtn.addEventListener('click', function() {
+                setTimeout(function() {
+                    if (addMobileInput && !addMobileInput.value) {
+                        addMobileInput.value = '+63 ';
+                    }
+                }, 100);
+            });
+        }
+        
+        // For edit trainer form
+        // The edit_mobile_number field will be initialized when the edit modal is opened
+        document.addEventListener('editTrainerModalOpened', function() {
+            const editMobileInput = document.getElementById('edit_mobile_number');
+            if (editMobileInput) {
+                // If the value doesn't already have +63 prefix, add it
+                if (!editMobileInput.value.startsWith('+63')) {
+                    editMobileInput.value = '+63 ' + editMobileInput.value.replace(/^\+63\s*/, '');
+                }
+            }
+        });
+    });
 </script>
 @endsection

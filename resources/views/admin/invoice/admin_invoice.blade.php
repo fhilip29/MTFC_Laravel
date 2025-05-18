@@ -35,11 +35,26 @@
                     <option value="product">Products</option>
                     <option value="subscription">Subscriptions</option>
                 </select>
-                <input 
-                    type="date" 
-                    id="dateFilter"
-                    class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm sm:text-base px-3 py-2"
+                <div class="flex">
+                    <input 
+                        type="date" 
+                        id="dateFilter"
+                        class="bg-[#374151] border border-[#4B5563] text-white rounded-l-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm sm:text-base px-3 py-2"
+                    >
+                    <button 
+                        id="clearDateFilter" 
+                        class="bg-[#374151] border border-l-0 border-[#4B5563] text-white px-2 rounded-r-md hover:bg-[#4B5563] transition-colors"
+                        title="Clear date filter"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <button 
+                    id="resetAllFilters" 
+                    class="bg-[#374151] border border-[#4B5563] text-white rounded-md shadow-sm px-3 py-2 hover:bg-[#4B5563] transition-colors flex items-center gap-2"
                 >
+                    <i class="fas fa-sync-alt"></i> Reset Filters
+                </button>
             </div>
         </div>
 
@@ -67,7 +82,7 @@
                                     {{ ucfirst($invoice->type) }}
                                 </span>
                             </td>
-                            <td class="px-3 sm:px-4 py-3 text-[#9CA3AF] text-xs sm:text-sm">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</td>
+                            <td class="px-3 sm:px-4 py-3 text-[#9CA3AF] text-xs sm:text-sm">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('m/d/Y') }}</td>
                             <td class="px-3 sm:px-4 py-3 text-center">
                                 <div class="flex justify-center space-x-2">
                                     <a 
@@ -474,6 +489,26 @@
     if (searchInput) searchInput.addEventListener('input', filterTable);
     if (filterType) filterType.addEventListener('change', filterTable);
     if (dateFilter) dateFilter.addEventListener('input', filterTable);
+    
+    // Clear date filter button
+    const clearDateFilterBtn = document.getElementById('clearDateFilter');
+    if (clearDateFilterBtn && dateFilter) {
+        clearDateFilterBtn.addEventListener('click', function() {
+            dateFilter.value = '';
+            filterTable();
+        });
+    }
+    
+    // Reset all filters button
+    const resetAllFiltersBtn = document.getElementById('resetAllFilters');
+    if (resetAllFiltersBtn) {
+        resetAllFiltersBtn.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (dateFilter) dateFilter.value = '';
+            if (filterType) filterType.value = '';
+            filterTable();
+        });
+    }
     });
 </script>
 

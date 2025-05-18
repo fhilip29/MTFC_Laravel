@@ -19,6 +19,19 @@
             </div>
         </div>
 
+        <!-- Session Type Tabs -->
+        <div class="flex border-b border-[#374151] mb-4">
+            <button id="allSessionsTab" class="px-4 py-2 text-white bg-[#374151] border-b-2 border-blue-500 rounded-t-md">
+                <i class="fas fa-list mr-2"></i> All Sessions
+            </button>
+            <button id="checkInsTab" class="px-4 py-2 text-[#9CA3AF] hover:text-white">
+                <i class="fas fa-sign-in-alt mr-2"></i> Check-Ins
+            </button>
+            <button id="checkOutsTab" class="px-4 py-2 text-[#9CA3AF] hover:text-white">
+                <i class="fas fa-sign-out-alt mr-2"></i> Check-Outs
+            </button>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
                 <input 
@@ -102,7 +115,7 @@
                                     </td>
                                     <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? ($session->guest_name ?? 'Guest User') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF] capitalize">{{ $session->user->role ?? 'guest' }}</td> 
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('M d, Y') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('m/d/Y') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full 
@@ -227,7 +240,34 @@
                             <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required.</p>
                         
                             <label for="guestPhoneInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Phone Number</label>
-                            <input type="tel" id="guestPhoneInput" placeholder="Philippine Phone Number (e.g., +63 917 123 4567)" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
+                            <div class="mb-4">
+                                <input type="tel" id="guestPhoneInput" placeholder="+63 917 123 4567" 
+                                    class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm" 
+                                    onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                                    onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                                    onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // Initialize guest phone input with +63 prefix
+                                    const phoneInput = document.getElementById('guestPhoneInput');
+                                    if (phoneInput && !phoneInput.value) {
+                                        phoneInput.value = '+63 ';
+                                    }
+                                    
+                                    // Also initialize when the guest modal is opened
+                                    const guestButton = document.getElementById('guestButton');
+                                    if (guestButton) {
+                                        guestButton.addEventListener('click', function() {
+                                            setTimeout(function() {
+                                                if (phoneInput && !phoneInput.value) {
+                                                    phoneInput.value = '+63 ';
+                                                }
+                                            }, 100);
+                                        });
+                                    }
+                                });
+                            </script>
                             <p id="guestPhoneError" class="text-red-500 text-xs mt-1 hidden">Valid Philippine phone number is required.</p>
                             
                             <div class="mt-4 flex justify-center">
@@ -279,46 +319,65 @@
         const resetFilters = document.getElementById('resetFilters');
         const rows = document.querySelectorAll('#sessionTable tbody tr');
         
+        // Session tabs
+        const allSessionsTab = document.getElementById('allSessionsTab');
+        const checkInsTab = document.getElementById('checkInsTab');
+        const checkOutsTab = document.getElementById('checkOutsTab');
+        
         // Function to apply all filters
         function applyFilters() {
-            const searchText = searchInput.value.toLowerCase();
+            const searchValue = searchInput.value.toLowerCase();
             const roleValue = roleFilter.value.toLowerCase();
             const dateValue = dateFilter.value ? new Date(dateFilter.value) : null;
             
+            // Get the active tab for status filtering
+            let activeTabId = '';
+            if (allSessionsTab.classList.contains('border-blue-500')) {
+                activeTabId = 'allSessionsTab';
+            } else if (checkInsTab.classList.contains('border-blue-500')) {
+                activeTabId = 'checkInsTab';
+            } else if (checkOutsTab.classList.contains('border-blue-500')) {
+                activeTabId = 'checkOutsTab';
+            }
+            
             rows.forEach(row => {
-                // Get column values
-                const nameCell = row.cells[1];
-                const roleCell = row.cells[2];
-                const dateCell = row.cells[3];
+                // Get all the cell values for filtering
+                const nameCell = row.querySelector('td:nth-child(2)');
+                const roleCell = row.querySelector('td:nth-child(3)');
+                const dateCell = row.querySelector('td:nth-child(4)');
+                const statusSpan = row.querySelector('td:nth-child(6) span');
                 
-                // Get text for search filter
-                const nameText = nameCell ? nameCell.innerText.toLowerCase() : '';
+                if (!nameCell || !roleCell || !dateCell || !statusSpan) return;
                 
-                // Get role for role filter
-                const roleText = roleCell ? roleCell.innerText.toLowerCase() : '';
+                const name = nameCell.textContent.toLowerCase();
+                const role = roleCell.textContent.toLowerCase();
+                const dateText = dateCell.textContent;
+                const status = statusSpan.textContent.trim();
                 
-                // Get date for date filter
-                let rowDate = null;
-                if (dateCell) {
-                    const dateParts = dateCell.innerText.split(',')[0].split(' ');
-                    const month = getMonthNumber(dateParts[0]);
-                    const day = parseInt(dateParts[1]);
-                    const year = parseInt(dateCell.innerText.split(', ')[1]);
-                    if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
-                        rowDate = new Date(year, month, day);
-                    }
+                // Parse date in MM/DD/YYYY format
+                const dateParts = dateText.split('/');
+                const rowDate = dateParts.length === 3 ? 
+                    new Date(dateParts[2], dateParts[0] - 1, dateParts[1]) : null;
+                
+                // Apply each filter
+                const nameMatch = name.includes(searchValue);
+                const roleMatch = !roleValue || role === roleValue;
+                const dateMatch = !dateValue || (rowDate && rowDate.toDateString() === dateValue.toDateString());
+                
+                // Status filter based on active tab
+                let statusMatch = true;
+                if (activeTabId === 'checkInsTab') {
+                    statusMatch = status.includes('IN');
+                } else if (activeTabId === 'checkOutsTab') {
+                    statusMatch = status.includes('OUT');
                 }
                 
-                // Check if row passes all filters
-                const passesSearch = nameText.includes(searchText);
-                const passesRole = !roleValue || roleText === roleValue;
-                const passesDate = !dateValue || (rowDate && 
-                    rowDate.getFullYear() === dateValue.getFullYear() && 
-                    rowDate.getMonth() === dateValue.getMonth() && 
-                    rowDate.getDate() === dateValue.getDate());
-                
-                // Show or hide row based on filter results
-                row.style.display = (passesSearch && passesRole && passesDate) ? '' : 'none';
+                // Show or hide row based on all filters
+                if (nameMatch && roleMatch && dateMatch && statusMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
             });
         }
         
@@ -361,11 +420,44 @@
         searchInput.addEventListener('input', applyFilters);
         roleFilter.addEventListener('change', applyFilters);
         dateFilter.addEventListener('change', applyFilters);
-        resetFilters.addEventListener('click', resetAllFilters);
         
-        // Apply filters on page load (if any values are already set)
-        applyFilters();
-    });
+        // Reset filters
+        resetFilters.addEventListener('click', function() {
+            searchInput.value = '';
+            roleFilter.value = '';
+            dateFilter.value = '';
+            applyFilters();
+        });
+        
+        // Session tab switching functionality
+        function switchSessionTab(tabElement) {
+            // Remove active class from all tabs
+            [allSessionsTab, checkInsTab, checkOutsTab].forEach(tab => {
+                tab.classList.remove('bg-[#374151]', 'border-b-2', 'border-blue-500');
+                tab.classList.add('text-[#9CA3AF]');
+            });
+            
+            // Add active class to selected tab
+            tabElement.classList.add('bg-[#374151]', 'border-b-2', 'border-blue-500');
+            tabElement.classList.remove('text-[#9CA3AF]');
+            tabElement.classList.add('text-white');
+            
+            // Apply filters to show/hide rows based on the selected tab
+            applyFilters();
+        }
+        
+        // Add event listeners for session tabs
+        allSessionsTab.addEventListener('click', function() {
+            switchSessionTab(allSessionsTab);
+        });
+        
+        checkInsTab.addEventListener('click', function() {
+            switchSessionTab(checkInsTab);
+        });
+        
+        checkOutsTab.addEventListener('click', function() {
+            switchSessionTab(checkOutsTab);
+        });
 
     // QR Code Scanner Implementation
     document.addEventListener('DOMContentLoaded', function() {
@@ -1003,7 +1095,7 @@
                         const date = new Date();
                         const options = { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' };
                         const timeOptions = { timeZone: 'Asia/Manila', hour: 'numeric', minute: 'numeric', hour12: true };
-                        const formattedDate = date.toLocaleDateString('en-US', options);
+                        const formattedDate = date.toLocaleDateString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric'});
                         const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
                         
                         newRow.innerHTML = `

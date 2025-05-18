@@ -215,7 +215,7 @@
             
             <div class="invoice-info">
                 <div>
-                    <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y h:i A') }}
+                    <strong>Date:</strong> {{ \Carbon\Carbon::parse($invoice->invoice_date)->format('m/d/Y h:i A') }}
                 </div>
             </div>
             

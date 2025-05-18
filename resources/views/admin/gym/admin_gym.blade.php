@@ -120,12 +120,35 @@
                         <option value="rusty">Rusty</option>
                     </select>
                 </div>
+                <div class="relative w-full sm:w-48">
+                    <div class="flex">
+                        <input 
+                            type="date" 
+                            id="dateFilter"
+                            class="bg-gray-700 text-white text-sm rounded-lg rounded-r-none focus:ring-red-500 focus:border-red-500 block w-full p-2.5"
+                            placeholder="Filter by purchase date"
+                        >
+                        <button 
+                            id="clearDateFilter" 
+                            class="bg-gray-700 border border-l-0 border-gray-600 text-white px-2 rounded-r-lg hover:bg-gray-600 transition-colors"
+                            title="Clear date filter"
+                        >
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="relative w-full sm:w-64">
                     <input type="text" id="searchEquipment" placeholder="Search equipment..." class="bg-gray-700 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full pl-10 p-2.5">
                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                         <i class="fas fa-search text-gray-400"></i>
                     </div>
                 </div>
+                <button 
+                    id="resetAllFilters" 
+                    class="bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2.5 hover:bg-gray-600 transition-colors flex items-center gap-2 text-sm"
+                >
+                    <i class="fas fa-sync-alt"></i> Reset Filters
+                </button>
             </div>
         </div>
         
@@ -217,7 +240,7 @@
                             @if(is_string($equipment->date_purchased))
                                 {{ $equipment->date_purchased }}
                             @else
-                                {{ $equipment->date_purchased->format('M d, Y') }}
+                                {{ $equipment->date_purchased->format('m/d/Y') }}
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -259,65 +282,85 @@
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                        <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Equipment Name</label>
-                        <input type="text" name="name" id="name" value="{{ old('name') }}" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('name') border-red-500 @enderror">
+                        <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Equipment Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="name" value="{{ old('name') }}" 
+                            placeholder="Enter equipment name (e.g., Treadmill, Bench Press)" 
+                            required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('name') border-red-500 @enderror">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter a descriptive name for the equipment (3-50 characters).</p>
                         @error('name')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="qty" class="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
-                        <input type="number" name="qty" id="qty" value="{{ old('qty') }}" min="1" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('qty') border-red-500 @enderror">
+                        <label for="qty" class="block text-sm font-medium text-gray-300 mb-1">Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" name="qty" id="qty" value="{{ old('qty') }}" 
+                            placeholder="Enter quantity (e.g., 1, 5, 10)" 
+                            min="1" required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('qty') border-red-500 @enderror">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter the number of units available (minimum 1).</p>
                         @error('qty')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="price" class="block text-sm font-medium text-gray-300 mb-1">Price (PHP)</label>
-                        <input type="number" name="price" id="price" value="{{ old('price') }}" min="0" step="0.01" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('price') border-red-500 @enderror">
+                        <label for="price" class="block text-sm font-medium text-gray-300 mb-1">Price (PHP) <span class="text-red-500">*</span></label>
+                        <input type="number" name="price" id="price" value="{{ old('price') }}" 
+                            placeholder="Enter price in PHP (e.g., 1500.00)" 
+                            min="0" step="0.01" required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('price') border-red-500 @enderror">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter the purchase price in Philippine Pesos.</p>
                         @error('price')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="quality" class="block text-sm font-medium text-gray-300 mb-1">Quality</label>
+                        <label for="quality" class="block text-sm font-medium text-gray-300 mb-1">Quality <span class="text-red-500">*</span></label>
                         <select name="quality" id="quality" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('quality') border-red-500 @enderror">
                             <option value="new" {{ old('quality') == 'new' ? 'selected' : '' }}>New</option>
                             <option value="good" {{ old('quality') == 'good' || !old('quality') ? 'selected' : '' }}>Good</option>
                             <option value="fair" {{ old('quality') == 'fair' ? 'selected' : '' }}>Fair</option>
                             <option value="rusty" {{ old('quality') == 'rusty' ? 'selected' : '' }}>Rusty</option>
                         </select>
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the current condition of the equipment.</p>
                         @error('quality')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="date_purchased" class="block text-sm font-medium text-gray-300 mb-1">Date Purchased</label>
-                        <input type="date" name="date_purchased" id="date_purchased" value="{{ old('date_purchased') }}" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('date_purchased') border-red-500 @enderror">
+                        <label for="date_purchased" class="block text-sm font-medium text-gray-300 mb-1">Date Purchased <span class="text-red-500">*</span></label>
+                        <input type="date" name="date_purchased" id="date_purchased" value="{{ old('date_purchased') }}" 
+                            required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('date_purchased') border-red-500 @enderror">
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the date when the equipment was purchased.</p>
                         @error('date_purchased')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="vendor_id" class="block text-sm font-medium text-gray-300 mb-1">Vendor</label>
+                        <label for="vendor_id" class="block text-sm font-medium text-gray-300 mb-1">Vendor <span class="text-red-500">*</span></label>
                         <select name="vendor_id" id="vendor_id" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('vendor_id') border-red-500 @enderror">
                             @foreach($vendors as $vendor)
                                 <option value="{{ $vendor->id }}" {{ old('vendor_id') == $vendor->id ? 'selected' : '' }}>{{ $vendor->name }}</option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the vendor who supplied this equipment.</p>
                         @error('vendor_id')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="col-span-1 md:col-span-2">
-                        <label for="description" class="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                        <textarea name="description" id="description" rows="3" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('description') border-red-500 @enderror">{{ old('description') }}</textarea>
+                        <label for="description" class="block text-sm font-medium text-gray-300 mb-1">Description <span class="text-red-500">*</span></label>
+                        <textarea name="description" id="description" rows="3" 
+                            placeholder="Enter detailed description of the equipment including specifications, features, etc." 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('description') border-red-500 @enderror">{{ old('description') }}</textarea>
+                        <p class="text-xs text-gray-400 mt-1">Required. Provide a detailed description of the equipment including specifications and features.</p>
                         @error('description')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="col-span-1 md:col-span-2">
-                        <label for="image" class="block text-sm font-medium text-gray-300 mb-1">Image</label>
+                        <label for="image" class="block text-sm font-medium text-gray-300 mb-1">Image <span class="text-red-500">*</span></label>
                         <div class="flex flex-col space-y-2">
                             <div class="flex items-center justify-center w-full">
                                 <label for="image" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-gray-700 border-gray-600 hover:bg-gray-600">
@@ -329,11 +372,12 @@
                                     <div id="addImagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                         <img id="addImagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                     </div>
-                                    <input id="image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" 
+                                    <input id="image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" required 
                                         @change="handleImagePreview($event, 'addImagePreview', 'addUploadPlaceholder', 'addImagePreviewContainer')" />
                                 </label>
                             </div>
                             <span id="addSelectedFileName" class="text-xs text-gray-400"></span>
+                            <p class="text-xs text-gray-400">Required. Upload a clear image of the equipment. Square images work best for display.</p>
                         </div>
                         @error('image')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -363,59 +407,84 @@
                 <input type="hidden" name="id" :value="currentEquipment?.id">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                        <label for="edit_name" class="block text-sm font-medium text-gray-300 mb-1">Equipment Name</label>
-                        <input type="text" name="name" id="edit_name" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('name') border-red-500 @enderror" :value="currentEquipment?.name">
+                        <label for="edit_name" class="block text-sm font-medium text-gray-300 mb-1">Equipment Name <span class="text-red-500">*</span></label>
+                        <input type="text" name="name" id="edit_name" 
+                            placeholder="Enter equipment name (e.g., Treadmill, Bench Press)" 
+                            required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('name') border-red-500 @enderror" 
+                            :value="currentEquipment?.name">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter a descriptive name for the equipment (3-50 characters).</p>
                         @error('name')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="edit_qty" class="block text-sm font-medium text-gray-300 mb-1">Quantity</label>
-                        <input type="number" name="qty" id="edit_qty" min="1" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('qty') border-red-500 @enderror" :value="currentEquipment?.qty">
+                        <label for="edit_qty" class="block text-sm font-medium text-gray-300 mb-1">Quantity <span class="text-red-500">*</span></label>
+                        <input type="number" name="qty" id="edit_qty" 
+                            placeholder="Enter quantity (e.g., 1, 5, 10)" 
+                            min="1" required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('qty') border-red-500 @enderror" 
+                            :value="currentEquipment?.qty">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter the number of units available (minimum 1).</p>
                         @error('qty')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="edit_price" class="block text-sm font-medium text-gray-300 mb-1">Price (PHP)</label>
-                        <input type="number" name="price" id="edit_price" min="0" step="0.01" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('price') border-red-500 @enderror" :value="currentEquipment?.price">
+                        <label for="edit_price" class="block text-sm font-medium text-gray-300 mb-1">Price (PHP) <span class="text-red-500">*</span></label>
+                        <input type="number" name="price" id="edit_price" 
+                            placeholder="Enter price in PHP (e.g., 1500.00)" 
+                            min="0" step="0.01" required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('price') border-red-500 @enderror" 
+                            :value="currentEquipment?.price">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter the purchase price in Philippine Pesos.</p>
                         @error('price')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="edit_quality" class="block text-sm font-medium text-gray-300 mb-1">Quality</label>
+                        <label for="edit_quality" class="block text-sm font-medium text-gray-300 mb-1">Quality <span class="text-red-500">*</span></label>
                         <select name="quality" id="edit_quality" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('quality') border-red-500 @enderror" x-model="currentEquipment?.quality">
                             <option value="new">New</option>
                             <option value="good">Good</option>
                             <option value="fair">Fair</option>
                             <option value="rusty">Rusty</option>
                         </select>
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the current condition of the equipment.</p>
                         @error('quality')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="edit_date_purchased" class="block text-sm font-medium text-gray-300 mb-1">Date Purchased</label>
-                        <input type="date" name="date_purchased" id="edit_date_purchased" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('date_purchased') border-red-500 @enderror" x-bind:value="currentEquipment?.date_purchased ? currentEquipment.date_purchased.split('T')[0] : ''">
+                        <label for="edit_date_purchased" class="block text-sm font-medium text-gray-300 mb-1">Date Purchased <span class="text-red-500">*</span></label>
+                        <input type="date" name="date_purchased" id="edit_date_purchased" 
+                            required 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('date_purchased') border-red-500 @enderror" 
+                            x-bind:value="currentEquipment?.date_purchased ? currentEquipment.date_purchased.split('T')[0] : ''">
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the date when the equipment was purchased.</p>
                         @error('date_purchased')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div>
-                        <label for="edit_vendor_id" class="block text-sm font-medium text-gray-300 mb-1">Vendor</label>
+                        <label for="edit_vendor_id" class="block text-sm font-medium text-gray-300 mb-1">Vendor <span class="text-red-500">*</span></label>
                         <select name="vendor_id" id="edit_vendor_id" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('vendor_id') border-red-500 @enderror" x-model="currentEquipment?.vendor_id">
                             @foreach($vendors as $vendor)
                                 <option value="{{ $vendor->id }}">{{ $vendor->name }}</option>
                             @endforeach
                         </select>
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the vendor who supplied this equipment.</p>
                         @error('vendor_id')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                     <div class="col-span-1 md:col-span-2">
-                        <label for="edit_description" class="block text-sm font-medium text-gray-300 mb-1">Description</label>
-                        <textarea name="description" id="edit_description" rows="3" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('description') border-red-500 @enderror" x-text="currentEquipment?.description"></textarea>
+                        <label for="edit_description" class="block text-sm font-medium text-gray-300 mb-1">Description <span class="text-red-500">*</span></label>
+                        <textarea name="description" id="edit_description" rows="3" 
+                            placeholder="Enter detailed description of the equipment including specifications, features, etc." 
+                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 @error('description') border-red-500 @enderror" 
+                            x-text="currentEquipment?.description"></textarea>
+                        <p class="text-xs text-gray-400 mt-1">Required. Provide a detailed description of the equipment including specifications and features.</p>
                         @error('description')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -443,6 +512,7 @@
                                 </label>
                             </div>
                             <span id="editSelectedFileName" class="text-xs text-gray-400"></span>
+                            <p class="text-xs text-gray-400">Optional. Upload a new image only if you want to replace the current one. Square images work best for display.</p>
                         </div>
                         @error('image')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -487,6 +557,7 @@ function confirmDelete(id, name) {
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchEquipment');
     const qualityFilter = document.getElementById('qualityFilter');
+    const dateFilter = document.getElementById('dateFilter');
     const rows = document.querySelectorAll('tbody tr');
     const mobileCards = document.querySelectorAll('.md\\:hidden > div');
     
@@ -494,6 +565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyFilters() {
         const searchText = searchInput.value.toLowerCase();
         const qualityValue = qualityFilter.value;
+        const dateValue = dateFilter.value;
         
         // Apply filters to table rows (desktop)
         rows.forEach(row => {
@@ -504,6 +576,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const qualityCell = row.cells[3];
             const qualityText = qualityCell.textContent.trim().toLowerCase();
             
+            // Get the date cell (5th column, index 4)
+            const dateCell = row.cells[4];
+            const dateText = dateCell.textContent.trim();
+            
             // Check if row matches search text
             const matchesSearch = Array.from(row.querySelectorAll('td')).some(cell => 
                 cell.textContent.toLowerCase().includes(searchText)
@@ -512,8 +588,24 @@ document.addEventListener('DOMContentLoaded', function() {
             // Check if row matches quality filter
             const matchesQuality = qualityValue === 'all' || qualityText.includes(qualityValue);
             
-            // Show row only if it matches both filters
-            row.style.display = (matchesSearch && matchesQuality) ? '' : 'none';
+            // Check if row matches date filter
+            let matchesDate = true;
+            if (dateValue) {
+                // Parse the date from the table (format: MM/DD/YYYY)
+                const dateParts = dateText.split('/');
+                if (dateParts.length === 3) {
+                    const rowDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                    const filterDate = new Date(dateValue);
+                    
+                    // Compare dates (ignoring time)
+                    matchesDate = rowDate.getFullYear() === filterDate.getFullYear() && 
+                                  rowDate.getMonth() === filterDate.getMonth() && 
+                                  rowDate.getDate() === filterDate.getDate();
+                }
+            }
+            
+            // Show row only if it matches all filters
+            row.style.display = (matchesSearch && matchesQuality && matchesDate) ? '' : 'none';
         });
         
         // Apply filters to mobile cards
@@ -525,20 +617,61 @@ document.addEventListener('DOMContentLoaded', function() {
             const qualityElement = card.querySelector('.rounded-full');
             const qualityText = qualityElement ? qualityElement.textContent.trim().toLowerCase() : '';
             
+            // Get date text from the card
+            const dateElement = card.querySelector('.text-gray-400:nth-of-type(2)');
+            const dateText = dateElement ? dateElement.textContent.trim() : '';
+            
             // Check if card matches search text
             const matchesSearch = cardText.includes(searchText);
             
             // Check if card matches quality filter
             const matchesQuality = qualityValue === 'all' || qualityText.includes(qualityValue);
             
-            // Show card only if it matches both filters
-            card.style.display = (matchesSearch && matchesQuality) ? 'block' : 'none';
+            // Check if card matches date filter
+            let matchesDate = true;
+            if (dateValue && dateText) {
+                // Parse the date from the card (format: MM/DD/YYYY)
+                const dateParts = dateText.split('/');
+                if (dateParts.length === 3) {
+                    const cardDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                    const filterDate = new Date(dateValue);
+                    
+                    // Compare dates (ignoring time)
+                    matchesDate = cardDate.getFullYear() === filterDate.getFullYear() && 
+                                  cardDate.getMonth() === filterDate.getMonth() && 
+                                  cardDate.getDate() === filterDate.getDate();
+                }
+            }
+            
+            // Show card only if it matches all filters
+            card.style.display = (matchesSearch && matchesQuality && matchesDate) ? 'block' : 'none';
         });
     }
     
     // Add event listeners
     if (searchInput) searchInput.addEventListener('keyup', applyFilters);
     if (qualityFilter) qualityFilter.addEventListener('change', applyFilters);
+    if (dateFilter) dateFilter.addEventListener('change', applyFilters);
+    
+    // Clear date filter button
+    const clearDateFilterBtn = document.getElementById('clearDateFilter');
+    if (clearDateFilterBtn && dateFilter) {
+        clearDateFilterBtn.addEventListener('click', function() {
+            dateFilter.value = '';
+            applyFilters();
+        });
+    }
+    
+    // Reset all filters button
+    const resetAllFiltersBtn = document.getElementById('resetAllFilters');
+    if (resetAllFiltersBtn) {
+        resetAllFiltersBtn.addEventListener('click', function() {
+            if (searchInput) searchInput.value = '';
+            if (dateFilter) dateFilter.value = '';
+            if (qualityFilter) qualityFilter.value = 'all';
+            applyFilters();
+        });
+    }
     
     // Show success message if it exists in the session
     @if(session('success'))

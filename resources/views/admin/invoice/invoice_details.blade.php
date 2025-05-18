@@ -36,7 +36,7 @@
                     <div class="space-y-1.5 text-sm">
                         <div class="flex justify-between">
                             <span class="text-[#9CA3AF]">Date:</span>
-                            <span class="text-white">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('M d, Y') }}</span>
+                            <span class="text-white">{{ \Carbon\Carbon::parse($invoice->invoice_date)->format('m/d/Y') }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="text-[#9CA3AF]">Status:</span>

@@ -60,7 +60,7 @@
                                     @if(is_string($equipment->date_purchased))
                                         {{ $equipment->date_purchased }}
                                     @else
-                                        {{ $equipment->date_purchased->format('M d, Y') }}
+                                        {{ $equipment->date_purchased->format('m/d/Y') }}
                                     @endif
                                 </p>
                             </div>
@@ -76,7 +76,7 @@
                                         @if(is_string($lastDate))
                                             {{ $lastDate }}
                                         @else
-                                            {{ $lastDate->format('M d, Y') }}
+                                            {{ $lastDate->format('m/d/Y') }}
                                         @endif
                                     @else
                                         No maintenance records
@@ -119,18 +119,32 @@
                     <input type="hidden" name="equipment_id" value="{{ $equipment->id }}">
                     
                     <div class="mb-4">
-                        <label for="performed_by" class="block text-sm font-medium text-gray-300 mb-1">Performed By</label>
-                        <input type="text" name="performed_by" id="performed_by" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                        <label for="performed_by" class="block text-sm font-medium text-gray-300 mb-1">Performed By <span class="text-red-500">*</span></label>
+                        <input type="text" name="performed_by" id="performed_by" 
+                               placeholder="Enter name of technician or staff member" 
+                               required 
+                               class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                        <p class="text-xs text-gray-400 mt-1">Required. Enter the full name of the person who performed the maintenance.</p>
                     </div>
                     
                     <div class="mb-4">
-                        <label for="maintenance_date" class="block text-sm font-medium text-gray-300 mb-1">Maintenance Date</label>
-                        <input type="date" name="maintenance_date" id="maintenance_date" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" value="{{ now()->format('Y-m-d') }}">
+                        <label for="maintenance_date" class="block text-sm font-medium text-gray-300 mb-1">Maintenance Date <span class="text-red-500">*</span></label>
+                        <input type="date" name="maintenance_date" id="maintenance_date" 
+                               required 
+                               max="{{ now()->format('Y-m-d') }}" 
+                               class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                               value="{{ now()->format('Y-m-d') }}">
+                        <p class="text-xs text-gray-400 mt-1">Required. Select the date when maintenance was performed (cannot be in the future).</p>
                     </div>
                     
                     <div class="mb-4">
-                        <label for="notes" class="block text-sm font-medium text-gray-300 mb-1">Notes</label>
-                        <textarea name="notes" id="notes" rows="4" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" placeholder="Describe the maintenance performed..."></textarea>
+                        <label for="notes" class="block text-sm font-medium text-gray-300 mb-1">Notes <span class="text-red-500">*</span></label>
+                        <textarea name="notes" id="notes" 
+                                  rows="4" 
+                                  required 
+                                  class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                                  placeholder="Describe the maintenance performed, parts replaced, issues found, etc."></textarea>
+                        <p class="text-xs text-gray-400 mt-1">Required. Provide detailed information about the maintenance work performed, including any parts replaced or issues found.</p>
                     </div>
                     
                     <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg">
@@ -159,7 +173,7 @@
                 <tbody class="divide-y divide-gray-700">
                     @forelse($equipment->maintenanceLogs->sortByDesc('maintenance_date') as $log)
                     <tr class="hover:bg-gray-700 transition">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ $log->maintenance_date->format('M d, Y') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ $log->maintenance_date->format('m/d/Y') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $log->performed_by }}</td>
                         <td class="px-6 py-4">{{ $log->notes }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">

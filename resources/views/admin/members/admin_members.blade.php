@@ -146,25 +146,54 @@
             @endif
         </div>
 
-        <div class="mb-6 flex flex-col sm:flex-row gap-4">
-            <div class="relative w-full sm:w-2/3 md:w-1/2 lg:w-1/3">
-                <input 
-                    type="text" 
-                    id="search-member"
-                    placeholder="Search members..." 
-                    class="w-full pl-10 pr-4 py-3 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF]"
-                >
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
+        <div class="mb-6 flex flex-col sm:flex-row gap-4 items-end">
+            <div class="relative w-full sm:w-64">
+                <label for="search-member" class="block text-sm font-medium text-gray-300 mb-1">Search</label>
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="search-member"
+                        placeholder="Search members..." 
+                        class="w-full pl-10 pr-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF]"
+                    >
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
+                </div>
             </div>
-            <select 
-                id="status-filter"
-                onchange="filterMembers(this.value)"
-                class="w-full sm:w-48 px-4 py-3 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
-                <option value="all" {{ !isset($showArchived) ? 'selected' : '' }}>All Members</option>
-                <option value="active" {{ !isset($showArchived) || !$showArchived ? 'selected' : '' }}>Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="archived" {{ isset($showArchived) && $showArchived ? 'selected' : '' }}>Archived</option>
-            </select>
+            <div class="relative w-full sm:w-48">
+                <label for="date-filter" class="block text-sm font-medium text-gray-300 mb-1">Filter by Join Date</label>
+                <div class="flex">
+                    <input 
+                        type="date" 
+                        id="date-filter"
+                        class="w-full px-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg rounded-r-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"
+                    >
+                    <button 
+                        id="clear-date-filter" 
+                        class="bg-[#374151] border border-l-0 border-[#4B5563] text-white px-2 rounded-r-lg hover:bg-[#4B5563] transition-colors"
+                        title="Clear date filter"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="relative w-full sm:w-48">
+                <label for="status-filter" class="block text-sm font-medium text-gray-300 mb-1">Status</label>
+                <select 
+                    id="status-filter"
+                    class="w-full px-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"
+                >
+                    <option value="all" {{ !isset($showArchived) ? 'selected' : '' }}>All Members</option>
+                    <option value="active" {{ !isset($showArchived) || !$showArchived ? 'selected' : '' }}>Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="archived" {{ isset($showArchived) && $showArchived ? 'selected' : '' }}>Archived</option>
+                </select>
+            </div>
+            <button 
+                id="reset-all-filters" 
+                class="px-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg hover:bg-[#4B5563] transition-colors flex items-center gap-2"
+            >
+                <i class="fas fa-sync-alt"></i> Reset Filters
+            </button>
         </div>
 
         <div class="-mx-4 sm:mx-0 overflow-x-auto rounded-lg shadow-md bg-[#1F2937]">
@@ -194,7 +223,7 @@
                                     </div>
                                 </td>
                                 <td class="hidden sm:table-cell px-4 py-3">{{ $member->email }}</td>
-                                <td class="hidden md:table-cell px-4 py-3">{{ $member->created_at->format('M d, Y') }}</td>
+                                <td class="hidden md:table-cell px-4 py-3">{{ $member->created_at->format('m/d/Y') }}</td>
                                 <td class="px-4 py-3">
                                     @php
                                         $hasActiveSubscription = $member->activeSubscriptions()->count() > 0;
@@ -346,7 +375,7 @@
                                     <div class="grid grid-cols-1 gap-2">
                                         <div class="flex items-center">
                                             <span class="w-24 text-[#9CA3AF]">Joined:</span>
-                                            <span x-text="new Date(currentMember?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })" class="text-white"></span>
+                                            <span x-text="new Date(currentMember?.created_at).toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' })" class="text-white"></span>
                                         </div>
                                         <div class="flex items-center">
                                             <span class="w-24 text-[#9CA3AF]">Status:</span>
@@ -414,8 +443,8 @@
                                                 <td class="px-4 py-3 text-white" x-text="subscription.type.charAt(0).toUpperCase() + subscription.type.slice(1)"></td>
                                                 <td class="px-4 py-3" x-text="subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)"></td>
                                                 <td class="px-4 py-3" x-text="'₱' + subscription.price"></td>
-                                                <td class="px-4 py-3" x-text="subscription.start_date ? new Date(subscription.start_date).toLocaleDateString() : 'N/A'"></td>
-                                                <td class="px-4 py-3" x-text="subscription.end_date ? new Date(subscription.end_date).toLocaleDateString() : 'N/A'"></td>
+                                                <td class="px-4 py-3" x-text="subscription.start_date ? new Date(subscription.start_date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A'"></td>
+                                                <td class="px-4 py-3" x-text="subscription.end_date ? new Date(subscription.end_date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }) : 'N/A'"></td>
                                                 <td class="px-4 py-3">
                                                     <template x-if="subscription.plan === 'per-session'">
                                                         <span>
@@ -1047,19 +1076,55 @@
         const searchInput = document.getElementById('search-member');
         if (searchInput) {
             searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                const rows = document.querySelectorAll('tbody tr');
+                filterTable();
+            });
+        }
+        
+        // Date filter functionality
+        const dateFilter = document.getElementById('date-filter');
+        if (dateFilter) {
+            dateFilter.addEventListener('change', function() {
+                filterTable();
+            });
+        }
+        
+        // Status filter functionality
+        const statusFilter = document.getElementById('status-filter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', function() {
+                if (this.value === 'archived') {
+                    window.location.href = "{{ route('admin.members.admin_members') }}?show_archived=1";
+                } else if (this.value === 'all') {
+                    window.location.href = "{{ route('admin.members.admin_members') }}";
+                } else {
+                    filterTable();
+                }
+            });
+        }
+        
+        // Clear date filter button
+        const clearDateFilterBtn = document.getElementById('clear-date-filter');
+        if (clearDateFilterBtn && dateFilter) {
+            clearDateFilterBtn.addEventListener('click', function() {
+                dateFilter.value = '';
+                filterTable();
+            });
+        }
+        
+        // Reset all filters button
+        const resetAllFiltersBtn = document.getElementById('reset-all-filters');
+        if (resetAllFiltersBtn) {
+            resetAllFiltersBtn.addEventListener('click', function() {
+                if (searchInput) searchInput.value = '';
+                if (dateFilter) dateFilter.value = '';
+                if (statusFilter) statusFilter.value = 'all';
                 
-                rows.forEach(row => {
-                    const name = row.querySelector('td:first-child').textContent.toLowerCase();
-                    const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                    
-                    if (name.includes(searchTerm) || email.includes(searchTerm)) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
+                // If we're on the archived page, redirect to the main page
+                if (window.location.href.includes('show_archived=1')) {
+                    window.location.href = "{{ route('admin.members.admin_members') }}";
+                } else {
+                    filterTable();
+                }
             });
         }
         
@@ -1075,6 +1140,57 @@
         }, 100);
     });
 
+    function filterTable() {
+        const searchTerm = document.getElementById('search-member')?.value.toLowerCase() || '';
+        const dateFilter = document.getElementById('date-filter')?.value || '';
+        const statusFilter = document.getElementById('status-filter')?.value || 'all';
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const name = row.querySelector('td:first-child')?.textContent.toLowerCase() || '';
+            const email = row.querySelector('td:nth-child(2)')?.textContent.toLowerCase() || '';
+            const dateCell = row.querySelector('td:nth-child(3)')?.textContent || '';
+            const statusCell = row.querySelector('td:nth-child(4) span')?.textContent.trim() || '';
+            
+            // Parse the date from the table (format: MM/DD/YYYY)
+            let showRow = true;
+            
+            // Check if the row matches the search term
+            const matchesSearch = name.includes(searchTerm) || email.includes(searchTerm);
+            if (!matchesSearch) {
+                showRow = false;
+            }
+            
+            // Check if the row matches the date filter
+            if (dateFilter && showRow) {
+                const dateParts = dateCell.split('/');
+                if (dateParts.length === 3) {
+                    const rowDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                    const filterDate = new Date(dateFilter);
+                    
+                    // Compare dates (ignoring time)
+                    if (rowDate.getFullYear() !== filterDate.getFullYear() || 
+                        rowDate.getMonth() !== filterDate.getMonth() || 
+                        rowDate.getDate() !== filterDate.getDate()) {
+                        showRow = false;
+                    }
+                }
+            }
+            
+            // Check if the row matches the status filter
+            if (statusFilter !== 'all' && showRow) {
+                if (statusFilter === 'active' && statusCell !== 'Active') {
+                    showRow = false;
+                } else if (statusFilter === 'inactive' && statusCell !== 'Inactive') {
+                    showRow = false;
+                }
+            }
+            
+            // Show or hide the row
+            row.style.display = showRow ? '' : 'none';
+        });
+    }
+    
     function filterMembers(status) {
         if (status === 'archived') {
             window.location.href = "{{ route('admin.members.admin_members') }}?show_archived=1";

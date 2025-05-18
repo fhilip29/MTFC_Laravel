@@ -8,31 +8,56 @@
     <div class="bg-[#1F2937] shadow-lg rounded-xl p-4 sm:p-6 border border-[#374151]">
         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 sm:mb-6 gap-4">
             <h2 class="text-2xl sm:text-3xl font-bold text-white flex items-center gap-2"><i class="fas fa-shopping-cart text-[#9CA3AF]"></i> Manage Orders</h2>
-            <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <div class="relative w-full sm:w-80">
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center gap-3 mb-6">
+            <div class="relative w-full sm:w-64">
+                <div class="relative">
                     <input 
                         type="text" 
                         id="orderSearch"
                         placeholder="Search orders..." 
                         class="w-full px-4 py-2 pl-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] text-sm sm:text-base" 
                     >
-                    <i class="fas fa-search absolute left-3 top-3 text-[#9CA3AF]"></i>
-                </div>
-                <div class="relative w-full sm:w-44">
-                    <select 
-                        id="statusFilter" 
-                        class="w-full px-4 py-2 pr-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] appearance-none text-sm sm:text-base"
-                    >
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Accepted">Accepted</option>
-                        <option value="Out for Delivery">Out for Delivery</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                    </select>
-                    <i class="fas fa-filter absolute right-3 top-3 text-[#9CA3AF]"></i>
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
                 </div>
             </div>
+            <div class="relative w-full sm:w-48">
+                <div class="flex">
+                    <input 
+                        type="date" 
+                        id="dateFilter"
+                        class="w-full px-4 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-lg rounded-r-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] text-sm sm:text-base" 
+                    >
+                    <button 
+                        id="clearDateFilter" 
+                        class="bg-[#374151] border border-l-0 border-[#4B5563] text-white px-2 rounded-r-lg hover:bg-[#4B5563] transition-colors"
+                        title="Clear date filter"
+                    >
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="relative w-full sm:w-48">
+                <select 
+                    id="statusFilter" 
+                    class="w-full px-4 py-2 pr-10 bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] appearance-none text-sm sm:text-base"
+                >
+                    <option value="">All Statuses</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Out for Delivery">Out for Delivery</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]"></i>
+            </div>
+            <button 
+                id="resetAllFilters" 
+                class="bg-[#374151] border border-[#4B5563] text-white rounded-lg shadow-sm px-4 py-2 hover:bg-[#4B5563] transition-colors flex items-center gap-2 text-sm sm:text-base"
+            >
+                <i class="fas fa-sync-alt"></i> Reset Filters
+            </button>
         </div>
 
         <div class="overflow-x-auto rounded-lg shadow-sm -mx-4 sm:mx-0">
@@ -70,7 +95,7 @@
                         <tr class="hover:bg-[#374151] transition order-row">
                             <td class="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap font-medium text-white text-xs sm:text-base order-id">{{ $order->reference_no }}</td>
                             <td class="px-3 sm:px-6 py-3 sm:py-4 text-[#9CA3AF] text-xs sm:text-base">{{ $order->first_name }} {{ $order->last_name }}</td>
-                            <td class="px-3 sm:px-6 py-3 sm:py-4 text-[#9CA3AF] text-xs sm:text-base">{{ $order->created_at->format('M d, Y') }}</td>
+                            <td class="px-3 sm:px-6 py-3 sm:py-4 text-[#9CA3AF] text-xs sm:text-base">{{ $order->created_at->format('m/d/Y') }}</td>
                             <td class="px-3 sm:px-6 py-3 sm:py-4 text-center w-28">
                                 <span 
                                     class="inline-flex items-center justify-center gap-1 text-white px-2 py-1 rounded-full text-xs font-medium {{ $colors[$order->status] ?? 'bg-gray-500' }}"
@@ -228,7 +253,9 @@
                     // Get formatted date
                     const orderDate = new Date(order.created_at);
                     const formattedDate = orderDate.toLocaleDateString('en-US', {
-                        year: 'numeric', month: 'short', day: 'numeric'
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
                     });
                     
                     // Get status with appropriate styling
@@ -434,6 +461,87 @@
                     });
                 });
             }
+        });
+    }
+    // Add event listeners for search and filters
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('orderSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', filterOrders);
+        }
+        
+        // Status filter
+        const statusFilter = document.getElementById('statusFilter');
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterOrders);
+        }
+        
+        // Date filter
+        const dateFilter = document.getElementById('dateFilter');
+        if (dateFilter) {
+            dateFilter.addEventListener('change', filterOrders);
+        }
+        
+        // Clear date filter button
+        const clearDateFilterBtn = document.getElementById('clearDateFilter');
+        if (clearDateFilterBtn && dateFilter) {
+            clearDateFilterBtn.addEventListener('click', function() {
+                dateFilter.value = '';
+                filterOrders();
+            });
+        }
+        
+        // Reset all filters button
+        const resetAllFiltersBtn = document.getElementById('resetAllFilters');
+        if (resetAllFiltersBtn) {
+            resetAllFiltersBtn.addEventListener('click', function() {
+                if (searchInput) searchInput.value = '';
+                if (dateFilter) dateFilter.value = '';
+                if (statusFilter) statusFilter.value = '';
+                filterOrders();
+            });
+        }
+    });
+    
+    // Filter orders based on search term, status, and date
+    function filterOrders() {
+        const searchTerm = document.getElementById('orderSearch').value.toLowerCase();
+        const statusFilter = document.getElementById('statusFilter').value;
+        const dateFilter = document.getElementById('dateFilter').value;
+        
+        const rows = document.querySelectorAll('tbody tr.order-row');
+        
+        rows.forEach(row => {
+            const orderId = row.querySelector('.order-id').textContent.toLowerCase();
+            const customerName = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const dateText = row.querySelector('td:nth-child(3)').textContent.trim();
+            const status = row.querySelector('td:nth-child(4) span').textContent.trim();
+            
+            // Check if matches search term
+            const matchesSearch = orderId.includes(searchTerm) || customerName.includes(searchTerm);
+            
+            // Check if matches status filter
+            const matchesStatus = statusFilter === '' || status === statusFilter;
+            
+            // Check if matches date filter
+            let matchesDate = true;
+            if (dateFilter) {
+                // Parse the date from the table (format: MM/DD/YYYY)
+                const dateParts = dateText.split('/');
+                if (dateParts.length === 3) {
+                    const rowDate = new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+                    const filterDate = new Date(dateFilter);
+                    
+                    // Compare dates (ignoring time)
+                    matchesDate = rowDate.getFullYear() === filterDate.getFullYear() && 
+                                  rowDate.getMonth() === filterDate.getMonth() && 
+                                  rowDate.getDate() === filterDate.getDate();
+                }
+            }
+            
+            // Show or hide the row based on all filters
+            row.style.display = (matchesSearch && matchesStatus && matchesDate) ? '' : 'none';
         });
     }
 </script>

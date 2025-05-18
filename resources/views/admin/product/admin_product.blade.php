@@ -64,6 +64,7 @@
                         <th class="py-4 px-4 text-left">Image</th>
                         <th class="py-4 px-4 text-left">Product Name</th>
                         <th class="py-4 px-4 text-left">Category</th>
+                        <th class="py-4 px-4 text-left">Quantity</th>
                         <th class="py-4 px-4 text-left">Status</th>
                         <th class="py-4 px-4 text-center">Actions</th>
                     </tr>
@@ -88,6 +89,7 @@
                             </td>
                             <td class="py-4 px-4 text-white align-middle">{{ $product->name }}</td>
                             <td class="py-4 px-4 align-middle">{{ $product->category }}</td>
+                            <td class="py-4 px-4 align-middle">{{ $product->stock }}</td>
                             <td class="py-4 px-4 align-middle">
                                 @php
                                     $statusClass = 'bg-green-500';
@@ -144,12 +146,16 @@
                 <form id="addProductForm" action="{{ route('admin.product.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <div>
-                        <label for="productName" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Name</label>
-                        <input type="text" id="productName" name="name" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                        <label for="productName" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="productName" name="name" 
+                               placeholder="Enter product name (e.g., MTFC T-Shirt, Protein Shake)" 
+                               class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                               required>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a descriptive name for the product (3-50 characters).</p>
                     </div>
                     
                     <div>
-                        <label for="productCategory" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category</label>
+                        <label for="productCategory" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category <span class="text-red-500">*</span></label>
                         <select id="productCategory" name="category" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
                             <option value="" disabled selected>Select a category</option>
                             <option value="Merchandise">Merchandise</option>
@@ -157,29 +163,44 @@
                             <option value="Drinks">Drinks</option>
                             <option value="Supplements">Supplements</option>
                         </select>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the category that best describes this product.</p>
                     </div>
                     
                     <div>
-                        <label for="productDescription" class="block text-sm font-medium text-[#9CA3AF] mb-1">Description</label>
-                        <textarea id="productDescription" name="description" rows="3" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"></textarea>
+                        <label for="productDescription" class="block text-sm font-medium text-[#9CA3AF] mb-1">Description <span class="text-[#9CA3AF]">(Optional)</span></label>
+                        <textarea id="productDescription" name="description" 
+                                  placeholder="Enter detailed description of the product including features, materials, etc." 
+                                  rows="3" 
+                                  class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"></textarea>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Optional. Provide a detailed description of the product to help customers understand its features and benefits.</p>
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="productPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Price</label>
-                            <input type="number" id="productPrice" name="price" min="0" step="0.01" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                            <label for="productPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Price <span class="text-red-500">*</span></label>
+                            <input type="number" id="productPrice" name="price" 
+                                   placeholder="Enter price in PHP (e.g., 599.99)" 
+                                   min="0" step="0.01" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                                   required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the selling price in Philippine Pesos.</p>
                         </div>
                         <div>
-                            <label for="productStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock</label>
-                            <input type="number" id="productStock" name="stock" min="0" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                            <label for="productStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock <span class="text-red-500">*</span></label>
+                            <input type="number" id="productStock" name="stock" 
+                                   placeholder="Enter available quantity" 
+                                   min="0" step="1" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                                   required>
                             <p class="text-xs text-[#9CA3AF] mt-1">
+                                Required. Enter the quantity available for sale.<br>
                                 0: Out of Stock | 1-15: Low Stock | 16+: In Stock
                             </p>
                         </div>
                     </div>
                     
                     <div>
-                        <label for="productImage" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Image</label>
+                        <label for="productImage" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Image <span class="text-red-500">*</span></label>
                         <div class="flex flex-col space-y-2">
                             <div class="flex items-center justify-center w-full">
                                 <label for="productImage" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#374151] border-[#4B5563] hover:bg-[#424B5D]">
@@ -191,10 +212,11 @@
                                     <div id="imagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                         <img id="imagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                     </div>
-                                    <input id="productImage" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" />
+                                    <input id="productImage" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" required />
                                 </label>
                             </div>
                             <span id="selectedFileName" class="text-xs text-[#9CA3AF]"></span>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Upload a clear image of the product. Square images work best for display.</p>
                         </div>
                     </div>
                     
@@ -307,51 +329,71 @@
                     <input type="hidden" id="editProductId" name="product_id">
                     
                     <div>
-                        <label for="editProductName" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Name</label>
-                        <input type="text" id="editProductName" name="name" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                        <label for="editProductName" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="editProductName" name="name" 
+                               placeholder="Enter product name (e.g., MTFC T-Shirt, Protein Shake)" 
+                               class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                               required>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a descriptive name for the product (3-50 characters).</p>
                     </div>
                     
                     <div>
-                        <label for="editProductCategory" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category</label>
+                        <label for="editProductCategory" class="block text-sm font-medium text-[#9CA3AF] mb-1">Category <span class="text-red-500">*</span></label>
                         <select id="editProductCategory" name="category" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
                             <option value="Merchandise">Merchandise</option>
                             <option value="Equipment">Equipment</option>
                             <option value="Drinks">Drinks</option>
                             <option value="Supplements">Supplements</option>
                         </select>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the category that best describes this product.</p>
                     </div>
                     
                     <div>
-                        <label for="editProductDescription" class="block text-sm font-medium text-[#9CA3AF] mb-1">Description</label>
-                        <textarea id="editProductDescription" name="description" rows="3" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"></textarea>
+                        <label for="editProductDescription" class="block text-sm font-medium text-[#9CA3AF] mb-1">Description <span class="text-[#9CA3AF]">(Optional)</span></label>
+                        <textarea id="editProductDescription" name="description" 
+                                  placeholder="Enter detailed description of the product including features, materials, etc." 
+                                  rows="3" 
+                                  class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]"></textarea>
+                        <p class="text-xs text-[#9CA3AF] mt-1">Optional. Provide a detailed description of the product to help customers understand its features and benefits.</p>
                     </div>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label for="editProductPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Price</label>
-                            <input type="number" id="editProductPrice" name="price" min="0" step="0.01" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                            <label for="editProductPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Price <span class="text-red-500">*</span></label>
+                            <input type="number" id="editProductPrice" name="price" 
+                                   placeholder="Enter price in PHP (e.g., 599.99)" 
+                                   min="0" step="0.01" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                                   required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the selling price in Philippine Pesos.</p>
                         </div>
                         <div>
-                            <label for="editProductStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock</label>
-                            <input type="number" id="editProductStock" name="stock" min="0" step="1" class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" required>
+                            <label for="editProductStock" class="block text-sm font-medium text-[#9CA3AF] mb-1">Stock <span class="text-red-500">*</span></label>
+                            <input type="number" id="editProductStock" name="stock" 
+                                   placeholder="Enter available quantity" 
+                                   min="0" step="1" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]" 
+                                   required>
                             <p class="text-xs text-[#9CA3AF] mt-1">
+                                Required. Enter the quantity available for sale.<br>
                                 0: Out of Stock | 1-15: Low Stock | 16+: In Stock
                             </p>
                         </div>
                     </div>
                     
                     <div>
-                        <label class="block text-sm font-medium text-[#9CA3AF] mb-1">Current Image</label>
+                        <label class="block text-sm font-medium text-[#9CA3AF] mb-1">Current Image <span class="text-[#9CA3AF]">(Preview)</span></label>
                         <div id="editCurrentImageContainer" class="w-full h-40 border border-[#4B5563] rounded-md flex items-center justify-center mb-2">
                             <img id="editCurrentImage" class="max-h-full max-w-full object-contain rounded-md" src="" alt="Current product image">
                             <div id="editNoImagePlaceholder" class="flex items-center justify-center w-40 h-40 bg-[#374151] rounded-md hidden">
                                 <i class="fas fa-box text-[#9CA3AF] text-4xl"></i>
                             </div>
                         </div>
+                        <p class="text-xs text-[#9CA3AF] mt-1">This is the current product image. Upload a new one below if you want to replace it.</p>
                     </div>
                     
                     <div>
-                        <label for="editProductImage" class="block text-sm font-medium text-[#9CA3AF] mb-1">Update Image (optional)</label>
+                        <label for="editProductImage" class="block text-sm font-medium text-[#9CA3AF] mb-1">Update Image <span class="text-[#9CA3AF]">(Optional)</span></label>
                         <div class="flex flex-col space-y-2">
                             <div class="flex items-center justify-center w-full">
                                 <label for="editProductImage" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-[#374151] border-[#4B5563] hover:bg-[#424B5D]">
@@ -367,6 +409,7 @@
                                 </label>
                             </div>
                             <span id="editSelectedFileName" class="text-xs text-[#9CA3AF]"></span>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Optional. Upload a new image only if you want to replace the current one. Square images work best for display.</p>
                         </div>
                     </div>
                     

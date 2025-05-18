@@ -45,9 +45,7 @@
                         <td class="px-6 py-4 whitespace-nowrap font-medium">{{ $vendor->name }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ $vendor->contact_info ?: 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs rounded-full {{ $vendor->equipments_count > 0 ? 'bg-green-600' : 'bg-gray-600' }}">
-                                {{ $vendor->equipments_count }}
-                            </span>
+                            {{ $vendor->equipments_count }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex space-x-2">
@@ -87,12 +85,25 @@
             <form action="{{ route('admin.gym.vendors.store') }}" method="POST">
                 @csrf
                 <div class="mb-4">
-                    <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Vendor Name</label>
-                    <input type="text" name="name" id="name" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                    <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Vendor Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" id="name" 
+                           placeholder="Enter vendor company name" 
+                           required 
+                           class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the full company name of the vendor (3-50 characters).</p>
                 </div>
                 <div class="mb-4">
-                    <label for="contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information</label>
-                    <input type="text" name="contact_info" id="contact_info" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" placeholder="Phone number, email, etc.">
+                    <label for="contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information <span class="text-red-500">*</span></label>
+                    <input type="text" name="contact_info" id="contact_info" 
+                           class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                           placeholder="+63 917 123 4567" 
+                           required 
+                           pattern="\+63 [0-9]{10}$"
+                           maxlength="14"
+                           onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                           onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XXXXXXXXX</p>
                 </div>
                 <div class="flex justify-end mt-6 space-x-3">
                     <button type="button" @click="showAddModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
@@ -115,12 +126,27 @@
                 @csrf
                 @method('PUT')
                 <div class="mb-4">
-                    <label for="edit_name" class="block text-sm font-medium text-gray-300 mb-1">Vendor Name</label>
-                    <input type="text" name="name" id="edit_name" required class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" :value="currentVendor?.name">
+                    <label for="edit_name" class="block text-sm font-medium text-gray-300 mb-1">Vendor Name <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" id="edit_name" 
+                           placeholder="Enter vendor company name" 
+                           required 
+                           class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                           :value="currentVendor?.name">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the full company name of the vendor (3-50 characters).</p>
                 </div>
                 <div class="mb-4">
-                    <label for="edit_contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information</label>
-                    <input type="text" name="contact_info" id="edit_contact_info" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" placeholder="Phone number, email, etc." :value="currentVendor?.contact_info">
+                    <label for="edit_contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information <span class="text-red-500">*</span></label>
+                    <input type="text" name="contact_info" id="edit_contact_info" 
+                           class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
+                           placeholder="+63 917 123 4567" 
+                           required 
+                           :value="currentVendor?.contact_info" 
+                           pattern="\+63 [0-9]{10}$"
+                           maxlength="14"
+                           onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                           onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XXXXXXXXX</p>
                 </div>
                 <div class="flex justify-end mt-6 space-x-3">
                     <button type="button" @click="showEditModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
@@ -168,6 +194,38 @@ function confirmDelete(id, name, equipmentCount) {
 
 // Search functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize contact info field with +63 prefix
+    const contactInfoInput = document.getElementById('contact_info');
+    if (contactInfoInput && !contactInfoInput.value) {
+        contactInfoInput.value = '+63 ';
+    }
+    
+    // Initialize when add vendor modal is opened
+    document.querySelectorAll('[\\@click="showAddModal = true"]').forEach(button => {
+        button.addEventListener('click', function() {
+            setTimeout(function() {
+                if (contactInfoInput && !contactInfoInput.value) {
+                    contactInfoInput.value = '+63 ';
+                }
+            }, 100);
+        });
+    });
+    
+    // Initialize edit contact info field when edit modal is opened
+    document.querySelectorAll('[\\@click*="showEditModal = true"]').forEach(button => {
+        button.addEventListener('click', function() {
+            setTimeout(function() {
+                const editContactInfoInput = document.getElementById('edit_contact_info');
+                if (editContactInfoInput) {
+                    // If the value doesn't already have +63 prefix, add it
+                    if (!editContactInfoInput.value.startsWith('+63')) {
+                        editContactInfoInput.value = '+63 ' + editContactInfoInput.value.replace(/^\+63\s*/, '');
+                    }
+                }
+            }, 100);
+        });
+    });
+    
     const searchInput = document.getElementById('searchVendor');
     searchInput.addEventListener('keyup', function() {
         const searchText = this.value.toLowerCase();

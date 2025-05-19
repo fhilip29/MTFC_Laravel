@@ -345,6 +345,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     // Session Management
     Route::get('/session/admin_session', [SessionController::class, 'index'])->name('admin.session.admin_session');
     Route::post('/sessions/store', [SessionController::class, 'store'])->name('admin.session.store');
+    Route::post('/sessions/check-status', [SessionController::class, 'checkStatus'])->name('admin.session.check-status');
+    Route::post('/sessions/check-guest-status', [AdminSessionController::class, 'checkGuestStatus'])->name('admin.session.check-guest-status');
     Route::get('/sessions/guest-list', [AdminSessionController::class, 'getCheckedInGuests'])->name('admin.session.guests');
     
     // Invoice Management

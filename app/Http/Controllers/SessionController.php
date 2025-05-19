@@ -9,6 +9,77 @@ use Carbon\Carbon;
 
 class SessionController extends Controller
 {
+    /**
+     * Check if a user is already checked in or not checked in
+     * Used to prevent duplicate check-ins and invalid check-outs
+     * 
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkStatus(Request $request)
+    {
+        \Log::info('Session Status Check Request', $request->all());
+        
+        $request->validate([
+            'qr_code' => 'required|string',
+            'status' => 'required|in:IN,OUT',
+        ]);
+
+        // Find the user by QR code
+        $user = User::where('qr_code', $request->qr_code)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false, 
+                'error' => 'Invalid QR Code'
+            ], 404);
+        }
+        
+        // Check the user's current status based on their last session
+        $lastSession = Sessions::where('user_id', $user->id)
+            ->latest('time')
+            ->first();
+        
+        // If checking in (status = IN)
+        if ($request->status === 'IN') {
+            // If no previous session or last session was OUT, they can check in
+            if (!$lastSession || $lastSession->status === 'OUT') {
+                return response()->json([
+                    'success' => true,
+                    'canProceed' => true,
+                    'message' => 'User can check in'
+                ]);
+            } else {
+                // User is already checked in
+                return response()->json([
+                    'success' => true,
+                    'canProceed' => false,
+                    'alreadyCheckedIn' => true,
+                    'message' => $user->full_name . ' is already checked in.'
+                ]);
+            }
+        }
+        // If checking out (status = OUT)
+        else {
+            // If no previous session or last session was already OUT, they can't check out
+            if (!$lastSession || $lastSession->status === 'OUT') {
+                return response()->json([
+                    'success' => true,
+                    'canProceed' => false,
+                    'notCheckedIn' => true,
+                    'message' => $user->full_name . ' is not currently checked in. Cannot check out.'
+                ]);
+            } else {
+                // User is checked in and can check out
+                return response()->json([
+                    'success' => true,
+                    'canProceed' => true,
+                    'message' => 'User can check out'
+                ]);
+            }
+        }
+    }
+    
     public function index()
     {
         $sessions = Sessions::with('user')->latest()->get();

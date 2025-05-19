@@ -917,7 +917,37 @@ function filterAnnouncements() {
         }
         
         const matchesSearch = !searchText || title.includes(searchText);
-        const matchesDate = !filterDate || date.includes(filterDate);
+        
+        // Improved date matching logic
+        let matchesDate = true;
+        if (filterDate) {
+            try {
+                // Convert the filter date to a format we can compare
+                const filterDateObj = new Date(filterDate);
+                
+                // Try to extract a date from the cell text (assuming MM/DD/YYYY format)
+                const dateMatch = date.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                if (dateMatch) {
+                    const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
+                    const day = parseInt(dateMatch[2]);
+                    const year = parseInt(dateMatch[3]);
+                    const rowDate = new Date(year, month, day);
+                    
+                    // Compare year, month, and day directly
+                    matchesDate = (
+                        rowDate.getFullYear() === filterDateObj.getFullYear() &&
+                        rowDate.getMonth() === filterDateObj.getMonth() &&
+                        rowDate.getDate() === filterDateObj.getDate()
+                    );
+                } else {
+                    matchesDate = false;
+                }
+            } catch (e) {
+                console.error('Date parsing error:', e);
+                matchesDate = false;
+            }
+        }
+        
         const matchesStatus = !statusFilter || status.includes(statusFilter);
         
         if (matchesSearch && matchesDate && matchesStatus) {

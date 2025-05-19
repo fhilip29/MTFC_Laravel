@@ -19,19 +19,6 @@
             </div>
         </div>
 
-        <!-- Session Type Tabs -->
-        <div class="flex border-b border-[#374151] mb-4">
-            <button id="allSessionsTab" class="px-4 py-2 text-white bg-[#374151] border-b-2 border-blue-500 rounded-t-md">
-                <i class="fas fa-list mr-2"></i> All Sessions
-            </button>
-            <button id="checkInsTab" class="px-4 py-2 text-[#9CA3AF] hover:text-white">
-                <i class="fas fa-sign-in-alt mr-2"></i> Check-Ins
-            </button>
-            <button id="checkOutsTab" class="px-4 py-2 text-[#9CA3AF] hover:text-white">
-                <i class="fas fa-sign-out-alt mr-2"></i> Check-Outs
-            </button>
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
                 <input 
@@ -66,6 +53,19 @@
                     <i class="fas fa-undo-alt"></i> Reset Filters
                 </button>
             </div>
+        </div>
+        
+        <!-- Check-ins and Check-outs buttons -->
+        <div class="flex gap-3 mb-4">
+            <button id="showAllBtn" class="px-4 py-2 bg-[#374151] text-white rounded-md shadow-md flex items-center gap-2 border-b-2 border-blue-500">
+                <i class="fas fa-list"></i> All Sessions
+            </button>
+            <button id="showCheckInsBtn" class="px-4 py-2 bg-[#374151] text-[#9CA3AF] hover:text-white rounded-md shadow-md flex items-center gap-2 transition-colors">
+                <i class="fas fa-sign-in-alt"></i> Check-Ins
+            </button>
+            <button id="showCheckOutsBtn" class="px-4 py-2 bg-[#374151] text-[#9CA3AF] hover:text-white rounded-md shadow-md flex items-center gap-2 transition-colors">
+                <i class="fas fa-sign-out-alt"></i> Check-Outs
+            </button>
         </div>
 
         <div class="-mx-4 sm:mx-0 overflow-x-auto bg-[#1F2937] rounded-lg shadow-md">
@@ -115,7 +115,7 @@
                                     </td>
                                     <td class="px-4 py-3 font-medium text-white">{{ $session->user->full_name ?? ($session->guest_name ?? 'Guest User') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF] capitalize">{{ $session->user->role ?? 'guest' }}</td> 
-                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('m/d/Y') }}</td>
+                                    <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('M d, Y') }}</td>
                                     <td class="px-4 py-3 text-[#9CA3AF]">{{ \Carbon\Carbon::parse($session->time)->setTimezone('Asia/Manila')->format('h:i A') }}</td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full 
@@ -319,65 +319,63 @@
         const resetFilters = document.getElementById('resetFilters');
         const rows = document.querySelectorAll('#sessionTable tbody tr');
         
-        // Session tabs
-        const allSessionsTab = document.getElementById('allSessionsTab');
-        const checkInsTab = document.getElementById('checkInsTab');
-        const checkOutsTab = document.getElementById('checkOutsTab');
+        // Track the current status filter
+        let currentStatusFilter = 'all'; // 'all', 'in', or 'out'
         
         // Function to apply all filters
         function applyFilters() {
-            const searchValue = searchInput.value.toLowerCase();
+            const searchText = searchInput.value.toLowerCase();
             const roleValue = roleFilter.value.toLowerCase();
             const dateValue = dateFilter.value ? new Date(dateFilter.value) : null;
             
-            // Get the active tab for status filtering
-            let activeTabId = '';
-            if (allSessionsTab.classList.contains('border-blue-500')) {
-                activeTabId = 'allSessionsTab';
-            } else if (checkInsTab.classList.contains('border-blue-500')) {
-                activeTabId = 'checkInsTab';
-            } else if (checkOutsTab.classList.contains('border-blue-500')) {
-                activeTabId = 'checkOutsTab';
-            }
-            
             rows.forEach(row => {
-                // Get all the cell values for filtering
-                const nameCell = row.querySelector('td:nth-child(2)');
-                const roleCell = row.querySelector('td:nth-child(3)');
-                const dateCell = row.querySelector('td:nth-child(4)');
-                const statusSpan = row.querySelector('td:nth-child(6) span');
+                // Get column values
+                const nameCell = row.cells[1];
+                const roleCell = row.cells[2];
+                const dateCell = row.cells[3];
+                const statusCell = row.cells[5]; // Status cell (IN/OUT)
                 
-                if (!nameCell || !roleCell || !dateCell || !statusSpan) return;
+                if (!nameCell || !roleCell || !dateCell || !statusCell) return;
                 
-                const name = nameCell.textContent.toLowerCase();
-                const role = roleCell.textContent.toLowerCase();
-                const dateText = dateCell.textContent;
-                const status = statusSpan.textContent.trim();
+                // Get text for search filter
+                const nameText = nameCell ? nameCell.innerText.toLowerCase() : '';
                 
-                // Parse date in MM/DD/YYYY format
-                const dateParts = dateText.split('/');
-                const rowDate = dateParts.length === 3 ? 
-                    new Date(dateParts[2], dateParts[0] - 1, dateParts[1]) : null;
+                // Get role for role filter
+                const roleText = roleCell ? roleCell.innerText.toLowerCase() : '';
                 
-                // Apply each filter
-                const nameMatch = name.includes(searchValue);
-                const roleMatch = !roleValue || role === roleValue;
-                const dateMatch = !dateValue || (rowDate && rowDate.toDateString() === dateValue.toDateString());
+                // Get status for status filter
+                const statusText = statusCell ? statusCell.innerText.trim() : '';
                 
-                // Status filter based on active tab
-                let statusMatch = true;
-                if (activeTabId === 'checkInsTab') {
-                    statusMatch = status.includes('IN');
-                } else if (activeTabId === 'checkOutsTab') {
-                    statusMatch = status.includes('OUT');
+                // Get date for date filter
+                let rowDate = null;
+                if (dateCell) {
+                    const dateParts = dateCell.innerText.split(',')[0].split(' ');
+                    const month = getMonthNumber(dateParts[0]);
+                    const day = parseInt(dateParts[1]);
+                    const year = parseInt(dateCell.innerText.split(', ')[1]);
+                    if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
+                        rowDate = new Date(year, month, day);
+                    }
                 }
                 
-                // Show or hide row based on all filters
-                if (nameMatch && roleMatch && dateMatch && statusMatch) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
+                // Check if row passes all filters
+                const passesSearch = nameText.includes(searchText);
+                const passesRole = !roleValue || roleText === roleValue;
+                const passesDate = !dateValue || (rowDate && 
+                    rowDate.getFullYear() === dateValue.getFullYear() && 
+                    rowDate.getMonth() === dateValue.getMonth() && 
+                    rowDate.getDate() === dateValue.getDate());
+                    
+                // Check if row passes status filter
+                let passesStatus = true;
+                if (currentStatusFilter === 'in') {
+                    passesStatus = statusText.includes('IN');
+                } else if (currentStatusFilter === 'out') {
+                    passesStatus = statusText.includes('OUT');
                 }
+                
+                // Show or hide row based on all filter results
+                row.style.display = (passesSearch && passesRole && passesDate && passesStatus) ? '' : 'none';
             });
         }
         
@@ -420,44 +418,48 @@
         searchInput.addEventListener('input', applyFilters);
         roleFilter.addEventListener('change', applyFilters);
         dateFilter.addEventListener('change', applyFilters);
+        resetFilters.addEventListener('click', resetAllFilters);
         
-        // Reset filters
-        resetFilters.addEventListener('click', function() {
-            searchInput.value = '';
-            roleFilter.value = '';
-            dateFilter.value = '';
-            applyFilters();
-        });
+        // Get check-ins and check-outs buttons
+        const showAllBtn = document.getElementById('showAllBtn');
+        const showCheckInsBtn = document.getElementById('showCheckInsBtn');
+        const showCheckOutsBtn = document.getElementById('showCheckOutsBtn');
         
-        // Session tab switching functionality
-        function switchSessionTab(tabElement) {
-            // Remove active class from all tabs
-            [allSessionsTab, checkInsTab, checkOutsTab].forEach(tab => {
-                tab.classList.remove('bg-[#374151]', 'border-b-2', 'border-blue-500');
-                tab.classList.add('text-[#9CA3AF]');
+        // Function to update button styles
+        function updateButtonStyles(activeButton) {
+            // Reset all buttons
+            [showAllBtn, showCheckInsBtn, showCheckOutsBtn].forEach(btn => {
+                btn.classList.remove('border-b-2', 'border-blue-500', 'text-white');
+                btn.classList.add('text-[#9CA3AF]');
             });
             
-            // Add active class to selected tab
-            tabElement.classList.add('bg-[#374151]', 'border-b-2', 'border-blue-500');
-            tabElement.classList.remove('text-[#9CA3AF]');
-            tabElement.classList.add('text-white');
-            
-            // Apply filters to show/hide rows based on the selected tab
-            applyFilters();
+            // Style active button
+            activeButton.classList.remove('text-[#9CA3AF]');
+            activeButton.classList.add('border-b-2', 'border-blue-500', 'text-white');
         }
         
-        // Add event listeners for session tabs
-        allSessionsTab.addEventListener('click', function() {
-            switchSessionTab(allSessionsTab);
+        // Add event listeners for check-ins and check-outs buttons
+        showAllBtn.addEventListener('click', function() {
+            currentStatusFilter = 'all';
+            updateButtonStyles(showAllBtn);
+            applyFilters();
         });
         
-        checkInsTab.addEventListener('click', function() {
-            switchSessionTab(checkInsTab);
+        showCheckInsBtn.addEventListener('click', function() {
+            currentStatusFilter = 'in';
+            updateButtonStyles(showCheckInsBtn);
+            applyFilters();
         });
         
-        checkOutsTab.addEventListener('click', function() {
-            switchSessionTab(checkOutsTab);
+        showCheckOutsBtn.addEventListener('click', function() {
+            currentStatusFilter = 'out';
+            updateButtonStyles(showCheckOutsBtn);
+            applyFilters();
         });
+        
+        // Apply filters on page load (if any values are already set)
+        applyFilters();
+    });
 
     // QR Code Scanner Implementation
     document.addEventListener('DOMContentLoaded', function() {
@@ -768,8 +770,8 @@
                 }
             });
             
-            // Send the QR code to the server
-            fetch('{{ route("admin.session.store") }}', {
+            // First, check if the user is already checked in/out based on the current scan mode
+            fetch('{{ route("admin.session.check-status") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -777,36 +779,101 @@
                 },
                 body: JSON.stringify({
                     qr_code: qrCode,
-                    status: scanMode,
-                    timezone: 'Asia/Manila' // Explicitly set Philippines timezone
+                    status: scanMode
                 })
             })
             .then(response => response.json())
-            .then(data => {
-                Swal.close();
+            .then(statusData => {
+                // If the user is already checked in and trying to check in again
+                if (statusData.alreadyCheckedIn && scanMode === 'IN') {
+                    Swal.close();
+                    scannerMessage.textContent = 'User is already checked in';
+                    scannerMessage.classList.add('text-red-500');
+                    
+                    Swal.fire({
+                        title: 'Already Checked In',
+                        text: statusData.message || 'This user is already checked in.',
+                        icon: 'warning'
+                    });
+                    
+                    scanning = false;
+                    startScannerBtn.textContent = 'Start Scanner';
+                    startScannerBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                    startScannerBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    return;
+                }
                 
-                if (data.success) {
-                    handleSuccessfulScan(data.data);
-                } else {
-                    scannerMessage.textContent = data.error || 'Error processing QR code';
+                // If the user is not checked in but trying to check out
+                if (statusData.notCheckedIn && scanMode === 'OUT') {
+                    Swal.close();
+                    scannerMessage.textContent = 'User is not checked in';
+                    scannerMessage.classList.add('text-red-500');
+                    
+                    Swal.fire({
+                        title: 'Not Checked In',
+                        text: statusData.message || 'This user is not checked in. Cannot check out.',
+                        icon: 'warning'
+                    });
+                    
+                    scanning = false;
+                    startScannerBtn.textContent = 'Start Scanner';
+                    startScannerBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+                    startScannerBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    return;
+                }
+                
+                // If status check passes, proceed with the actual check-in/out
+                fetch('{{ route("admin.session.store") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        qr_code: qrCode,
+                        status: scanMode,
+                        timezone: 'Asia/Manila' // Explicitly set Philippines timezone
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    Swal.close();
+                    
+                    if (data.success) {
+                        handleSuccessfulScan(data.data);
+                    } else {
+                        scannerMessage.textContent = data.error || 'Error processing QR code';
+                        scannerMessage.classList.add('text-red-500');
+                        
+                        Swal.fire({
+                            title: 'Error',
+                            text: data.error || 'Error processing QR code',
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.close();
+                    console.error('Error:', error);
+                    scannerMessage.textContent = 'Error processing scan. Please try again.';
                     scannerMessage.classList.add('text-red-500');
                     
                     Swal.fire({
                         title: 'Error',
-                        text: data.error || 'Error processing QR code',
+                        text: 'Network error. Please check your connection and try again.',
                         icon: 'error'
                     });
-                }
+                });
             })
             .catch(error => {
                 Swal.close();
-                console.error('Error:', error);
-                scannerMessage.textContent = 'Error processing scan. Please try again.';
+                console.error('Status check error:', error);
+                scannerMessage.textContent = 'Error checking user status. Please try again.';
                 scannerMessage.classList.add('text-red-500');
                 
                 Swal.fire({
                     title: 'Error',
-                    text: 'Network error. Please check your connection and try again.',
+                    text: 'Network error while checking user status. Please try again.',
                     icon: 'error'
                 });
             });
@@ -1095,7 +1162,7 @@
                         const date = new Date();
                         const options = { timeZone: 'Asia/Manila', month: 'short', day: 'numeric', year: 'numeric' };
                         const timeOptions = { timeZone: 'Asia/Manila', hour: 'numeric', minute: 'numeric', hour12: true };
-                        const formattedDate = date.toLocaleDateString('en-US', {month: '2-digit', day: '2-digit', year: 'numeric'});
+                        const formattedDate = date.toLocaleDateString('en-US', options);
                         const formattedTime = date.toLocaleTimeString('en-US', timeOptions);
                         
                         newRow.innerHTML = `

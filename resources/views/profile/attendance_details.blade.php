@@ -27,7 +27,13 @@
 
         <!-- Header and Stats -->
         <div class="mb-6">
-            <h1 class="text-2xl font-bold text-gray-800 mb-4">Attendance History</h1>
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-bold text-gray-800">Attendance History</h1>
+                <a href="{{ route('profile') }}" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    <span>Back to Profile</span>
+                </a>
+            </div>
             
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div class="bg-white rounded-lg shadow p-4 border border-gray-200">

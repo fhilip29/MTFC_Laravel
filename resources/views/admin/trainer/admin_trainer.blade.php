@@ -299,11 +299,11 @@
                                         <div id="imagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                             <img id="imagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                         </div>
-                                        <input id="profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/gif" class="hidden" required />
+                                        <input id="profile_image" name="profile_image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" required />
                                     </label>
                                 </div>
                                 <span id="selectedFileName" class="text-xs text-[#9CA3AF]"></span>
-                                <p class="text-xs text-[#9CA3AF]">Required. Upload a professional photo of the trainer. Square images work best.</p>
+                                <p class="text-xs text-[#9CA3AF]">PNG, JPG or JPEG (MAX. 5MB)</p>
                             </div>
                         </div>
                     </div>
@@ -836,21 +836,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleImageSelection(e, inputElement, previewElement, previewContainer, placeholderElement) {
         const file = e.target.files[0];
-        
         if (file) {
-            // File size validation (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                Swal.fire({
-                    title: 'File Too Large',
-                    text: 'File size should not exceed 5MB',
-                    icon: 'error',
-                    background: '#1F2937',
-                    color: '#ffffff'
-                });
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload only PNG, JPG or JPEG files.');
                 inputElement.value = '';
                 return;
             }
-            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size should not exceed 5MB');
+                inputElement.value = '';
+                return;
+            }
             // Store references to active elements
             activeImageInput = inputElement;
             activeImagePreview = previewElement;

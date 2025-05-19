@@ -1241,6 +1241,13 @@
             return philippinePhoneRegex.test(phone.replace(/\s+/g, ''));
         }
 
+        // Function to validate guest name (letters and spaces only)
+        function isValidGuestName(name) {
+            // Only allow letters, spaces, and basic punctuation
+            const nameRegex = /^[A-Za-z\s\-\.]+$/;
+            return nameRegex.test(name);
+        }
+
         // Function to handle guest check-in submission
         function handleGuestSubmit(status) {
             const guestName = guestNameInput.value.trim();
@@ -1249,6 +1256,12 @@
             
             // Validate name
             if (!guestName) {
+                guestNameError.textContent = 'Guest name is required.';
+                guestNameError.classList.remove('hidden');
+                guestNameInput.focus();
+                isValid = false;
+            } else if (!isValidGuestName(guestName)) {
+                guestNameError.textContent = 'Name can only contain letters, spaces, hyphens, and periods.';
                 guestNameError.classList.remove('hidden');
                 guestNameInput.focus();
                 isValid = false;
@@ -1257,7 +1270,15 @@
             }
             
             // Validate phone number
-            if (!guestPhone || !isValidPhoneNumber(guestPhone)) {
+            if (!guestPhone) {
+                guestPhoneError.textContent = 'Phone number is required.';
+                guestPhoneError.classList.remove('hidden');
+                if (isValid) {
+                    guestPhoneInput.focus();
+                }
+                isValid = false;
+            } else if (!isValidPhoneNumber(guestPhone)) {
+                guestPhoneError.textContent = 'Please enter a valid Philippine phone number.';
                 guestPhoneError.classList.remove('hidden');
                 if (isValid) {
                     guestPhoneInput.focus();

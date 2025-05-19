@@ -127,7 +127,16 @@
     <!-- Page Loader -->
     @include('components.loader')
 
-    @include('components.header')
+    @if (!Request::is('profile') && !Request::is('profile/qr') && !Request::is('user/attendance') && !Request::is('account-settings'))
+        @include('components.header')
+    @else
+        <!-- Home Button for Profile Pages -->
+        <div class="fixed top-4 left-4 z-50">
+            <a href="/" class="bg-gray-800 text-white p-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center">
+                <i class="fas fa-home text-xl"></i>
+            </a>
+        </div>
+    @endif
 
     <main class="flex-grow">
         @yield('content')

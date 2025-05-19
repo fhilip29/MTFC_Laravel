@@ -98,10 +98,10 @@
                             <div class="flex flex-col space-y-2">
                                 <label class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg cursor-pointer text-center transition-colors inline-block">
                                     <i class="fas fa-camera mr-2"></i> Change Photo
-                                    <input type="file" id="profile_image" class="hidden" name="profile_image" accept="image/*">
+                                    <input type="file" id="profile_image" class="hidden" name="profile_image" accept="image/png, image/jpeg, image/jpg">
                                     <input type="hidden" id="cropped_image" name="cropped_image">
                                 </label>
-                                <span class="text-xs text-gray-500">JPEG, PNG, GIF up to 4MB</span>
+                                <span class="text-xs text-gray-500">PNG, JPG or JPEG up to 4MB</span>
                                 @error('profile_image')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
@@ -304,6 +304,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = e.target.files[0];
         
         if (file) {
+            // File type validation
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload only PNG, JPG or JPEG files.');
+                profileImageInput.value = '';
+                return;
+            }
+            
             // File size validation (4MB max)
             if (file.size > 4 * 1024 * 1024) {
                 alert('File size should not exceed 4MB');

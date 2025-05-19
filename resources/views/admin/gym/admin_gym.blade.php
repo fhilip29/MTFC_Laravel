@@ -372,8 +372,7 @@
                                     <div id="addImagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                         <img id="addImagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                     </div>
-                                    <input id="image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" required 
-                                        @change="handleImagePreview($event, 'addImagePreview', 'addUploadPlaceholder', 'addImagePreviewContainer')" />
+                                    <input id="image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" required />
                                 </label>
                             </div>
                             <span id="addSelectedFileName" class="text-xs text-gray-400"></span>
@@ -507,8 +506,7 @@
                                     <div id="editImagePreviewContainer" class="hidden w-full h-full flex items-center justify-center">
                                         <img id="editImagePreview" class="max-h-28 max-w-full object-contain" src="#" alt="Preview">
                                     </div>
-                                    <input id="edit_image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" 
-                                        @change="handleImagePreview($event, 'editImagePreview', 'editUploadPlaceholder', 'editImagePreviewContainer')" />
+                                    <input id="edit_image" name="image" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" />
                                 </label>
                             </div>
                             <span id="editSelectedFileName" class="text-xs text-gray-400"></span>
@@ -791,28 +789,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Image preview for add form
     const imageInput = document.getElementById('image');
     const selectedFileName = document.getElementById('addSelectedFileName');
+    const addUploadPlaceholder = document.getElementById('addUploadPlaceholder');
+    const addImagePreviewContainer = document.getElementById('addImagePreviewContainer');
+    const addImagePreview = document.getElementById('addImagePreview');
     
     if (imageInput) {
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             
             if (file) {
-                // File size validation (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.fire({
-                        title: 'File Too Large',
-                        text: 'File size should not exceed 5MB',
-                        icon: 'error',
-                        confirmButtonColor: '#1f2937'
-                    });
+                // File type validation
+                const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please upload only PNG, JPG or JPEG files.');
                     imageInput.value = '';
                     return;
                 }
+                
+                // File size validation (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size should not exceed 5MB');
+                    imageInput.value = '';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    addImagePreview.src = e.target.result;
+                    addUploadPlaceholder.classList.add('hidden');
+                    addImagePreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
                 
                 // Show file name
                 selectedFileName.textContent = file.name;
             } else {
                 // Reset preview
+                addUploadPlaceholder.classList.remove('hidden');
+                addImagePreviewContainer.classList.add('hidden');
                 selectedFileName.textContent = '';
             }
         });
@@ -821,28 +836,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Image preview for edit form
     const editImageInput = document.getElementById('edit_image');
     const editSelectedFileName = document.getElementById('editSelectedFileName');
+    const editUploadPlaceholder = document.getElementById('editUploadPlaceholder');
+    const editImagePreviewContainer = document.getElementById('editImagePreviewContainer');
+    const editImagePreview = document.getElementById('editImagePreview');
     
     if (editImageInput) {
         editImageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             
             if (file) {
-                // File size validation (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.fire({
-                        title: 'File Too Large',
-                        text: 'File size should not exceed 5MB',
-                        icon: 'error',
-                        confirmButtonColor: '#1f2937'
-                    });
+                // File type validation
+                const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please upload only PNG, JPG or JPEG files.');
                     editImageInput.value = '';
                     return;
                 }
+                
+                // File size validation (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File size should not exceed 5MB');
+                    editImageInput.value = '';
+                    return;
+                }
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editImagePreview.src = e.target.result;
+                    editUploadPlaceholder.classList.add('hidden');
+                    editImagePreviewContainer.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
                 
                 // Show file name
                 editSelectedFileName.textContent = file.name;
             } else {
                 // Reset preview
+                editUploadPlaceholder.classList.remove('hidden');
+                editImagePreviewContainer.classList.add('hidden');
                 editSelectedFileName.textContent = '';
             }
         });

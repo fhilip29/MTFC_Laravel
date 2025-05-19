@@ -163,12 +163,12 @@
                                 
                                 <div class="flex-1">
                                     <label class="block text-sm font-medium text-[#9CA3AF] mb-2">Update Profile Image</label>
-                                    <input type="file" name="profile_image" id="profile_image" accept="image/*" class="w-full text-[#9CA3AF] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#374151] file:text-white hover:file:bg-[#4B5563]">
+                                    <input type="file" name="profile_image" id="profile_image" accept="image/png, image/jpeg, image/jpg" class="w-full text-[#9CA3AF] file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-[#374151] file:text-white hover:file:bg-[#4B5563]">
                                     <input type="hidden" id="cropped_image" name="cropped_image">
                                     @error('profile_image')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
-                                    <p class="mt-1 text-xs text-[#9CA3AF]">Recommended size: 300x300 pixels. Max file size: 2MB.</p>
+                                    <p class="mt-1 text-xs text-[#9CA3AF]">PNG, JPG or JPEG. Recommended size: 300x300 pixels. Max file size: 2MB.</p>
                                 </div>
                             </div>
                         </div>
@@ -325,22 +325,14 @@
             const file = e.target.files[0];
             
             if (file) {
-                // File size validation (2MB max)
+                const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Please upload only PNG, JPG or JPEG files.');
+                    profileImageInput.value = '';
+                    return;
+                }
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'File size should not exceed 2MB',
-                        icon: 'error',
-                        confirmButtonColor: '#EF4444',
-                        background: '#1F2937',
-                        color: '#FFFFFF',
-                        customClass: {
-                            popup: 'rounded-lg border border-[#374151]',
-                            title: 'text-white text-xl',
-                            htmlContainer: 'text-[#9CA3AF]',
-                            confirmButton: 'rounded-md px-4 py-2'
-                        }
-                    });
+                    alert('File size should not exceed 2MB');
                     profileImageInput.value = '';
                     return;
                 }

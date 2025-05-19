@@ -32,6 +32,14 @@
             </nav>
         </div>
 
+        <!-- Back Button -->
+        <div class="flex justify-start mb-4">
+            <a href="{{ route('profile') }}" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span>Back to Profile</span>
+            </a>
+        </div>
+
         <!-- Header with Compose Button -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Messages</h1>

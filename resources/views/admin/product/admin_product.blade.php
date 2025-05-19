@@ -610,20 +610,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = e.target.files[0];
         
         if (file) {
-            // File size validation (2MB max)
-            if (file.size > 2 * 1024 * 1024) {
-                Swal.fire({
-                    title: 'File Too Large',
-                    text: 'File size should not exceed 2MB',
-                    icon: 'error',
-                    background: '#1F2937',
-                    color: '#fff'
-                });
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload only PNG, JPG or JPEG files.');
                 productImageInput.value = '';
                 return;
             }
-            
-            // Show file name
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size should not exceed 2MB');
+                productImageInput.value = '';
+                return;
+            }
             selectedFileName.textContent = file.name;
             
             // Show image preview
@@ -799,20 +796,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = e.target.files[0];
         
         if (file) {
-            // File size validation (2MB max)
-            if (file.size > 2 * 1024 * 1024) {
-                Swal.fire({
-                    title: 'File Too Large',
-                    text: 'File size should not exceed 2MB',
-                    icon: 'error',
-                    background: '#1F2937',
-                    color: '#fff'
-                });
+            const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Please upload only PNG, JPG or JPEG files.');
                 editProductImageInput.value = '';
                 return;
             }
-            
-            // Show file name
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size should not exceed 2MB');
+                editProductImageInput.value = '';
+                return;
+            }
             editSelectedFileName.textContent = file.name;
             
             // Show image preview

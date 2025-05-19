@@ -60,43 +60,50 @@
                     <div>
                         <label for="recipient_id" class="block text-sm font-medium text-gray-700 mb-1">To:</label>
                         <div class="relative">
-                            <select id="recipient_id" name="recipient_id" class="select2-recipient w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
-                                <option value="">Select or search for a recipient</option>
-                                
-                                @if(isset($admins) && count($admins) > 0)
-                                    <optgroup label="Admin Team">
-                                        @foreach($admins as $admin)
-                                            <option value="{{ $admin->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $admin->id ? 'selected' : '' }}>
-                                                {{ $admin->full_name }} (Admin)
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
+                            <select id="recipient_id" name="recipient_id" class="select2-recipient w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500" {{ isset($preSelectedRecipient) ? 'disabled' : '' }}>
+                                @if(isset($preSelectedRecipient))
+                                    <option value="{{ $preSelectedRecipient->id }}" selected>{{ $preSelectedRecipient->full_name }} (Admin)</option>
                                 @else
-                                    <option value="1" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == 1 ? 'selected' : '' }}>
-                                        Admin/Support Team
-                                    </option>
-                                @endif
-                                
-                                @if(isset($trainers) && count($trainers) > 0)
-                                    <optgroup label="Trainers">
-                                        @foreach($trainers as $trainer)
-                                            <option value="{{ $trainer->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $trainer->id ? 'selected' : '' }}>
-                                                {{ $trainer->full_name }} (Trainer)
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
-                                @endif
-                                
-                                @if(isset($members) && count($members) > 0)
-                                    <optgroup label="Members">
-                                        @foreach($members as $member)
-                                            <option value="{{ $member->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $member->id ? 'selected' : '' }}>
-                                                {{ $member->full_name }} (Member)
-                                            </option>
-                                        @endforeach
-                                    </optgroup>
+                                    <option value="">Select or search for a recipient</option>
+                                    
+                                    @if(isset($admins) && count($admins) > 0)
+                                        <optgroup label="Admin Team">
+                                            @foreach($admins as $admin)
+                                                <option value="{{ $admin->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $admin->id ? 'selected' : '' }}>
+                                                    {{ $admin->full_name }} (Admin)
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @else
+                                        <option value="1" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == 1 ? 'selected' : '' }}>
+                                            Admin/Support Team
+                                        </option>
+                                    @endif
+                                    
+                                    @if(isset($trainers) && count($trainers) > 0)
+                                        <optgroup label="Trainers">
+                                            @foreach($trainers as $trainer)
+                                                <option value="{{ $trainer->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $trainer->id ? 'selected' : '' }}>
+                                                    {{ $trainer->full_name }} (Trainer)
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
+                                    
+                                    @if(isset($members) && count($members) > 0)
+                                        <optgroup label="Members">
+                                            @foreach($members as $member)
+                                                <option value="{{ $member->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $member->id ? 'selected' : '' }}>
+                                                    {{ $member->full_name }} (Member)
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    @endif
                                 @endif
                             </select>
+                            @if(isset($preSelectedRecipient))
+                                <input type="hidden" name="recipient_id" value="{{ $preSelectedRecipient->id }}">
+                            @endif
                         </div>
                     </div>
                     

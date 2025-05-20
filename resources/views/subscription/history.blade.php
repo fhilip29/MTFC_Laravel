@@ -35,8 +35,8 @@
                 <div class="py-10 text-center">
                     <i class="fas fa-scroll text-gray-400 text-5xl mb-3"></i>
                     <p class="text-gray-600 text-lg">You don't have any subscriptions yet.</p>
-                    <a href="{{ route('pricing.gym') }}" class="mt-4 inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-colors text-sm font-medium">
-                        <i class="fas fa-plus mr-2"></i> Get a Membership
+                    <a href="{{ route('pricing.show', 'gym') }}" class="mt-4 inline-flex items-center bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg transition-colors text-sm font-medium">
+                        <i class="fas fa-plus mr-2"></i> Add Subscription
                     </a>
                 </div>
             @else
@@ -123,8 +123,8 @@
             <a href="{{ route('profile') }}" class="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition duration-200 flex items-center justify-center text-sm md:text-base">
                 <i class="fas fa-user mr-2"></i> Back to Profile
             </a>
-            <a href="{{ route('pricing.gym') }}" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
-                <i class="fas fa-shopping-cart mr-2"></i> Browse Memberships
+            <a href="{{ route('pricing.show', 'gym') }}" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center text-sm md:text-base">
+                <i class="fas fa-plus mr-2"></i> Add Subscription
             </a>
         </div>
     </div>

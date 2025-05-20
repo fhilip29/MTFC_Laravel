@@ -180,4 +180,12 @@ public function receivedMessages()
     return $this->hasMany(Message::class, 'recipient_id');
 }
 
+/**
+ * Get the sports this user (trainer) specializes in
+ */
+public function specialtySports()
+{
+    return $this->belongsToMany(Sport::class, 'trainer_specialties');
+}
+
 }

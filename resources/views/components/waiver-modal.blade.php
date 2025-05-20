@@ -120,7 +120,7 @@
                     timerProgressBar: true
                 }).then(() => {
                     // Redirect to payment method page with subscription details as query parameters
-                    window.location.href = `/payment-method?type=${encodeURIComponent(type)}&plan=${encodeURIComponent(plan)}&amount=${encodeURIComponent(price)}&waiver_accepted=1`;
+                    window.location.href = "{{ route('payment-method') }}?type=" + encodeURIComponent(type) + "&plan=" + encodeURIComponent(plan) + "&amount=" + encodeURIComponent(price) + "&waiver_accepted=1";
                 });
             }
         });

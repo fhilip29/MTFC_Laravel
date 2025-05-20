@@ -234,7 +234,7 @@
         <div class="bg-white hover-card rounded-xl shadow-lg p-4 md:p-6 mb-4 md:mb-6 border border-gray-200">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6 space-y-3 sm:space-y-0">
                 <h2 class="text-lg md:text-xl font-semibold text-gray-800">Membership Plan</h2>
-                <a href="{{ route('pricing.gym') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
+                <a href="{{ route('pricing') }}" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm w-full sm:w-auto">
                     @if (!$activeSubscription)
                         Add Plan
                     @else
@@ -341,7 +341,7 @@
             <div class="py-6 text-center bg-gray-100 rounded-lg">
                 <i class="fas fa-dumbbell text-gray-500 text-4xl mb-3"></i>
                 <p class="text-gray-600 mb-4">You don't have any active membership plan.</p>
-                <a href="{{ route('pricing.gym') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
+                <a href="{{ route('pricing') }}" class="bg-red-600 text-white py-2 px-6 rounded-lg hover:bg-red-700 transition duration-200 inline-flex items-center justify-center text-sm md:text-base">
                     <i class="fas fa-plus mr-2"></i> Get Membership
                 </a>
             </div>

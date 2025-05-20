@@ -42,10 +42,32 @@ class AdminMemberController extends Controller
     
     public function storeSubscription(Request $request, User $user)
     {
-        $validated = $request->validate([
-            'type' => 'required|string|in:gym,boxing,muay,jiu-jitsu',
+        // Get all active sport slugs from database for validation
+        $validSportSlugs = \App\Models\Sport::where('is_active', true)->pluck('slug')->toArray();
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'type' => 'required|string|in:' . implode(',', $validSportSlugs),
             'plan' => 'required|string|in:daily,monthly,per-session',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid sport type or plan. Please try again.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        
+        // Get sport for validation
+        $sport = \App\Models\Sport::where('slug', $validated['type'])->first();
+        if (!$sport) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected sport is not available'
+            ], 400);
+        }
         
         // Validate plan type combinations
         if ($validated['type'] !== 'gym' && $validated['plan'] === 'daily') {
@@ -105,10 +127,32 @@ class AdminMemberController extends Controller
             ], 403);
         }
         
-        $validated = $request->validate([
-            'type' => 'required|string|in:gym,boxing,muay,jiu-jitsu',
+        // Get all active sport slugs from database for validation
+        $validSportSlugs = \App\Models\Sport::where('is_active', true)->pluck('slug')->toArray();
+
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
+            'type' => 'required|string|in:' . implode(',', $validSportSlugs),
             'plan' => 'required|string|in:daily,monthly,per-session',
         ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid sport type or plan. Please try again.',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $validated = $validator->validated();
+        
+        // Get sport for validation
+        $sport = \App\Models\Sport::where('slug', $validated['type'])->first();
+        if (!$sport) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Selected sport is not available'
+            ], 400);
+        }
         
         // Validate plan type combinations
         if ($validated['type'] !== 'gym' && $validated['plan'] === 'daily') {
@@ -174,6 +218,17 @@ class AdminMemberController extends Controller
      */
     private function getPlanPrice($type, $plan)
     {
+        // Try to get price from database first
+        $pricingPlan = \App\Models\PricingPlan::where('type', $type)
+            ->where('plan', $plan)
+            ->where('is_active', true)
+            ->first();
+            
+        if ($pricingPlan) {
+            return $pricingPlan->price;
+        }
+        
+        // Fallback to default prices if no pricing plan found
         $prices = [
             'gym' => [
                 'daily' => 100.00,
@@ -192,6 +247,17 @@ class AdminMemberController extends Controller
                 'per-session' => 400.00
             ]
         ];
+        
+        // If sport or plan not in default prices array, use a reasonable default price
+        if (!isset($prices[$type]) || !isset($prices[$type][$plan])) {
+            if ($plan === 'daily') {
+                return 100.00;
+            } elseif ($plan === 'monthly') {
+                return 2000.00;
+            } else { // per-session
+                return 300.00;
+            }
+        }
         
         return $prices[$type][$plan] ?? 0.00;
     }

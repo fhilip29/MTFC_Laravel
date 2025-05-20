@@ -69,10 +69,9 @@
                 <div class="relative flex-grow md:flex-grow-0 md:w-48">
                     <select id="filterDropdown" onchange="applyFilter(this.value)" class="w-full pl-4 pr-8 py-3 bg-[#374151] border-2 border-[#4B5563] text-white rounded-lg focus:outline-none focus:border-[#9CA3AF] focus:ring-1 focus:ring-[#9CA3AF] transition-all duration-200 appearance-none">
                         <option value="all" {{ $filter == 'all' || !$filter ? 'selected' : '' }}>All Active</option>
-                        <option value="gym" {{ $filter == 'gym' ? 'selected' : '' }}>Gym</option>
-                        <option value="boxing" {{ $filter == 'boxing' ? 'selected' : '' }}>Boxing</option>
-                        <option value="muay-thai" {{ $filter == 'muay-thai' ? 'selected' : '' }}>Muay Thai</option>
-                        <option value="jiu-jitsu" {{ $filter == 'jiu-jitsu' ? 'selected' : '' }}>Jiu Jitsu</option>
+                        @foreach($sports as $sport)
+                            <option value="{{ $sport->slug }}" {{ $filter == $sport->slug ? 'selected' : '' }}>{{ $sport->name }}</option>
+                        @endforeach
                         <option value="archived" {{ $filter == 'archived' ? 'selected' : '' }}>Archived</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
@@ -265,11 +264,9 @@
                             <select id="instructor_for" name="instructor_for_select[]" multiple 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
                                 required>
-                                <option value="gym">Gym</option>
-                                <option value="boxing">Boxing</option>
-                                <option value="muay-thai">Muay Thai</option>
-                                <option value="jiu-jitsu">Jiu Jitsu</option>
-                                <!-- Dynamic options can be added here -->
+                                @foreach($sports as $sport)
+                                    <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
+                                @endforeach
                             </select>
                             <input type="hidden" name="instructor_for" id="instructor_for_hidden">
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>
@@ -428,11 +425,9 @@
                             <select id="edit_instructor_for" name="edit_instructor_for_select[]" multiple 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
                                 required>
-                                <option value="gym">Gym</option>
-                                <option value="boxing">Boxing</option>
-                                <option value="muay-thai">Muay Thai</option>
-                                <option value="jiu-jitsu">Jiu Jitsu</option>
-                                <!-- Dynamic options can be added here -->
+                                @foreach($sports as $sport)
+                                    <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
+                                @endforeach
                             </select>
                             <input type="hidden" name="instructor_for" id="edit_instructor_for_hidden">
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>

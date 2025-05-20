@@ -32,12 +32,22 @@ class TrainerController extends Controller
             $query->whereHas('user', function($q) {
                 $q->where('is_archived', false);
             });
-        } elseif (in_array($filter, ['gym', 'boxing', 'muay-thai', 'jiu-jitsu'])) {
-            $query->where('instructor_for', 'like', "%$filter%");
-            // Also only show active trainers
-            $query->whereHas('user', function($q) {
-                $q->where('is_archived', false);
-            });
+        } elseif ($filter !== 'all') {
+            // Sport-specific filter (check if it's a valid sport)
+            $sport = \App\Models\Sport::where('slug', $filter)->first();
+            if ($sport) {
+                // Filter trainers by the selected sport
+                $query->where('instructor_for', 'like', "%{$filter}%");
+                // Also only show active trainers
+                $query->whereHas('user', function($q) {
+                    $q->where('is_archived', false);
+                });
+            } else {
+                // Default behavior - show active trainers only
+                $query->whereHas('user', function($q) {
+                    $q->where('is_archived', false);
+                });
+            }
         } else {
             // Default behavior - show active trainers only
             $query->whereHas('user', function($q) {
@@ -47,6 +57,11 @@ class TrainerController extends Controller
         
         // Execute the query
         $trainers = $query->get();
+        
+        // Get all active sports for the filter dropdown
+        $sports = \App\Models\Sport::where('is_active', true)
+            ->orderBy('display_order')
+            ->get();
         
         // Format the trainer data for display
         $trainers->each(function ($trainer) {
@@ -69,20 +84,7 @@ class TrainerController extends Controller
             // Map instructor_for values to subscription type values
             $mappedTypes = [];
             foreach ($instructedTypes as $type) {
-                switch ($type) {
-                    case 'gym':
-                        $mappedTypes[] = 'gym';
-                        break;
-                    case 'boxing':
-                        $mappedTypes[] = 'boxing';
-                        break;
-                    case 'muay-thai':
-                        $mappedTypes[] = 'muay';
-                        break;
-                    case 'jiu-jitsu':
-                        $mappedTypes[] = 'jiu';
-                        break;
-                }
+                $mappedTypes[] = $type; // Use as-is since now we're using the same slug format
             }
 
             $trainer->instructed_clients_count = User::whereHas('activeSubscriptions', function($query) use ($mappedTypes) {
@@ -99,7 +101,7 @@ class TrainerController extends Controller
             }
         });
         
-        return view('admin.trainer.admin_trainer', compact('trainers', 'filter'));
+        return view('admin.trainer.admin_trainer', compact('trainers', 'filter', 'sports'));
     }
 
     // Store a new trainer
@@ -257,6 +259,15 @@ class TrainerController extends Controller
                     }
                 }
             }
+            
+            // Sync with sports table - add this trainer to each sport in instructor_for
+            $sportSlugs = explode(',', $request->instructor_for);
+            $sportSlugs = array_map('trim', $sportSlugs);
+            
+            $sportsToSync = \App\Models\Sport::whereIn('slug', $sportSlugs)->pluck('id')->toArray();
+            if (!empty($sportsToSync)) {
+                $user->specialtySports()->sync($sportsToSync);
+            }
 
             DB::commit();
 
@@ -363,6 +374,11 @@ class TrainerController extends Controller
 
             // Update trainer profile
             $trainer->specialization = $request->specialization;
+            
+            // Store the old instructor_for value to check for changes
+            $oldInstructorFor = $trainer->instructor_for;
+            
+            // Update instructor_for field
             $trainer->instructor_for = $request->instructor_for;
             $trainer->short_intro = $request->short_intro;
             
@@ -463,6 +479,15 @@ class TrainerController extends Controller
                         ]);
                     }
                 }
+            }
+            
+            // If instructor_for has changed, sync with sports table
+            if ($oldInstructorFor !== $request->instructor_for) {
+                $sportSlugs = explode(',', $request->instructor_for);
+                $sportSlugs = array_map('trim', $sportSlugs);
+                
+                $sportsToSync = \App\Models\Sport::whereIn('slug', $sportSlugs)->pluck('id')->toArray();
+                $user->specialtySports()->sync($sportsToSync);
             }
 
             DB::commit();
@@ -638,20 +663,7 @@ class TrainerController extends Controller
         // Map instructor_for values to subscription type values
         $mappedTypes = [];
         foreach ($instructorTypes as $type) {
-            switch ($type) {
-                case 'gym':
-                    $mappedTypes[] = 'gym';
-                    break;
-                case 'boxing':
-                    $mappedTypes[] = 'boxing';
-                    break;
-                case 'muay-thai':
-                    $mappedTypes[] = 'muay';
-                    break;
-                case 'jiu-jitsu':
-                    $mappedTypes[] = 'jiu';
-                    break;
-            }
+            $mappedTypes[] = $type; // Use as-is since now we're using the same slug format
         }
         
         $members = User::where('role', 'member')
@@ -976,5 +988,26 @@ class TrainerController extends Controller
     public function testChartDisplay()
     {
         return view('trainer.test-chart');
+    }
+    
+    /**
+     * API method to get all trainers for dropdown or selection
+     */
+    public function getTrainers()
+    {
+        $trainers = User::where('role', 'trainer')
+            ->where('is_archived', false)
+            ->with('trainer')
+            ->get()
+            ->map(function($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->full_name,
+                    'profile_image_url' => $user->trainer ? $user->trainer->profile_image_url : asset('assets/default_profile.png'),
+                    'specialization' => $user->trainer ? $user->trainer->specialization : null
+                ];
+            });
+            
+        return response()->json($trainers);
     }
 }

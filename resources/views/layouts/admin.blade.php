@@ -348,8 +348,12 @@
             <i class="fas fa-file-invoice"></i>
             <span>Manage Invoice</span>
         </a>
+        <a href="{{ route('admin.pricing.index') }}" class="nav-link {{ request()->is('admin/pricing*') || request()->is('admin/sports*') ? 'active' : '' }}">
+            <i class="fas fa-tags"></i>
+            <span>Pricing Management</span>
+        </a>
         <a href="/admin/trainer/admin_trainer" class="nav-link {{ request()->is('admin/trainer/admin_trainer') ? 'active' : '' }}">
-            <i class="fas fa-dumbbell"></i>
+            <i class="fas fa-user-tie"></i>
             <span>Trainer Management</span>
         </a>
         <a href="/admin/promotion/admin_promo" class="nav-link {{ request()->is('admin/promotion/admin_promo') ? 'active' : '' }}">

@@ -165,8 +165,8 @@
                             </div>
                             <div>
                                 <h4 class="text-white font-semibold mb-1">Contact</h4>
-                                <p class="text-gray-300">(02) 8527-8155</p>
-                                <p class="text-gray-300">mtfc@manila.com</p>
+                                <p class="text-gray-300">0998 558 5911</p>
+                                <p class="text-gray-300">mtfc987@gmail.com</p>
                             </div>
                         </li>
                         

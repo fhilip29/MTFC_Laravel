@@ -74,10 +74,13 @@ Route::get('/trainers', [TrainerController::class, 'indexUser'])->name('trainers
 // ===================
 // PRICING ROUTES
 // ===================
-Route::get('/pricing/gym', [PricingController::class, 'gym'])->name('pricing.gym');
-Route::get('/pricing/boxing', [PricingController::class, 'boxing'])->name('pricing.boxing');
-Route::get('/pricing/muay', [PricingController::class, 'muay'])->name('pricing.muay');
-Route::get('/pricing/jiu-jitsu', [PricingController::class, 'jiu'])->name('pricing.jiu');
+Route::get('/pricing', [PricingController::class, 'index'])->name('pricing');
+
+// Legacy routes for backward compatibility
+
+
+// Dynamic route for any sport (main system route - will handle any sport in database)
+Route::get('/pricing/{slug}', [PricingController::class, 'show'])->name('pricing.show');
 
 // ===================
 // TERMS / POLICIES
@@ -252,6 +255,8 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/api/trainer/test-attendance', [TrainerController::class, 'testAttendanceData'])->name('api.trainer.test.attendance');
     Route::get('/api/invoice/{id}/items', [InvoiceController::class, 'getInvoiceItems'])->name('api.invoice.items');
     Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates');
+    Route::get('/api/trainers', [TrainerController::class, 'getTrainers'])->name('api.trainers');
+    Route::get('/api/sports/{sport}/trainers', [App\Http\Controllers\Admin\SportController::class, 'getTrainers'])->name('api.sports.trainers');
     
     // Account Settings Routes (accessible to all authenticated users)
     Route::get('/account-settings', [AccountController::class, 'index'])->name('account.settings');
@@ -345,6 +350,7 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     Route::post('/members/{user}/subscriptions/{subscription}/cancel', [AdminMemberController::class, 'cancelSubscription'])->name('admin.members.subscriptions.cancel');
     Route::post('/members/{user}/subscriptions/{subscription}/add-sessions', [AdminMemberController::class, 'addSessions'])->name('admin.members.subscriptions.add-sessions');
     Route::post('/members/{user}/archive', [AdminMemberController::class, 'archiveMember'])->name('admin.members.archive');
+    Route::get('/members/plans/{sport}', [AdminMemberController::class, 'getPlansForSport'])->name('admin.members.plans');
     
     // Session Management
     Route::get('/session/admin_session', [SessionController::class, 'index'])->name('admin.session.admin_session');
@@ -414,6 +420,25 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     
     // Payment Verification
     Route::post('/verify-payment', [AdminController::class, 'verifyPayment'])->name('admin.verify.payment');
+
+    // Pricing Management Routes
+    Route::prefix('pricing')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\PricingController::class, 'index'])->name('admin.pricing.index');
+        Route::post('/', [App\Http\Controllers\Admin\PricingController::class, 'store'])->name('admin.pricing.store');
+        Route::get('/{id}', [App\Http\Controllers\Admin\PricingController::class, 'show'])->name('admin.pricing.show');
+        Route::put('/{id}', [App\Http\Controllers\Admin\PricingController::class, 'update'])->name('admin.pricing.update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\PricingController::class, 'destroy'])->name('admin.pricing.destroy');
+    });
+    
+    // Sports Management Routes
+    Route::prefix('sports')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SportController::class, 'index'])->name('admin.sports.index');
+        Route::post('/', [App\Http\Controllers\Admin\SportController::class, 'store'])->name('admin.sports.store');
+        Route::get('/{id}', [App\Http\Controllers\Admin\SportController::class, 'show'])->name('admin.sports.show');
+        Route::put('/{id}', [App\Http\Controllers\Admin\SportController::class, 'update'])->name('admin.sports.update');
+        Route::delete('/{id}', [App\Http\Controllers\Admin\SportController::class, 'destroy'])->name('admin.sports.destroy');
+        Route::post('/{id}/trainers', [App\Http\Controllers\Admin\SportController::class, 'updateTrainers'])->name('admin.sports.trainers');
+    });
 });
 
 

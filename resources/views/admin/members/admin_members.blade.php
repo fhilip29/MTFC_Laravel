@@ -759,9 +759,19 @@
                                                     });
                                                 });
                                         } else {
+                                            let errorMessage = data.message || 'Failed to add subscription';
+                                            
+                                            // Check if we have specific validation errors
+                                            if (data.errors) {
+                                                errorMessage = '';
+                                                Object.keys(data.errors).forEach(key => {
+                                                    errorMessage += data.errors[key].join('<br>') + '<br>';
+                                                });
+                                            }
+                                            
                                             Swal.fire({
                                                 title: 'Error!',
-                                                text: data.message || 'Failed to add subscription',
+                                                html: errorMessage,
                                                 icon: 'error',
                                                 confirmButtonColor: '#3B82F6',
                                                 background: '#1F2937',
@@ -779,7 +789,7 @@
                                         console.error('Error:', error);
                                         Swal.fire({
                                             title: 'Error!',
-                                            text: 'An error occurred. Please try again.',
+                                            text: 'An unexpected error occurred. Please try again.',
                                             icon: 'error',
                                             confirmButtonColor: '#3B82F6',
                                             background: '#1F2937',
@@ -798,10 +808,9 @@
                                     <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
                                     <select name="type" id="add-subscription-type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleAddDailyOption()">
                                         <option value="">Select Type</option>
-                                        <option value="gym">Gym</option>
-                                        <option value="boxing">Boxing</option>
-                                        <option value="muay">Muay Thai</option>
-                                        <option value="jiu-jitsu">Jiu-Jitsu</option>
+                                        @foreach(App\Models\Sport::where('is_active', true)->orderBy('display_order')->get() as $sport)
+                                        <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div>
@@ -850,6 +859,16 @@
                                 const form = event.target;
                                 const subscriptionId = form.elements['subscription_id'].value;
                                 
+                                // Show loading state
+                                Swal.fire({
+                                    title: 'Updating subscription...',
+                                    text: 'Please wait',
+                                    allowOutsideClick: false,
+                                    didOpen: () => {
+                                        Swal.showLoading();
+                                    }
+                                });
+                                
                                 fetch(`/admin/members/${currentMemberId}/subscriptions/${subscriptionId}`, {
                                     method: 'PUT',
                                     headers: {
@@ -871,14 +890,66 @@
                                                 subscriptions = data;
                                                 // Hide modal
                                                 document.getElementById('edit-subscription-modal').classList.add('hidden');
+                                                
+                                                // Show success notification
+                                                Swal.fire({
+                                                    title: 'Success!',
+                                                    text: 'Subscription has been updated!',
+                                                    icon: 'success',
+                                                    confirmButtonColor: '#3B82F6',
+                                                    background: '#1F2937',
+                                                    color: '#FFFFFF',
+                                                    customClass: {
+                                                        popup: 'rounded-lg border border-[#374151]',
+                                                        title: 'text-white text-xl',
+                                                        htmlContainer: 'text-[#9CA3AF]',
+                                                        confirmButton: 'rounded-md px-4 py-2'
+                                                    }
+                                                });
                                             });
                                     } else {
-                                        alert('Error updating subscription: ' + data.message);
+                                        let errorMessage = data.message || 'Failed to update subscription';
+                                        
+                                        // Check if we have specific validation errors
+                                        if (data.errors) {
+                                            errorMessage = '';
+                                            Object.keys(data.errors).forEach(key => {
+                                                errorMessage += data.errors[key].join('<br>') + '<br>';
+                                            });
+                                        }
+                                        
+                                        Swal.fire({
+                                            title: 'Error!',
+                                            html: errorMessage,
+                                            icon: 'error',
+                                            confirmButtonColor: '#3B82F6',
+                                            background: '#1F2937',
+                                            color: '#FFFFFF',
+                                            customClass: {
+                                                popup: 'rounded-lg border border-[#374151]',
+                                                title: 'text-white text-xl',
+                                                htmlContainer: 'text-[#9CA3AF]',
+                                                confirmButton: 'rounded-md px-4 py-2'
+                                            }
+                                        });
                                     }
                                 })
                                 .catch(error => {
                                     console.error('Error:', error);
-                                    alert('An error occurred. Please try again.');
+                                    Swal.fire({
+                                        title: 'Error!',
+                                        text: 'An unexpected error occurred. Please try again.',
+                                        icon: 'error',
+                                        confirmButtonColor: '#3B82F6',
+                                        background: '#1F2937',
+                                        color: '#FFFFFF',
+                                        customClass: {
+                                            popup: 'rounded-lg border border-[#374151]',
+                                            title: 'text-white text-xl',
+                                            htmlContainer: 'text-[#9CA3AF]',
+                                            confirmButton: 'rounded-md px-4 py-2'
+                                        }
+                                    });
                                 });
                             "
                         >
@@ -888,10 +959,9 @@
                                 <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
                                 <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleDailyOption()">
                                     <option value="">Select Type</option>
-                                    <option value="gym">Gym</option>
-                                    <option value="boxing">Boxing</option>
-                                    <option value="muay">Muay Thai</option>
-                                    <option value="jiu-jitsu">Jiu-Jitsu</option>
+                                    @foreach(App\Models\Sport::where('is_active', true)->orderBy('display_order')->get() as $sport)
+                                    <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             

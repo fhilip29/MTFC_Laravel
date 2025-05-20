@@ -459,13 +459,8 @@ class PaymentController extends Controller
             // Redirect to appropriate page based on data type
             if (!empty($subscriptionData)) {
                 $type = $subscriptionData['type'] ?? 'gym';
-                $route = "pricing.{$type}";
-                
-                if (!in_array($type, ['gym', 'boxing', 'muay', 'jiu'])) {
-                    $route = 'pricing.gym';
-                }
-                
-                return redirect()->route($route)->with('error', 'Invalid payment reference');
+                // Use the dynamic pricing.show route instead of hardcoded routes
+                return redirect()->route('pricing.show', $type)->with('error', 'Invalid payment reference');
             } else {
                 return redirect()->route('shop')->with('error', 'Invalid payment reference');
             }

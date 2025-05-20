@@ -12,7 +12,7 @@
             <a href="{{ route('home') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Home</a>
             <a href="{{ route('about') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">About</a>
             <a href="{{ route('trainers') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Trainers</a>
-            <a href="{{ route('pricing.gym') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Pricing</a>
+            <a href="{{ route('pricing') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Pricing</a>
             <a href="{{ route('shop') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Shop</a>
             <a href="{{ route('contact') }}" class="text-black font-bold relative transform hover:scale-110 transition-transform duration-300 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-500 after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 hover:text-red-500">Contact Us</a>
         </nav>
@@ -208,7 +208,7 @@
         <a href="{{ route('home') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Home</a>
         <a href="{{ route('about') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">About</a>
         <a href="{{ route('trainers') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Trainers</a>
-        <a href="{{ route('pricing.gym') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Pricing</a>
+        <a href="{{ route('pricing') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Pricing</a>
         <a href="{{ route('shop') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Shop</a>
         <a href="{{ route('contact') }}" class="block text-black hover:text-red-500 hover:underline transition duration-300">Contact Us</a>
     </div>

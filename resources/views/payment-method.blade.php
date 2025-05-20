@@ -9,7 +9,7 @@
         <div class="p-6 border-b border-gray-700">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-xl font-semibold">Choose Payment Method</h2>
-                <a href="{{ request()->query('type') === 'product' ? route('shop') : route('pricing.'.request()->query('type', 'gym')) }}" class="text-gray-400 hover:text-white">
+                <a href="{{ request()->query('type') === 'product' ? route('shop') : route('pricing.show', request()->query('type', 'gym')) }}" class="text-gray-400 hover:text-white">
                     <i class="fas fa-times"></i>
                 </a>
             </div>

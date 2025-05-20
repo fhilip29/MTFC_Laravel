@@ -72,7 +72,7 @@
                         <a href="#password-section" class="block py-2 px-3 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
                             <i class="fas fa-lock mr-2"></i> Password
                         </a>
-                        <a href="{{ route('profile') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
+                        <a href="{{ auth()->user()->isTrainer() ? route('trainer.profile') : route('profile') }}" class="block py-2 px-3 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors">
                             <i class="fas fa-arrow-left mr-2"></i> Back to Profile
                         </a>
                     </nav>

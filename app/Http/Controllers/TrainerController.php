@@ -123,6 +123,7 @@ class TrainerController extends Controller
             'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
             'profile_image_base64' => 'nullable|string',
             'other_gender' => 'nullable|string|required_if:gender,other',
+            'hired_date' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -184,6 +185,9 @@ class TrainerController extends Controller
             $trainer->specialization = $request->specialization;
             $trainer->instructor_for = $request->instructor_for;
             $trainer->short_intro = $request->short_intro;
+            
+            // Handle hired_date - default to today if not provided
+            $trainer->hired_date = $request->filled('hired_date') ? $request->hired_date : now()->format('Y-m-d');
             
             // Handle profile image upload
             if ($request->hasFile('profile_image')) {
@@ -295,6 +299,8 @@ class TrainerController extends Controller
             'profile_image' => 'nullable|file|image|max:5120', // 5MB max size
             'profile_image_base64' => 'nullable|string',
             'other_gender' => 'nullable|string|required_if:gender,other',
+            'hired_date' => 'nullable|date',
+            'resigned_date' => 'nullable|date|after_or_equal:hired_date',
         ]);
 
         if ($validator->fails()) {
@@ -359,6 +365,17 @@ class TrainerController extends Controller
             $trainer->specialization = $request->specialization;
             $trainer->instructor_for = $request->instructor_for;
             $trainer->short_intro = $request->short_intro;
+            
+            // Handle hired_date and resigned_date
+            if ($request->filled('hired_date')) {
+                $trainer->hired_date = $request->hired_date;
+            } elseif (!$trainer->hired_date) {
+                $trainer->hired_date = now()->format('Y-m-d');
+            }
+            
+            if ($request->filled('resigned_date')) {
+                $trainer->resigned_date = $request->resigned_date;
+            }
             
             // Handle profile image upload if provided
             if ($request->hasFile('profile_image')) {
@@ -482,6 +499,17 @@ class TrainerController extends Controller
             
             // Toggle the archived status
             $user->is_archived = !$user->is_archived;
+            
+            // If archiving, set the resigned date to today
+            if ($user->is_archived) {
+                $trainer->resigned_date = now()->format('Y-m-d');
+                $trainer->save();
+            } else {
+                // If unarchiving, clear the resigned date
+                $trainer->resigned_date = null;
+                $trainer->save();
+            }
+            
             $user->save();
             
             return response()->json([
@@ -662,5 +690,291 @@ class TrainerController extends Controller
             ->count();
         
         return view('trainer.profile', compact('trainer', 'weeklySchedule', 'upcomingSessions', 'members', 'activeMembers', 'newStudents'));
+    }
+
+    /**
+     * Show the trainer's attendance history
+     */
+    public function showAttendanceDetails(Request $request)
+    {
+        // Get the current trainer's user account
+        $user = auth()->user();
+        
+        $filter = [
+            'date' => $request->input('date'),
+            'status' => $request->input('status'),
+            'month' => $request->input('month'),
+            'year' => $request->input('year'),
+        ];
+        
+        // Build query with filters
+        $query = $user->sessions();
+        
+        // Apply date filter if provided
+        if (!empty($filter['date'])) {
+            $query->whereDate('time', $filter['date']);
+        }
+        
+        // Apply status filter if provided
+        if (!empty($filter['status'])) {
+            $query->where('status', $filter['status']);
+        }
+        
+        // Apply month filter if provided
+        if (!empty($filter['month'])) {
+            $query->whereMonth('time', $filter['month']);
+        }
+        
+        // Apply year filter if provided
+        if (!empty($filter['year'])) {
+            $query->whereYear('time', $filter['year']);
+        }
+        
+        // Get paginated sessions
+        $sessions = $query->orderBy('time', 'desc')->paginate(10);
+        
+        // Get stats for the view
+        $stats = $this->getAttendanceStats($user);
+        
+        // Get year options for the filter
+        $yearOptions = $user->sessions()
+            ->selectRaw('YEAR(time) as year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year')
+            ->toArray();
+            
+        // If empty, add current year
+        if (empty($yearOptions)) {
+            $yearOptions[] = now()->year;
+        }
+        
+        return view('trainer.attendance_details', compact('sessions', 'stats', 'filter', 'yearOptions'));
+    }
+    
+    /**
+     * Calculate attendance statistics for a user
+     * 
+     * @param User $user
+     * @return array
+     */
+    private function getAttendanceStats($user)
+    {
+        // Get the current month's check-ins
+        $thisMonth = $user->sessions()
+            ->where('status', 'IN')
+            ->whereMonth('time', now()->month)
+            ->whereYear('time', now()->year)
+            ->count();
+            
+        // Get last month's check-ins
+        $lastMonth = $user->sessions()
+            ->where('status', 'IN')
+            ->whereMonth('time', now()->subMonth()->month)
+            ->whereYear('time', now()->subMonth()->year)
+            ->count();
+            
+        // Get total unique days with check-ins (total attendance days)
+        $totalDays = $user->sessions()
+            ->where('status', 'IN')
+            ->selectRaw('DATE(time) as date')
+            ->groupBy('date')
+            ->get()
+            ->count();
+            
+        // Calculate average days per month
+        // First, get the user's first check-in date
+        $firstCheckIn = $user->sessions()
+            ->where('status', 'IN')
+            ->orderBy('time', 'asc')
+            ->first();
+            
+        if ($firstCheckIn) {
+            $firstDate = \Carbon\Carbon::parse($firstCheckIn->time);
+            $monthsSinceFirstCheckIn = $firstDate->diffInMonths(now()) + 1; // +1 to include current month
+            
+            if ($monthsSinceFirstCheckIn > 0) {
+                $avgDaysPerMonth = round($totalDays / $monthsSinceFirstCheckIn, 1);
+            } else {
+                // If less than a month, calculate for current month only
+                $avgDaysPerMonth = $totalDays;
+            }
+        } else {
+            // No check-ins yet
+            $avgDaysPerMonth = 0;
+        }
+        
+        return [
+            'thisMonth' => $thisMonth,
+            'lastMonth' => $lastMonth,
+            'totalDays' => $totalDays,
+            'avgDaysPerMonth' => $avgDaysPerMonth
+        ];
+    }
+    
+    /**
+     * Test method to return sample attendance data
+     */
+    public function testAttendanceData(Request $request)
+    {
+        // Sample data that matches the expected format
+        $data = [
+            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            'checkIns' => [5, 10, 15, 20, 8, 12, 7, 9, 14, 11, 6, 8],
+            'stats' => [
+                'thisMonth' => 10,
+                'lastMonth' => 8,
+                'totalDays' => 125,
+                'avgDaysPerMonth' => 10.4
+            ]
+        ];
+        
+        return response()->json($data);
+    }
+    
+    /**
+     * API method to get trainer attendance data for chart
+     */
+    public function getTrainerAttendance(Request $request)
+    {
+        $user = auth()->user();
+        $period = $request->query('period', 'month');
+        
+        \Log::info('Trainer attendance request', [
+            'user_id' => $user->id, 
+            'period' => $period
+        ]);
+        
+        // Fetch actual attendance data based on the period
+        if ($period === 'year') {
+            // Yearly data - get monthly counts for current year
+            $currentYear = now()->year;
+            $monthlyData = [];
+            
+            // Initialize with all months having 0 check-ins
+            for ($month = 1; $month <= 12; $month++) {
+                $monthlyData[$month] = 0;
+            }
+            
+            // Get actual check-in counts for each month in current year
+            $checkIns = $user->sessions()
+                ->where('status', 'IN')
+                ->whereYear('time', $currentYear)
+                ->selectRaw('MONTH(time) as month, COUNT(*) as count')
+                ->groupBy('month')
+                ->get();
+                
+            // Update monthly data with actual counts
+            foreach ($checkIns as $checkIn) {
+                $monthlyData[$checkIn->month] = $checkIn->count;
+            }
+            
+            $labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            $data = [
+                'labels' => $labels,
+                'checkIns' => array_values($monthlyData),
+                'stats' => $this->getAttendanceStats($user)
+            ];
+            
+        } elseif ($period === 'week') {
+            // Weekly data - last 7 days
+            $dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            $dailyData = array_fill(0, 7, 0);
+            
+            // Get the date 7 days ago
+            $startDate = now()->subDays(6)->startOfDay();
+            
+            // Get check-ins for each day
+            $checkIns = $user->sessions()
+                ->where('status', 'IN')
+                ->where('time', '>=', $startDate)
+                ->get();
+                
+            foreach ($checkIns as $checkIn) {
+                $checkInDate = \Carbon\Carbon::parse($checkIn->time);
+                $dayIndex = ($checkInDate->dayOfWeek + 6) % 7; // Convert 0-6 (Sun-Sat) to 0-6 (Mon-Sun)
+                $dailyData[$dayIndex]++;
+            }
+            
+            $data = [
+                'labels' => $dayLabels,
+                'checkIns' => $dailyData,
+                'stats' => $this->getAttendanceStats($user)
+            ];
+            
+        } elseif ($period === 'all') {
+            // All-time data - group by month for the past year
+            $startDate = now()->subMonths(11)->startOfMonth();
+            $monthlyData = [];
+            
+            // Initialize with past 12 months
+            for ($i = 0; $i < 12; $i++) {
+                $date = now()->subMonths(11 - $i)->startOfMonth();
+                $key = $date->format('M y');
+                $monthlyData[$key] = 0;
+            }
+            
+            // Get check-ins grouped by month
+            $checkIns = $user->sessions()
+                ->where('status', 'IN')
+                ->where('time', '>=', $startDate)
+                ->selectRaw("DATE_FORMAT(time, '%b %y') as month_year, COUNT(*) as count")
+                ->groupBy('month_year')
+                ->get();
+                
+            foreach ($checkIns as $checkIn) {
+                if (isset($monthlyData[$checkIn->month_year])) {
+                    $monthlyData[$checkIn->month_year] = $checkIn->count;
+                }
+            }
+            
+            $data = [
+                'labels' => array_keys($monthlyData),
+                'checkIns' => array_values($monthlyData),
+                'stats' => $this->getAttendanceStats($user)
+            ];
+            
+        } else {
+            // Default: Monthly data (days of current month)
+            $currentMonth = now()->month;
+            $currentYear = now()->year;
+            $daysInMonth = now()->daysInMonth;
+            $dailyData = array_fill(1, $daysInMonth, 0);
+            
+            // Get check-ins for current month grouped by day
+            $checkIns = $user->sessions()
+                ->where('status', 'IN')
+                ->whereMonth('time', $currentMonth)
+                ->whereYear('time', $currentYear)
+                ->selectRaw('DAY(time) as day, COUNT(*) as count')
+                ->groupBy('day')
+                ->get();
+                
+            foreach ($checkIns as $checkIn) {
+                $dailyData[$checkIn->day] = $checkIn->count;
+            }
+            
+            $data = [
+                'labels' => array_map('strval', range(1, $daysInMonth)),
+                'checkIns' => array_values($dailyData),
+                'stats' => $this->getAttendanceStats($user)
+            ];
+        }
+        
+        \Log::info('Returning attendance data for chart', [
+            'period' => $period, 
+            'labels_count' => count($data['labels']),
+            'data_count' => count($data['checkIns'])
+        ]);
+        
+        return response()->json($data);
+    }
+
+    /**
+     * A test method to verify the attendance chart is working
+     */
+    public function testChartDisplay()
+    {
+        return view('trainer.test-chart');
     }
 }

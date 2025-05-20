@@ -5,41 +5,6 @@
 @section('content')
 <div class="bg-gray-100 min-h-screen py-6 md:py-10">
     <div class="container mx-auto px-4">
-        <!-- Breadcrumb -->
-        <div class="mb-6">
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        @if(Auth::user()->role == 'trainer')
-                            <a href="{{ route('trainer.profile') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
-                                <i class="fas fa-user mr-2"></i>
-                                Profile
-                            </a>
-                        @else
-                            <a href="{{ route('profile') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
-                                <i class="fas fa-user mr-2"></i>
-                                Profile
-                            </a>
-                        @endif
-                    </li>
-                    <li class="inline-flex items-center">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                            <a href="{{ route('user.messages') }}" class="text-sm font-medium text-gray-700 hover:text-red-600">
-                                Messages
-                            </a>
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                            <span class="text-sm font-medium text-gray-500">Sent Messages</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-        </div>
-
         <!-- Header with Navigation Buttons -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Sent Messages</h1>

@@ -17,6 +17,8 @@ class Trainer extends Model
         'hourly_rate',
         'specialization',
         'instructor_for',
+        'hired_date',
+        'resigned_date',
     ];
 
     protected $appends = ['profile_image_url'];

@@ -5,36 +5,9 @@
 @section('content')
 <div class="bg-gray-100 min-h-screen py-6 md:py-10">
     <div class="container mx-auto px-4">
-        <!-- Breadcrumb -->
-        <div class="mb-6">
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        @if(Auth::user()->role == 'trainer')
-                            <a href="{{ route('trainer.profile') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
-                                <i class="fas fa-user mr-2"></i>
-                                Profile
-                            </a>
-                        @else
-                            <a href="{{ route('profile') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
-                                <i class="fas fa-user mr-2"></i>
-                                Profile
-                            </a>
-                        @endif
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                            <span class="text-sm font-medium text-gray-500">Messages</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-        </div>
-
         <!-- Back Button -->
         <div class="flex justify-start mb-4">
-            <a href="{{ route('profile') }}" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
+            <a href="{{ Auth::user()->role == 'trainer' ? route('trainer.profile') : route('profile') }}" class="inline-flex items-center bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
                 <span>Back to Profile</span>
             </a>

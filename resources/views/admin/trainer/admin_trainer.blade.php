@@ -108,6 +108,12 @@
             <div class="p-6">
                 <h3 class="text-xl font-bold text-white mb-1 hover:text-[#9CA3AF] transition-colors duration-200">{{ $trainer->user->full_name }}</h3>
                 <p class="text-[#9CA3AF] text-sm mb-3">{{ $trainer->specialization }}</p>
+                <p class="text-xs text-gray-400 mb-1">Hired: {{ $trainer->hired_date ? date('M d, Y', strtotime($trainer->hired_date)) : 'N/A' }}</p>
+                @if($trainer->user->is_archived && $trainer->resigned_date)
+                    <p class="text-xs text-red-400 mb-1">Resigned: {{ date('M d, Y', strtotime($trainer->resigned_date)) }}</p>
+                @elseif($trainer->user->is_archived)
+                    <p class="text-xs text-red-400 mb-1">Archived</p>
+                @endif
                 <div class="flex items-center text-sm text-[#9CA3AF] mb-4">
                     <i class="fas fa-users mr-2"></i>
                     <span>{{ $trainer->instructed_clients_count }} Instructed Clients</span>
@@ -229,17 +235,16 @@
                                     <input type="radio" name="gender" value="female" class="text-pink-500 gender-radio">
                                     <span class="ml-2 text-white">Female</span>
                                 </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="gender" value="other" class="text-purple-500 gender-radio">
-                                    <span class="ml-2 text-white">Other</span>
-                                </label>
                             </div>
-                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the trainer's gender.
-                            <!-- Custom gender field, hidden by default -->
-                            <div id="otherGenderField" class="mt-3 hidden">
-                                <input type="text" name="other_gender" placeholder="Please specify gender" 
-                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-2 focus:outline-none focus:border-[#9CA3AF]">
-                            </div>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the trainer's gender.</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="hired_date" class="block text-[#9CA3AF] text-sm font-medium mb-2">Hired Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="hired_date" name="hired_date" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the date when the trainer was hired.</p>
                         </div>
                     </div>
                     
@@ -256,26 +261,18 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For <span class="text-red-500">*</span></label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" value="gym" class="text-blue-500">
-                                    <span class="ml-2 text-white">Gym</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" value="boxing" class="text-red-500">
-                                    <span class="ml-2 text-white">Boxing</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" value="muay-thai" class="text-yellow-500">
-                                    <span class="ml-2 text-white">Muay Thai</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" value="jiu-jitsu" class="text-green-500">
-                                    <span class="ml-2 text-white">Jiu Jitsu</span>
-                                </label>
-                            </div>
-                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction.</p>
+                            <label for="instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For <span class="text-red-500">*</span></label>
+                            <select id="instructor_for" name="instructor_for_select[]" multiple 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
+                                required>
+                                <option value="gym">Gym</option>
+                                <option value="boxing">Boxing</option>
+                                <option value="muay-thai">Muay Thai</option>
+                                <option value="jiu-jitsu">Jiu Jitsu</option>
+                                <!-- Dynamic options can be added here -->
+                            </select>
+                            <input type="hidden" name="instructor_for" id="instructor_for_hidden">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>
                         </div>
                         
                         <div class="mb-4">
@@ -342,7 +339,7 @@
                     <button type="button" onclick="closeAddTrainerModal()" class="px-5 py-2 bg-[#4B5563] text-white rounded-lg hover:bg-[#6B7280] transition-colors duration-200">
                         Cancel
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors duration-200">
+                    <button type="button" onclick="submitAddTrainerForm()" class="px-5 py-2 bg-[#3B82F6] text-white rounded-lg hover:bg-[#2563EB] transition-colors duration-200">
                         Save Trainer
                     </button>
                 </div>
@@ -389,18 +386,28 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_gender" class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender *</label>
-                            <select id="edit_gender" name="gender" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <label for="edit_gender" class="block text-[#9CA3AF] text-sm font-medium mb-2">Gender <span class="text-red-500">*</span></label>
+                            <select id="edit_gender" name="gender" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
                                 <option value="">Select Gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
-                                <option value="other">Other</option>
                             </select>
-                            <!-- Custom gender field, hidden by default -->
-                            <div id="editOtherGenderField" class="mt-3 hidden">
-                                <input type="text" id="edit_other_gender" name="other_gender" placeholder="Please specify gender" 
-                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-2 focus:outline-none focus:border-[#9CA3AF]">
-                            </div>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select the trainer's gender.</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="edit_hired_date" class="block text-[#9CA3AF] text-sm font-medium mb-2">Hired Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="edit_hired_date" name="hired_date" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the date when the trainer was hired.</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="edit_resigned_date" class="block text-[#9CA3AF] text-sm font-medium mb-2">Resigned Date</label>
+                            <input type="date" id="edit_resigned_date" name="resigned_date" 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Optional. Enter the date when the trainer resigned (automatically set when archived).</p>
                         </div>
                     </div>
                     
@@ -409,30 +416,26 @@
                         <h4 class="text-white text-lg font-semibold mb-4 border-b border-[#374151] pb-2">Professional Information</h4>
                         
                         <div class="mb-4">
-                            <label for="edit_specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization *</label>
-                            <input type="text" id="edit_specialization" name="specialization" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <label for="edit_specialization" class="block text-[#9CA3AF] text-sm font-medium mb-2">Specialization <span class="text-red-500">*</span></label>
+                            <input type="text" id="edit_specialization" name="specialization" placeholder="e.g., Strength Training, Boxing Coach"
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
+                                required>
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter the trainer's area of expertise or specialization.</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
-                            <div class="grid grid-cols-2 gap-2">
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_gym" value="gym" class="text-blue-500">
-                                    <span class="ml-2 text-white">Gym</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_boxing" value="boxing" class="text-red-500">
-                                    <span class="ml-2 text-white">Boxing</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_muaythai" value="muay-thai" class="text-yellow-500">
-                                    <span class="ml-2 text-white">Muay Thai</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="instructor_for[]" id="edit_instructor_jiujitsu" value="jiu-jitsu" class="text-green-500">
-                                    <span class="ml-2 text-white">Jiu Jitsu</span>
-                                </label>
-                            </div>
+                            <label for="edit_instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
+                            <select id="edit_instructor_for" name="edit_instructor_for_select[]" multiple 
+                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
+                                required>
+                                <option value="gym">Gym</option>
+                                <option value="boxing">Boxing</option>
+                                <option value="muay-thai">Muay Thai</option>
+                                <option value="jiu-jitsu">Jiu Jitsu</option>
+                                <!-- Dynamic options can be added here -->
+                            </select>
+                            <input type="hidden" name="instructor_for" id="edit_instructor_for_hidden">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>
                         </div>
                         
                         <div class="mb-4">
@@ -544,10 +547,36 @@
 </div>
 
 <script>
+console.log('Admin Trainer Script Loaded - ' + new Date().toISOString());
+
 // Modal controls
 function openAddTrainerModal() {
     document.getElementById('addTrainerModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+    
+    // Reset the form
+    document.getElementById('addTrainerForm').reset();
+    
+    // Reset the instructor_for hidden field
+    document.getElementById('instructor_for_hidden').value = '';
+    
+    // Reset image preview if it exists
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    if (imagePreviewContainer && uploadPlaceholder) {
+        imagePreviewContainer.classList.add('hidden');
+        uploadPlaceholder.classList.remove('hidden');
+    }
+    
+    // Initialize mobile number field with +63 prefix
+    const mobileInput = document.getElementById('mobile_number');
+    if (mobileInput) {
+        mobileInput.value = '+63 ';
+    }
+    
+    // Set default hired date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('hired_date').value = today;
 }
 
 function closeAddTrainerModal() {
@@ -650,6 +679,145 @@ function archiveTrainer(trainerId) {
     });
 }
 
+// Function to handle add trainer form submission
+function submitAddTrainerForm() {
+    console.log('Submit Add Trainer Form function called');
+    
+    // Get the form
+    const form = document.getElementById('addTrainerForm');
+    
+    // Validate instructor_for field
+    const instructorSelect = document.getElementById('instructor_for');
+    const instructorHidden = document.getElementById('instructor_for_hidden');
+    const selectedValues = Array.from(instructorSelect.selectedOptions).map(opt => opt.value);
+    
+    console.log('Selected instructor values:', selectedValues);
+    
+    if (selectedValues.length === 0) {
+        Swal.fire({
+            title: 'Missing Information!',
+            text: 'Please select at least one instruction area (Gym, Boxing, etc.)',
+            icon: 'error',
+            background: '#1F2937',
+            color: '#ffffff'
+        });
+        return;
+    }
+    
+    // Update the hidden field with selected values
+    instructorHidden.value = selectedValues.join(',');
+    console.log('instructor_for hidden value updated to:', instructorHidden.value);
+    
+    // Create FormData from the form
+    const formData = new FormData(form);
+    
+    // Ensure instructor_for is set in the formData
+    formData.set('instructor_for', instructorHidden.value);
+    
+    // Handle cropped image if present
+    const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
+    if (croppedInput && croppedInput.value) {
+        formData.delete('profile_image');
+        formData.set('profile_image_base64', croppedInput.value);
+    }
+    
+    // Handle day toggles for schedule
+    document.querySelectorAll('.day-toggle').forEach(toggle => {
+        const day = toggle.getAttribute('data-day');
+        if (!toggle.checked) {
+            formData.delete(`schedule[${day}][start]`);
+            formData.delete(`schedule[${day}][end]`);
+        }
+    });
+    
+    // Add other gender if selected
+    if (form.querySelector('input[name="gender"]:checked').value === 'other') {
+        const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
+        formData.set('other_gender', otherGenderValue);
+    }
+    
+    // Show loading state
+    Swal.fire({
+        title: 'Adding trainer...',
+        text: 'Please wait while we process your request.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        },
+        background: '#1F2937',
+        color: '#ffffff'
+    });
+    
+    // Log all form data entries for debugging
+    console.log('Form data entries:');
+    for (const pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[0] === 'profile_image_base64' ? '[Base64 data]' : pair[1]));
+    }
+    
+    // Send the request
+    fetch('{{ route('admin.trainers.store') }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: formData
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                background: '#1F2937',
+                color: '#ffffff'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            let errorMsg = data.message || 'Failed to add trainer';
+            let errorHtml = '<p>' + errorMsg + '</p>';
+            
+            if (data.errors) {
+                errorHtml += '<div class="mt-4 text-left">';
+                for (const [key, messages] of Object.entries(data.errors)) {
+                    errorHtml += `<p class="text-red-400 font-semibold">${key}:</p>`;
+                    errorHtml += '<ul class="list-disc pl-5 mb-2">';
+                    messages.forEach(message => {
+                        errorHtml += `<li class="text-sm">${message}</li>`;
+                    });
+                    errorHtml += '</ul>';
+                }
+                errorHtml += '</div>';
+            }
+            
+            Swal.fire({
+                title: 'Error!',
+                html: errorHtml,
+                icon: 'error',
+                background: '#1F2937',
+                color: '#ffffff'
+            });
+            
+            console.error('Form submission errors:', data.errors);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'An unexpected error occurred. Please check console for details.',
+            icon: 'error',
+            background: '#1F2937',
+            color: '#ffffff'
+        });
+    });
+}
+
 // Fetch trainer data for editing
 function editTrainer(trainerId) {
     fetch(`/admin/trainers/${trainerId}/edit`)
@@ -665,12 +833,17 @@ function editTrainer(trainerId) {
             const genderSelect = document.getElementById('edit_gender');
             genderSelect.value = data.user.gender || '';
             
-            // Handle custom gender if needed
-            if (data.user.gender === 'other') {
-                document.getElementById('editOtherGenderField').classList.remove('hidden');
-                document.getElementById('edit_other_gender').value = data.user.other_gender || '';
+            // Set hired and resigned dates
+            if (data.hired_date) {
+                document.getElementById('edit_hired_date').value = data.hired_date;
             } else {
-                document.getElementById('editOtherGenderField').classList.add('hidden');
+                document.getElementById('edit_hired_date').value = new Date().toISOString().split('T')[0]; // Today as default
+            }
+            
+            if (data.resigned_date) {
+                document.getElementById('edit_resigned_date').value = data.resigned_date;
+            } else {
+                document.getElementById('edit_resigned_date').value = '';
             }
             
             // Professional info
@@ -695,12 +868,27 @@ function editTrainer(trainerId) {
                 noImagePlaceholder.classList.remove('hidden');
             }
             
-            // Instructor for checkboxes
+            // Handle instructor_for multiselect
+            const editInstructorSelect = document.getElementById('edit_instructor_for');
+            const editInstructorHidden = document.getElementById('edit_instructor_for_hidden');
+            
+            // Clear previous selections
+            for (let i = 0; i < editInstructorSelect.options.length; i++) {
+                editInstructorSelect.options[i].selected = false;
+            }
+            
+            // Set new selections based on instructor_for string
             const instructorFor = data.instructor_for ? data.instructor_for.split(',') : [];
-            document.getElementById('edit_instructor_gym').checked = instructorFor.includes('gym');
-            document.getElementById('edit_instructor_boxing').checked = instructorFor.includes('boxing');
-            document.getElementById('edit_instructor_muaythai').checked = instructorFor.includes('muay-thai');
-            document.getElementById('edit_instructor_jiujitsu').checked = instructorFor.includes('jiu-jitsu');
+            
+            for (let i = 0; i < editInstructorSelect.options.length; i++) {
+                const option = editInstructorSelect.options[i];
+                if (instructorFor.includes(option.value)) {
+                    option.selected = true;
+                }
+            }
+            
+            // Update hidden field
+            editInstructorHidden.value = instructorFor.join(',');
             
             // Set schedules
             const schedules = {};
@@ -731,6 +919,10 @@ function editTrainer(trainerId) {
                 }
             });
             
+            // Trigger event for mobile number initialization
+            const event = new Event('editTrainerModalOpened');
+            document.dispatchEvent(event);
+            
             // Open the modal
             openEditTrainerModal();
         })
@@ -748,6 +940,7 @@ function editTrainer(trainerId) {
 
 // Handle search functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Search input handling
     const searchInput = document.getElementById('trainerSearch');
     if (searchInput) {
         searchInput.addEventListener('keyup', function() {
@@ -956,292 +1149,344 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add Trainer button event
-    document.getElementById('addTrainerBtn').addEventListener('click', openAddTrainerModal);
+    const addTrainerBtn = document.getElementById('addTrainerBtn');
+    if (addTrainerBtn) {
+        addTrainerBtn.addEventListener('click', function() {
+            openAddTrainerModal();
+        });
+    }
+    
+    // Save Trainer button direct click handler
+    const saveTrainerBtn = document.getElementById('saveTrainerBtn');
+    if (saveTrainerBtn) {
+        saveTrainerBtn.addEventListener('click', function(e) {
+            console.log('Save Trainer button clicked directly');
+            // Form will still trigger its own submit event
+        });
+    }
     
     // Form submission handlers - Add validation for mobile number and email
-    document.getElementById('addTrainerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const form = this;
-        const formData = new FormData(form);
-        
-        // Debug logging for the file
-        const fileInput = document.getElementById('profile_image');
-        if (fileInput.files.length > 0) {
-            console.log('File selected:', fileInput.files[0].name);
-            console.log('File size:', fileInput.files[0].size);
-        } else {
-            console.log('No file selected');
-        }
-        
-        // If we have cropped image data, use it instead of the file
-        const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
-        if (croppedInput && croppedInput.value) {
-            // Remove the original file input from the formData
-            formData.delete('profile_image');
+    const addTrainerForm = document.getElementById('addTrainerForm');
+    if (addTrainerForm) {
+        addTrainerForm.addEventListener('submit', function(e) {
+            console.log('Add Trainer Form Submit Event Triggered');
+            e.preventDefault();
             
-            // Add the cropped image data
-            formData.set('profile_image_base64', croppedInput.value);
-        }
-        
-        // Handle instructor_for checkboxes
-        const instructorCheckboxes = form.querySelectorAll('input[name="instructor_for[]"]:checked');
-        if (instructorCheckboxes.length > 0) {
-            formData.delete('instructor_for[]'); // Remove the array entries
-            const instructorValues = Array.from(instructorCheckboxes).map(cb => cb.value);
-            formData.set('instructor_for', instructorValues.join(','));
-        } else {
-            formData.set('instructor_for', ''); // Ensure field exists even if empty
-        }
-        
-        // Handle day toggles for schedule
-        document.querySelectorAll('.day-toggle').forEach(toggle => {
-            const day = toggle.getAttribute('data-day');
-            if (!toggle.checked) {
-                // Remove this day's schedule from formData
-                formData.delete(`schedule[${day}][start]`);
-                formData.delete(`schedule[${day}][end]`);
-            }
-        });
-        
-        // Add other gender if selected
-        if (form.querySelector('input[name="gender"]:checked').value === 'other') {
-            const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
-            formData.set('other_gender', otherGenderValue);
-        }
-        
-        // Show loading state
-        Swal.fire({
-            title: 'Adding trainer...',
-            text: 'Please wait while we process your request.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            background: '#1F2937',
-            color: '#ffffff'
-        });
-        
-        fetch('/admin/trainers', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+            // 1. Validate instructor_for first - most common issue
+            const instructorSelect = document.getElementById('instructor_for');
+            const instructorHidden = document.getElementById('instructor_for_hidden');
+            const selectedValues = Array.from(instructorSelect.selectedOptions).map(opt => opt.value);
+            
+            console.log('Selected instructor values:', selectedValues);
+            
+            if (selectedValues.length === 0) {
                 Swal.fire({
-                    title: 'Success!',
-                    text: data.message,
-                    icon: 'success',
+                    title: 'Missing Information!',
+                    text: 'Please select at least one instruction area (Gym, Boxing, etc.)',
+                    icon: 'error',
                     background: '#1F2937',
                     color: '#ffffff'
-                }).then(() => {
-                    window.location.reload();
                 });
-            } else {
-                let errorMsg = data.message || 'Failed to add trainer';
-                if (data.errors) {
-                    const errorList = Object.keys(data.errors).map(key => 
-                        `<li>${data.errors[key].join('</li><li>')}</li>`
-                    ).join('');
-                    
-                    Swal.fire({
-                        title: 'Error!',
-                        html: `<p>${errorMsg}</p><ul class="text-left mt-3">${errorList}</ul>`,
-                        icon: 'error',
-                        background: '#1F2937',
-                        color: '#ffffff'
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: errorMsg,
-                        icon: 'error',
-                        background: '#1F2937',
-                        color: '#ffffff'
-                    });
-                }
-                console.error('Form submission errors:', data.errors);
+                return;
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            
+            // 2. Update the hidden field with the selected values
+            instructorHidden.value = selectedValues.join(',');
+            console.log('instructor_for values:', selectedValues, 'hidden value:', instructorHidden.value);
+            
+            // 3. Create form data and explicitly set instructor_for
+            const form = this;
+            const formData = new FormData(form);
+            formData.set('instructor_for', instructorHidden.value);
+            
+            // Debug logging for the file
+            const fileInput = document.getElementById('profile_image');
+            if (fileInput.files.length > 0) {
+                console.log('File selected:', fileInput.files[0].name);
+                console.log('File size:', fileInput.files[0].size);
+            } else {
+                console.log('No file selected');
+            }
+            
+            // If we have cropped image data, use it instead of the file
+            const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
+            if (croppedInput && croppedInput.value) {
+                // Remove the original file input from the formData
+                formData.delete('profile_image');
+                
+                // Add the cropped image data
+                formData.set('profile_image_base64', croppedInput.value);
+            }
+            
+            // Log form data entries for debugging
+            console.log('Form data entries:');
+            for (const pair of formData.entries()) {
+                console.log(pair[0] + ': ' + (pair[0] === 'profile_image_base64' ? '[Base64 data]' : pair[1]));
+            }
+            
+            // Handle day toggles for schedule
+            document.querySelectorAll('.day-toggle').forEach(toggle => {
+                const day = toggle.getAttribute('data-day');
+                if (!toggle.checked) {
+                    // Remove this day's schedule from formData
+                    formData.delete(`schedule[${day}][start]`);
+                    formData.delete(`schedule[${day}][end]`);
+                }
+            });
+            
+            // Add other gender if selected
+            if (form.querySelector('input[name="gender"]:checked').value === 'other') {
+                const otherGenderValue = form.querySelector('input[name="other_gender"]').value;
+                formData.set('other_gender', otherGenderValue);
+            }
+            
+            // Show loading state
             Swal.fire({
-                title: 'Error!',
-                text: 'An unexpected error occurred. Please check console for details.',
-                icon: 'error',
+                title: 'Adding trainer...',
+                text: 'Please wait while we process your request.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
                 background: '#1F2937',
                 color: '#ffffff'
             });
-        });
-    });
-    
-    document.getElementById('editTrainerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const form = this;
-        const formData = new FormData(form);
-        const trainerId = document.getElementById('edit_trainer_id').value;
-        
-        // If we have cropped image data, use it instead of the file
-        const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
-        if (croppedInput && croppedInput.value) {
-            // Remove the original file input from the formData
-            formData.delete('profile_image');
             
-            // Add the cropped image data
-            formData.set('profile_image_base64', croppedInput.value);
-        }
-        
-        // Handle instructor_for checkboxes
-        const instructorCheckboxes = form.querySelectorAll('input[name="instructor_for[]"]:checked');
-        if (instructorCheckboxes.length > 0) {
-            formData.delete('instructor_for[]'); // Remove the array entries
-            const instructorValues = Array.from(instructorCheckboxes).map(cb => cb.value);
-            formData.set('instructor_for', instructorValues.join(','));
-        } else {
-            formData.set('instructor_for', ''); // Ensure field exists even if empty
-        }
-        
-        // Handle day toggles for schedule
-        document.querySelectorAll('.edit-day-toggle').forEach(toggle => {
-            const day = toggle.getAttribute('data-day');
-            if (!toggle.checked) {
-                // Remove this day's schedule from formData
-                formData.delete(`schedule[${day}][start]`);
-                formData.delete(`schedule[${day}][end]`);
-            }
-        });
-        
-        // Add other gender if selected - get value from dropdown in edit form
-        const selectedGender = document.getElementById('edit_gender').value;
-        if (selectedGender === 'other') {
-            const otherGenderValue = document.getElementById('edit_other_gender').value;
-            formData.set('other_gender', otherGenderValue);
-        }
-        
-        // Add method spoofing for PUT
-        formData.append('_method', 'PUT');
-        
-        // Show loading state
-        Swal.fire({
-            title: 'Updating trainer...',
-            text: 'Please wait while we process your request.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            },
-            background: '#1F2937',
-            color: '#ffffff'
-        });
-        
-        fetch(`/admin/trainers/${trainerId}`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: data.message,
-                    icon: 'success',
-                    background: '#1F2937',
-                    color: '#ffffff'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                let errorMsg = data.message || 'Failed to update trainer';
-                if (data.errors) {
-                    const errorList = Object.keys(data.errors).map(key => 
-                        `<li>${data.errors[key].join('</li><li>')}</li>`
-                    ).join('');
-                    
+            fetch('{{ route('admin.trainers.store') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
                     Swal.fire({
-                        title: 'Error!',
-                        html: `<p>${errorMsg}</p><ul class="text-left mt-3">${errorList}</ul>`,
-                        icon: 'error',
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
                         background: '#1F2937',
                         color: '#ffffff'
+                    }).then(() => {
+                        window.location.reload();
                     });
                 } else {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: errorMsg,
-                        icon: 'error',
-                        background: '#1F2937',
-                        color: '#ffffff'
-                    });
-                }
-                console.error('Edit form - Submission errors:', data.errors);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                title: 'Error!',
-                text: 'An unexpected error occurred. Please check console for details.',
-                icon: 'error',
-                background: '#1F2937',
-                color: '#ffffff'
-            });
-        });
-    });
-    
-    // Day toggles for availability
-    const dayToggles = document.querySelectorAll('.day-toggle, .edit-day-toggle');
-    dayToggles.forEach(toggle => {
-        toggle.addEventListener('change', function() {
-            const day = this.getAttribute('data-day');
-            const isEdit = this.classList.contains('edit-day-toggle');
-            const container = document.querySelector(`.${isEdit ? 'edit-' : ''}day-time-container[data-day="${day}"]`);
-            
-            if (this.checked) {
-                container.style.display = 'flex';
-            } else {
-                container.style.display = 'none';
-            }
-        });
-    });
-});
-    // Initialize mobile number fields with +63 prefix
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize add trainer mobile number field
-        const addMobileInput = document.getElementById('mobile_number');
-        if (addMobileInput && !addMobileInput.value) {
-            addMobileInput.value = '+63 ';
-        }
-        
-        // Initialize when add trainer modal is opened
-        const addTrainerBtn = document.getElementById('addTrainerBtn');
-        if (addTrainerBtn) {
-            addTrainerBtn.addEventListener('click', function() {
-                setTimeout(function() {
-                    if (addMobileInput && !addMobileInput.value) {
-                        addMobileInput.value = '+63 ';
+                    let errorMsg = data.message || 'Failed to add trainer';
+                    let errorHtml = '<p>' + errorMsg + '</p>';
+                    
+                    if (data.errors) {
+                        errorHtml += '<div class="mt-4 text-left">';
+                        for (const [key, messages] of Object.entries(data.errors)) {
+                            errorHtml += `<p class="text-red-400 font-semibold">${key}:</p>`;
+                            errorHtml += '<ul class="list-disc pl-5 mb-2">';
+                            messages.forEach(message => {
+                                errorHtml += `<li class="text-sm">${message}</li>`;
+                            });
+                            errorHtml += '</ul>';
+                        }
+                        errorHtml += '</div>';
                     }
-                }, 100);
-            });
-        }
-        
-        // For edit trainer form
-        // The edit_mobile_number field will be initialized when the edit modal is opened
-        document.addEventListener('editTrainerModalOpened', function() {
-            const editMobileInput = document.getElementById('edit_mobile_number');
-            if (editMobileInput) {
-                // If the value doesn't already have +63 prefix, add it
-                if (!editMobileInput.value.startsWith('+63')) {
-                    editMobileInput.value = '+63 ' + editMobileInput.value.replace(/^\+63\s*/, '');
+                    
+                    Swal.fire({
+                        title: 'Error!',
+                        html: errorHtml,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                    
+                    console.error('Form submission errors:', data.errors);
                 }
-            }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An unexpected error occurred. Please check console for details.',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                });
+            });
         });
-    });
+    }
+    
+    // Edit Trainer Form
+    const editTrainerForm = document.getElementById('editTrainerForm');
+    if (editTrainerForm) {
+        editTrainerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 1. Validate instructor_for first - most common issue
+            const editInstructorSelect = document.getElementById('edit_instructor_for');
+            const editInstructorHidden = document.getElementById('edit_instructor_for_hidden');
+            const selectedValues = Array.from(editInstructorSelect.selectedOptions).map(opt => opt.value);
+            
+            if (selectedValues.length === 0) {
+                Swal.fire({
+                    title: 'Missing Information!',
+                    text: 'Please select at least one instruction area (Gym, Boxing, etc.)',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                });
+                return;
+            }
+            
+            // 2. Update the hidden field with the selected values
+            editInstructorHidden.value = selectedValues.join(',');
+            console.log('Edit form - instructor_for values:', selectedValues, 'hidden value:', editInstructorHidden.value);
+            
+            // 3. Create form data and explicitly set instructor_for
+            const form = this;
+            const formData = new FormData(form);
+            const trainerId = document.getElementById('edit_trainer_id').value;
+            
+            // Explicitly set the instructor_for field value
+            formData.set('instructor_for', editInstructorHidden.value);
+            
+            console.log('Submitting edit trainer form...');
+            
+            // If we have cropped image data, use it instead of the file
+            const croppedInput = document.querySelector('input[name="profile_image_cropped"]');
+            if (croppedInput && croppedInput.value) {
+                // Remove the original file input from the formData
+                formData.delete('profile_image');
+                
+                // Add the cropped image data
+                formData.set('profile_image_base64', croppedInput.value);
+            }
+            
+            // Handle day toggles for schedule
+            document.querySelectorAll('.edit-day-toggle').forEach(toggle => {
+                const day = toggle.getAttribute('data-day');
+                if (!toggle.checked) {
+                    // Remove this day's schedule from formData
+                    formData.delete(`schedule[${day}][start]`);
+                    formData.delete(`schedule[${day}][end]`);
+                }
+            });
+            
+            // Add other gender if selected - get value from dropdown in edit form
+            const selectedGender = document.getElementById('edit_gender').value;
+            if (selectedGender === 'other') {
+                const otherGenderValue = document.getElementById('edit_other_gender').value;
+                formData.set('other_gender', otherGenderValue);
+            }
+            
+            // Add method spoofing for PUT
+            formData.append('_method', 'PUT');
+            
+            // Log form data entries for debugging
+            console.log('Edit form data entries:');
+            for (const pair of formData.entries()) {
+                console.log(pair[0] + ': ' + (pair[0] === 'profile_image_base64' ? '[Base64 data]' : pair[1]));
+            }
+            
+            // Show loading state
+            Swal.fire({
+                title: 'Updating trainer...',
+                text: 'Please wait while we process your request.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                },
+                background: '#1F2937',
+                color: '#ffffff'
+            });
+            
+            fetch(`/admin/trainers/${trainerId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    let errorMsg = data.message || 'Failed to update trainer';
+                    let errorHtml = '<p>' + errorMsg + '</p>';
+                    
+                    if (data.errors) {
+                        errorHtml += '<div class="mt-4 text-left">';
+                        for (const [key, messages] of Object.entries(data.errors)) {
+                            errorHtml += `<p class="text-red-400 font-semibold">${key}:</p>`;
+                            errorHtml += '<ul class="list-disc pl-5 mb-2">';
+                            messages.forEach(message => {
+                                errorHtml += `<li class="text-sm">${message}</li>`;
+                            });
+                            errorHtml += '</ul>';
+                        }
+                        errorHtml += '</div>';
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error!',
+                        html: errorHtml,
+                        icon: 'error',
+                        background: '#1F2937',
+                        color: '#ffffff'
+                    });
+                    
+                    console.error('Edit form - Submission errors:', data.errors);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An unexpected error occurred. Please check console for details.',
+                    icon: 'error',
+                    background: '#1F2937',
+                    color: '#ffffff'
+                });
+            });
+        });
+    }
+    
+    // Handle instructor_for multiselect in Add form
+    const instructorSelect = document.getElementById('instructor_for');
+    const instructorHidden = document.getElementById('instructor_for_hidden');
+    
+    if (instructorSelect && instructorHidden) {
+        instructorSelect.addEventListener('change', function() {
+            const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
+            instructorHidden.value = selectedValues.join(',');
+            console.log('Add form - instructor_for values:', selectedValues, instructorHidden.value);
+        });
+    }
+    
+    // Handle instructor_for multiselect in Edit form
+    const editInstructorSelect = document.getElementById('edit_instructor_for');
+    const editInstructorHidden = document.getElementById('edit_instructor_for_hidden');
+    
+    if (editInstructorSelect && editInstructorHidden) {
+        editInstructorSelect.addEventListener('change', function() {
+            const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
+            editInstructorHidden.value = selectedValues.join(',');
+            console.log('Edit form - instructor_for values:', selectedValues, editInstructorHidden.value);
+        });
+    }
+});
 </script>
 @endsection

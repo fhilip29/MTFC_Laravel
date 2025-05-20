@@ -248,6 +248,8 @@ Route::get('/api/announcements/{announcement}', [AnnouncementController::class, 
 Route::middleware(['auth'])->group(function() {
     // API Routes
     Route::get('/api/user/attendance', [ProfileController::class, 'getUserAttendance'])->name('api.user.attendance');
+    Route::get('/api/trainer/attendance', [TrainerController::class, 'getTrainerAttendance'])->name('api.trainer.attendance');
+    Route::get('/api/trainer/test-attendance', [TrainerController::class, 'testAttendanceData'])->name('api.trainer.test.attendance');
     Route::get('/api/invoice/{id}/items', [InvoiceController::class, 'getInvoiceItems'])->name('api.invoice.items');
     Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates');
     
@@ -319,6 +321,8 @@ Route::middleware(['auth', RoleMiddleware::class . ':trainer'])->group(function 
         return view('trainer.dashboard');
     })->name('trainer.dashboard');
     Route::get('/trainer/profile', [TrainerController::class, 'showProfile'])->name('trainer.profile');
+    Route::get('/trainer/attendance', [TrainerController::class, 'showAttendanceDetails'])->name('trainer.attendance');
+    Route::get('/trainer/test-chart', [TrainerController::class, 'testChartDisplay'])->name('trainer.test-chart');
 });
 
 // ===================

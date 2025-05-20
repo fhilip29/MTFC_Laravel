@@ -127,7 +127,7 @@
     <!-- Page Loader -->
     @include('components.loader')
 
-    @if (!Request::is('profile') && !Request::is('profile/qr') && !Request::is('user/attendance') && !Request::is('account-settings'))
+    @if (!Request::is('profile') && !Request::is('profile/qr') && !Request::is('user/attendance') && !Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('trainer/attendance') && !Request::is('messages') && !Request::is('messages/compose') && !Request::is('messages/*') && !Request::is('messages/sent'))
         @include('components.header')
     @else
         <!-- Home Button for Profile Pages -->
@@ -143,7 +143,7 @@
         
         @if (!Request::is('contact') && !Request::is('pricing/*') && !Request::is('profile') && !Request::is('/') && !Request::is('profile/qr') &&
         !Request::is('pricing') && !Request::is('account-settings') && !Request::is ('payment/*') && !Request::is ('payment-method') && !Request::is('subscription') && !Request::is('subscription/*') && !Request::is('cart')
-        && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages')
+        && !Request::is ('terms') && !Request::is ('privacypolicy') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages' )
         && !Request::is('checkout') && !Request::is('user/*') && !Request::is('about') && !Request::is('shop'))
             <!-- Empty space div removed -->
         @endif
@@ -151,7 +151,7 @@
 
     
     @if (!Request::is('account-settings') && !Request::is('trainer/profile') && !Request::is('announcements') && !Request::is('orders') && !Request::is('subscription/history') && !Request::is('profile') && !Request::is('community/*') && !Request::is('community') && !Request::is('messages/*') && !Request::is('messages' )
-    && !Request::is('checkout') && !Request::is('profile/qr') && !Request::is('user/*') && !Request::is('announcements/*'))
+    && !Request::is('checkout') && !Request::is('profile/qr') && !Request::is('user/*') && !Request::is('announcements/*') && !Request::is('trainer/attendance') && !Request::is('messages/sent'))
         @include('components.footer')
     @endif
 

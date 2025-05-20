@@ -5,34 +5,6 @@
 @section('content')
 <div class="bg-gray-100 min-h-screen py-6 md:py-10">
     <div class="container mx-auto px-4">
-        <!-- Breadcrumb -->
-        <div class="mb-6">
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                    <li class="inline-flex items-center">
-                        <a href="{{ route('profile') }}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-red-600">
-                            <i class="fas fa-user mr-2"></i>
-                            Profile
-                        </a>
-                    </li>
-                    <li class="inline-flex items-center">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                            <a href="{{ route('user.messages') }}" class="text-sm font-medium text-gray-700 hover:text-red-600">
-                                Messages
-                            </a>
-                        </div>
-                    </li>
-                    <li aria-current="page">
-                        <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-gray-400 text-xs mx-1"></i>
-                            <span class="text-sm font-medium text-gray-500">Compose Message</span>
-                        </div>
-                    </li>
-                </ol>
-            </nav>
-        </div>
-
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">Compose New Message</h1>
@@ -64,7 +36,7 @@
                                 @if(isset($preSelectedRecipient))
                                     <option value="{{ $preSelectedRecipient->id }}" selected>{{ $preSelectedRecipient->full_name }} (Admin)</option>
                                 @else
-                                    <option value="">Select or search for a recipient</option>
+                                    <option value="">Select an admin to message</option>
                                     
                                     @if(isset($admins) && count($admins) > 0)
                                         <optgroup label="Admin Team">
@@ -78,26 +50,6 @@
                                         <option value="1" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == 1 ? 'selected' : '' }}>
                                             Admin/Support Team
                                         </option>
-                                    @endif
-                                    
-                                    @if(isset($trainers) && count($trainers) > 0)
-                                        <optgroup label="Trainers">
-                                            @foreach($trainers as $trainer)
-                                                <option value="{{ $trainer->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $trainer->id ? 'selected' : '' }}>
-                                                    {{ $trainer->full_name }} (Trainer)
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                    @endif
-                                    
-                                    @if(isset($members) && count($members) > 0)
-                                        <optgroup label="Members">
-                                            @foreach($members as $member)
-                                                <option value="{{ $member->id }}" {{ isset($preSelectedRecipient) && $preSelectedRecipient->id == $member->id ? 'selected' : '' }}>
-                                                    {{ $member->full_name }} (Member)
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
                                     @endif
                                 @endif
                             </select>
@@ -181,7 +133,7 @@
         // Initialize Select2 for recipient dropdown with search
         $(document).ready(function() {
             $('.select2-recipient').select2({
-                placeholder: 'Select or search for a recipient',
+                placeholder: 'Select an admin to message',
                 allowClear: true,
                 width: '100%',
                 dropdownCssClass: 'select2-dropdown-large',
@@ -203,26 +155,15 @@
         function formatRecipient(recipient) {
             if (!recipient.id) return recipient.text;
             
-            let roleClass = 'bg-gray-500';
-            let role = '';
-            
-            if (recipient.text.includes('(Admin)')) {
-                roleClass = 'bg-red-500';
-                role = 'Admin';
-            } else if (recipient.text.includes('(Trainer)')) {
-                roleClass = 'bg-blue-500';
-                role = 'Trainer';
-            } else if (recipient.text.includes('(Member)')) {
-                roleClass = 'bg-green-500';
-                role = 'Member';
-            }
+            let roleClass = 'bg-red-500';
+            let role = 'Admin';
             
             // Extract just the name (remove the role part)
             let name = recipient.text.split(' (')[0];
             
             return '<div class="flex items-center py-2">' +
                    '<span class="font-medium">' + name + '</span>' +
-                   (role ? '<span class="ml-2 px-2 py-1 text-xs rounded-full text-white ' + roleClass + '">' + role + '</span>' : '') +
+                   '<span class="ml-2 px-2 py-1 text-xs rounded-full text-white ' + roleClass + '">' + role + '</span>' +
                    '</div>';
         }
         

@@ -4,17 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\Post;
 use App\Models\Comment;
+use App\Services\ContentScreeningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
+    protected $contentScreening;
+
+    public function __construct(ContentScreeningService $contentScreening)
+    {
+        $this->contentScreening = $contentScreening;
+    }
+
     // Store a new comment
     public function store(Request $request, $postId)
     {
         $request->validate([
             'content' => 'required|string|max:500',
         ]);
+
+        // Screen content for inappropriate material
+        $contentIssues = $this->contentScreening->screenContent($request->content);
+        if (!empty($contentIssues)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $contentIssues
+                ], 422);
+            }
+            return back()->withErrors(['content' => $contentIssues]);
+        }
 
         $post = Post::findOrFail($postId);
 
@@ -45,30 +65,15 @@ class CommentController extends Controller
 
     public function destroy($comment)
     {
-        // Find the comment
         $comment = Comment::findOrFail($comment);
-
-        // Check if the authenticated user is the one who created the comment
-        if ($comment->user_id !== auth()->id()) {
-            if (request()->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You are not authorized to delete this comment.'
-                ], 403);
-            }
-            return redirect()->route('community')->with('error', 'You are not authorized to delete this comment.');
+        
+        // Ensure the user is the owner of the comment
+        if (auth()->id() !== $comment->user_id) {
+            return redirect()->route('community')->with('error', 'You can only delete your own comments.');
         }
 
-        // Delete the comment
         $comment->delete();
 
-        if (request()->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Comment deleted successfully!'
-            ]);
-        }
-
-        return redirect()->route('community')->with('success', 'Comment deleted successfully!');
+        return redirect()->route('community')->with('success', 'Comment deleted successfully.');
     }
 }

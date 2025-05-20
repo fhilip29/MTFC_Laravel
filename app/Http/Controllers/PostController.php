@@ -5,11 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\PostTag;
+use App\Services\ContentScreeningService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
+    protected $contentScreening;
+
+    public function __construct(ContentScreeningService $contentScreening)
+    {
+        $this->contentScreening = $contentScreening;
+    }
+
     // Display all posts in the community feed
     public function index(Request $request)
     {
@@ -107,6 +115,20 @@ class PostController extends Controller
             'tags.*' => 'exists:post_tags,id'
         ]);
 
+        // Screen content for inappropriate material
+        $contentIssues = $this->contentScreening->screenContent($request->content);
+        if (!empty($contentIssues)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $contentIssues
+                ], 422);
+            }
+            return back()
+                ->withInput()
+                ->withErrors(['content' => $contentIssues]);
+        }
+
         // Create the post
         $post = Post::create([
             'user_id' => Auth::id(),
@@ -140,6 +162,14 @@ class PostController extends Controller
                     'path' => $directory . '/' . $filename,
                 ]);
             }
+        }
+
+        // If request is AJAX, return JSON response
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Post created successfully!'
+            ]);
         }
 
         // Redirect to community page with a success message

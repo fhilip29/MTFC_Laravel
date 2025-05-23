@@ -785,6 +785,120 @@
                 }
             });
         }
+
+        // Handle post form submission
+        const postForm = document.querySelector('form[action=\"{{ route('posts.store') }}\"]');
+        if (postForm) {
+            postForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const textarea = this.querySelector('textarea[name="content"]');
+                const imageInput = this.querySelector('input[name="images[]"]');
+                const imagePreview = document.getElementById('imagePreview');
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        // Clear form inputs
+                        textarea.value = '';
+                        if (imageInput) imageInput.value = '';
+                        if (imagePreview) {
+                            imagePreview.innerHTML = '';
+                            imagePreview.style.display = 'none';
+                        }
+                        
+                        // Reset character count
+                        const charCount = document.getElementById('charCount');
+                        if (charCount) charCount.textContent = '0';
+                        
+                        // Show content screening errors
+                        Swal.fire({
+                            title: 'Content Screening Failed',
+                            html: Array.isArray(data.errors) ? data.errors.join('<br>') : data.errors,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An error occurred while submitting your post.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            });
+        }
+        
+        // Handle comment form submission
+        document.querySelectorAll('.comment-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const textarea = this.querySelector('textarea');
+                const commentsSection = this.closest('.comments-section');
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear the textarea
+                        textarea.value = '';
+                        textarea.style.height = 'auto';
+                        
+                        // Add the new comment to the DOM
+                        const newComment = document.createElement('div');
+                        newComment.className = 'flex items-start space-x-3';
+                        newComment.innerHTML = data.html;
+                        
+                        // Insert before the form
+                        commentsSection.insertBefore(newComment, this);
+                        
+                        // Update comment count
+                        const commentCount = this.closest('.post-card').querySelector('.vote-button:nth-child(2) span');
+                        commentCount.textContent = parseInt(commentCount.textContent) + 1;
+                    } else {
+                        // Show content screening errors
+                        Swal.fire({
+                            title: 'Content Screening Failed',
+                            html: Array.isArray(data.errors) ? data.errors.join('<br>') : data.errors,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'An error occurred while submitting your comment.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                });
+            });
+        });
         
         // Tag selection styling
         document.querySelectorAll('input[name="tags[]"]').forEach(checkbox => {
@@ -933,161 +1047,6 @@
                 this.style.height = (this.scrollHeight) + 'px';
             });
         });
-        
-        // AJAX for comment submission
-        document.querySelectorAll('.comment-form').forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                console.log('Comment form submitted:', this.action);
-                
-                const formData = new FormData(this);
-                const textarea = this.querySelector('textarea');
-                const commentsSection = this.closest('.comments-section');
-                
-                fetch(this.getAttribute('action'), {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response error: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Comment response:', data);
-                    if (data.success) {
-                        // Add the new comment to the DOM
-                        const newComment = document.createElement('div');
-                        newComment.className = 'flex items-start space-x-3';
-                        newComment.innerHTML = data.html;
-                        
-                        // Insert before the form
-                        commentsSection.insertBefore(newComment, this);
-                        
-                        // Clear the textarea
-                        textarea.value = '';
-                        textarea.style.height = 'auto';
-                        
-                        // Update comment count
-                        const commentCount = this.closest('.post-card').querySelector('.vote-button:nth-child(2) span');
-                        commentCount.textContent = parseInt(commentCount.textContent) + 1;
-                        
-                        // Add event listeners to the new delete buttons
-                        const deleteForm = newComment.querySelector('.comment-delete-form');
-                        if (deleteForm) {
-                            attachCommentDeleteListeners([deleteForm]);
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error with comment:', error);
-                    alert('There was a problem posting your comment. Please try again.');
-                });
-            });
-        });
-        
-        // Function to attach delete event listeners to comment delete forms
-        function attachCommentDeleteListeners(forms) {
-            forms.forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    console.log('Delete comment form submitted:', this.action);
-                    
-                    Swal.fire({
-                        title: 'Delete Comment?',
-                        text: 'Are you sure you want to delete this comment? This action cannot be undone.',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Yes, delete it!',
-                        cancelButtonText: 'Cancel'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            const formData = new FormData(this);
-                            formData.append('_method', 'DELETE');
-                            
-                            fetch(this.getAttribute('action'), {
-                                method: 'POST',
-                                body: formData,
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'X-CSRF-TOKEN': csrfToken
-                                }
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Network response error: ' + response.status);
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                console.log('Delete comment response:', data);
-                                if (data.success) {
-                                    // Remove the comment element from DOM
-                                    const commentElement = this.closest('.flex.items-start.space-x-3');
-                                    if (commentElement) {
-                                        commentElement.remove();
-                                        
-                                        // Update comment count
-                                        const postCard = this.closest('.post-card');
-                                        const commentCount = postCard.querySelector('.vote-button:nth-child(2) span');
-                                        const currentCount = parseInt(commentCount.textContent);
-                                        commentCount.textContent = currentCount - 1;
-                                        
-                                        // Show success message
-                                        Swal.fire({
-                                            title: 'Deleted!',
-                                            text: 'Your comment has been deleted.',
-                                            icon: 'success',
-                                            timer: 1500,
-                                            showConfirmButton: false
-                                        });
-                                    }
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error deleting comment:', error);
-                                // Still proceed with removing the comment from DOM
-                                const commentElement = this.closest('.flex.items-start.space-x-3');
-                                if (commentElement) {
-                                    commentElement.remove();
-                                    
-                                    // Update comment count
-                                    const postCard = this.closest('.post-card');
-                                    const commentCount = postCard.querySelector('.vote-button:nth-child(2) span');
-                                    const currentCount = parseInt(commentCount.textContent);
-                                    commentCount.textContent = currentCount - 1;
-                                    
-                                    // Show notification that it was deleted despite error
-                                    Swal.fire({
-                                        title: 'Comment Deleted',
-                                        text: 'Your comment has been deleted, but there was a server error. The changes may not persist after refresh.',
-                                        icon: 'warning',
-                                        timer: 2000,
-                                        showConfirmButton: false
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        title: 'Error!',
-                                        text: 'There was a problem deleting the comment. Please try again.',
-                                        icon: 'error'
-                                    });
-                                }
-                            });
-                        }
-                    });
-                });
-            });
-        }
-        
-        // Attach delete listeners to existing comment delete forms
-        attachCommentDeleteListeners(document.querySelectorAll('.comment-delete-form'));
         
         // Toggle comments section
         document.querySelectorAll('.comment-toggle').forEach(button => {

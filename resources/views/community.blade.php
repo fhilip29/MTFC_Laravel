@@ -1373,14 +1373,9 @@
                                     <option value="spam">Spam</option>
                                     <option value="harassment">Harassment</option>
                                     <option value="violence">Violence</option>
-                                    <option value="misinformation">Misinformation</option>
                                     <option value="other">Other</option>
                                 </select>
-                                <div id="other-flag-reason" class="mt-3 hidden">
-                                    <label class="block text-white mb-1">Specify reason:</label>
-                                    <input type="text" id="other-flag-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter reason">
-                                </div>
-                                <textarea id="flag-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
+                                <textarea id="flag-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Additional notes (optional)" rows="3"></textarea>
                             </div>
                         `,
                         showCancelButton: true,
@@ -1391,16 +1386,8 @@
                         background: '#1a1a1a',
                         color: '#FFFFFF',
                         preConfirm: () => {
-                            const flagReason = document.getElementById('flag-reason').value;
-                            const otherFlagInput = document.getElementById('other-flag-input');
-                            
-                            if (flagReason === 'other' && !otherFlagInput.value.trim()) {
-                                Swal.showValidationMessage('Please specify the reason');
-                                return false;
-                            }
-
                             return {
-                                reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
+                                reason: document.getElementById('flag-reason').value,
                                 notes: document.getElementById('flag-notes').value
                             };
                         }
@@ -1444,11 +1431,7 @@
                                     <option value="violence">Violence</option>
                                     <option value="other">Other</option>
                                 </select>
-                                <div id="other-flag-comment-reason" class="mt-3 hidden">
-                                    <label class="block text-white mb-1">Specify reason:</label>
-                                    <input type="text" id="other-flag-comment-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter reason">
-                                </div>
-                                <textarea id="flag-comment-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
+                                <textarea id="flag-comment-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Additional notes (optional)" rows="3"></textarea>
                             </div>
                         `,
                         showCancelButton: true,
@@ -1459,16 +1442,8 @@
                         background: '#1a1a1a',
                         color: '#FFFFFF',
                         preConfirm: () => {
-                            const flagReason = document.getElementById('flag-comment-reason').value;
-                            const otherFlagInput = document.getElementById('other-flag-comment-input');
-                            
-                            if (flagReason === 'other' && !otherFlagInput.value.trim()) {
-                                Swal.showValidationMessage('Please specify the reason');
-                                return false;
-                            }
-
                             return {
-                                reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
+                                reason: document.getElementById('flag-comment-reason').value,
                                 notes: document.getElementById('flag-comment-notes').value
                             };
                         }
@@ -2506,10 +2481,6 @@
                                 <option value="tos">Terms of Service Violation</option>
                                 <option value="other">Other</option>
                             </select>
-                            <div id="other-violation-type" class="mt-3 hidden">
-                                <label class="block text-white mb-1">Specify violation type:</label>
-                                <input type="text" id="other-violation-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter violation type">
-                            </div>
                         </div>
                         <div class="mt-3">
                             <label class="block text-white mb-1">Message to user:</label>
@@ -2543,18 +2514,10 @@
                         Swal.showValidationMessage('Please provide a message for the user');
                         return false;
                     }
-
-                    const violationType = document.getElementById('violation-type').value;
-                    const otherViolationInput = document.getElementById('other-violation-input');
-                    
-                    if (violationType === 'other' && !otherViolationInput.value.trim()) {
-                        Swal.showValidationMessage('Please specify the violation type');
-                        return false;
-                    }
                     
                     return {
                         action: document.getElementById('action-type').value,
-                        violation: violationType === 'other' ? otherViolationInput.value : violationType,
+                        violation: document.getElementById('violation-type').value,
                         userMessage: userMessage,
                         adminNotes: document.getElementById('admin-notes').value,
                         trackOffense: document.getElementById('track-offense').checked
@@ -2693,26 +2656,15 @@
                             <p class="text-white">This will add the post to your admin flagged content list for review.</p>
                         </div>
                         <div class="text-left mt-4">
-                            <div class="mb-4">
-                                <label class="block text-white mb-1">Violation Type:</label>
-                                <select id="flag-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                                    <option value="">Select a reason</option>
-                                    <option value="inappropriate">Inappropriate Language</option>
-                                    <option value="spam">Spam</option>
-                                    <option value="harassment">Harassment</option>
-                                    <option value="violence">Violence</option>
-                                    <option value="misinformation">Misinformation</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                <div id="other-flag-reason" class="mt-3 hidden">
-                                    <label class="block text-white mb-1">Specify violation type:</label>
-                                    <input type="text" id="other-flag-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter violation type">
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-white mb-1">Admin Notes:</label>
-                                <textarea id="flag-notes" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter admin notes" rows="3"></textarea>
-                            </div>
+                            <select id="flag-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
+                                <option value="inappropriate">Inappropriate Language</option>
+                                <option value="spam">Spam</option>
+                                <option value="harassment">Harassment</option>
+                                <option value="violence">Violence</option>
+                                <option value="misinformation">Misinformation</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <textarea id="flag-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
                         </div>
                     `,
                     showCancelButton: true,
@@ -2723,15 +2675,8 @@
                     background: '#1a1a1a',
                     color: '#FFFFFF',
                     preConfirm: () => {
-                        if (!validateFlagForm()) {
-                            return false;
-                        }
-                        
-                        const flagReason = document.getElementById('flag-reason').value;
-                        const otherFlagInput = document.getElementById('other-flag-input');
-                        
                         return {
-                            reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
+                            reason: document.getElementById('flag-reason').value,
                             notes: document.getElementById('flag-notes').value
                         };
                     }
@@ -2800,25 +2745,14 @@
                             <p class="text-white">This will add the comment to your admin flagged content list for review.</p>
                         </div>
                         <div class="text-left mt-4">
-                            <div class="mb-4">
-                                <label class="block text-white mb-1">Violation Type:</label>
-                                <select id="flag-comment-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                                    <option value="">Select a reason</option>
-                                    <option value="inappropriate">Inappropriate Language</option>
-                                    <option value="spam">Spam</option>
-                                    <option value="harassment">Harassment</option>
-                                    <option value="violence">Violence</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                <div id="other-flag-comment-reason" class="mt-3 hidden">
-                                    <label class="block text-white mb-1">Specify violation type:</label>
-                                    <input type="text" id="other-flag-comment-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter violation type">
-                                </div>
-                            </div>
-                            <div class="mb-4">
-                                <label class="block text-white mb-1">Admin Notes:</label>
-                                <textarea id="flag-comment-notes" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter admin notes" rows="3"></textarea>
-                            </div>
+                            <select id="flag-comment-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
+                                <option value="inappropriate">Inappropriate Language</option>
+                                <option value="spam">Spam</option>
+                                <option value="harassment">Harassment</option>
+                                <option value="violence">Violence</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <textarea id="flag-comment-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
                         </div>
                     `,
                     showCancelButton: true,
@@ -2829,15 +2763,8 @@
                     background: '#1a1a1a',
                     color: '#FFFFFF',
                     preConfirm: () => {
-                        if (!validateFlagCommentForm()) {
-                            return false;
-                        }
-                        
-                        const flagReason = document.getElementById('flag-comment-reason').value;
-                        const otherFlagInput = document.getElementById('other-flag-comment-input');
-                        
                         return {
-                            reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
+                            reason: document.getElementById('flag-comment-reason').value,
                             notes: document.getElementById('flag-comment-notes').value
                         };
                     }
@@ -3078,10 +3005,6 @@
                                 <option value="tos">Terms of Service Violation</option>
                                 <option value="other">Other</option>
                             </select>
-                            <div id="other-violation-type" class="mt-3 hidden">
-                                <label class="block text-white mb-1">Specify violation type:</label>
-                                <input type="text" id="other-violation-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter violation type">
-                            </div>
                         </div>
                         <div class="mt-3">
                             <label class="block text-white mb-1">Message to user:</label>
@@ -3115,18 +3038,10 @@
                         Swal.showValidationMessage('Please provide a message for the user');
                         return false;
                     }
-
-                    const violationType = document.getElementById('violation-type').value;
-                    const otherViolationInput = document.getElementById('other-violation-input');
-                    
-                    if (violationType === 'other' && !otherViolationInput.value.trim()) {
-                        Swal.showValidationMessage('Please specify the violation type');
-                        return false;
-                    }
                     
                     return {
                         action: document.getElementById('action-type').value,
-                        violation: violationType === 'other' ? otherViolationInput.value : violationType,
+                        violation: document.getElementById('violation-type').value,
                         userMessage: userMessage,
                         adminNotes: document.getElementById('admin-notes').value,
                         trackOffense: document.getElementById('track-offense').checked
@@ -3461,320 +3376,6 @@
                 timerProgressBar: true
             });
         }
-
-        // Add event listeners for violation type dropdowns
-        document.addEventListener('change', function(e) {
-            if (e.target.id === 'violation-type') {
-                const otherDiv = document.getElementById('other-violation-type');
-                if (e.target.value === 'other') {
-                    otherDiv.classList.remove('hidden');
-                } else {
-                    otherDiv.classList.add('hidden');
-                }
-            } else if (e.target.id === 'flag-reason') {
-                const otherDiv = document.getElementById('other-flag-reason');
-                if (e.target.value === 'other') {
-                    otherDiv.classList.remove('hidden');
-                } else {
-                    otherDiv.classList.add('hidden');
-                }
-            } else if (e.target.id === 'flag-comment-reason') {
-                const otherDiv = document.getElementById('other-flag-comment-reason');
-                if (e.target.value === 'other') {
-                    otherDiv.classList.remove('hidden');
-                } else {
-                    otherDiv.classList.add('hidden');
-                }
-            }
-        });
-
-        // Add validation functions
-        function validateActionForm() {
-            const actionType = document.getElementById('action-type').value;
-            const violationType = document.getElementById('violation-type').value;
-            const userMessage = document.getElementById('user-message').value;
-            const otherViolationInput = document.getElementById('other-violation-input');
-            
-            // Clear previous error messages
-            clearValidationErrors();
-            
-            let isValid = true;
-            
-            // Validate action type
-            if (!actionType) {
-                showValidationError('action-type', 'Please select an action type');
-                isValid = false;
-            }
-            
-            // Validate violation type
-            if (!violationType) {
-                showValidationError('violation-type', 'Please select a violation type');
-                isValid = false;
-            } else if (violationType === 'other' && !otherViolationInput.value.trim()) {
-                showValidationError('other-violation-input', 'Please specify the violation type');
-                isValid = false;
-            }
-            
-            // Validate user message
-            if (!userMessage.trim()) {
-                showValidationError('user-message', 'Please provide a message for the user');
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        function validateFlagForm() {
-            const flagReason = document.getElementById('flag-reason').value;
-            const otherFlagInput = document.getElementById('other-flag-input');
-            
-            // Clear previous error messages
-            clearValidationErrors();
-            
-            let isValid = true;
-            
-            // Validate flag reason
-            if (!flagReason) {
-                showValidationError('flag-reason', 'Please select a reason');
-                isValid = false;
-            } else if (flagReason === 'other' && !otherFlagInput.value.trim()) {
-                showValidationError('other-flag-input', 'Please specify the reason');
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        function validateFlagCommentForm() {
-            const flagReason = document.getElementById('flag-comment-reason').value;
-            const otherFlagInput = document.getElementById('other-flag-comment-input');
-            
-            // Clear previous error messages
-            clearValidationErrors();
-            
-            let isValid = true;
-            
-            // Validate flag reason
-            if (!flagReason) {
-                showValidationError('flag-comment-reason', 'Please select a reason');
-                isValid = false;
-            } else if (flagReason === 'other' && !otherFlagInput.value.trim()) {
-                showValidationError('other-flag-comment-input', 'Please specify the reason');
-                isValid = false;
-            }
-            
-            return isValid;
-        }
-        
-        function showValidationError(fieldId, message) {
-            const field = document.getElementById(fieldId);
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'text-red-500 text-sm mt-1';
-            errorDiv.textContent = message;
-            
-            // Add red border to the field
-            field.classList.add('border-red-500');
-            
-            // Insert error message after the field
-            field.parentNode.insertBefore(errorDiv, field.nextSibling);
-        }
-        
-        function clearValidationErrors() {
-            // Remove all error messages
-            document.querySelectorAll('.text-red-500').forEach(el => el.remove());
-            
-            // Remove red borders
-            document.querySelectorAll('.border-red-500').forEach(el => {
-                el.classList.remove('border-red-500');
-            });
-        }
-        
-        // Modify the takeActionOnContent function
-        function takeActionOnContent(contentType, contentId) {
-            Swal.fire({
-                title: '<span class="text-xl font-bold">Take Action</span>',
-                html: `
-                    <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/50 mb-4">
-                        <p class="text-white">Choose an action for this reported ${contentType}:</p>
-                    </div>
-                    <div class="text-left mt-4">
-                        <select id="action-type" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                            <option value="">Select an action</option>
-                            <option value="delete">Delete ${contentType}</option>
-                            <option value="hide">Hide ${contentType}</option>
-                            <option value="warn">Warn user</option>
-                        </select>
-                        <div class="mt-3">
-                            <label class="block text-white mb-1">Violation type:</label>
-                            <select id="violation-type" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                                <option value="">Select violation type</option>
-                                <option value="inappropriate">Inappropriate Language</option>
-                                <option value="harassment">Harassment</option>
-                                <option value="spam">Spam</option>
-                                <option value="violence">Violence or Threats</option>
-                                <option value="misinformation">Misinformation</option>
-                                <option value="tos">Terms of Service Violation</option>
-                                <option value="other">Other</option>
-                            </select>
-                            <div id="other-violation-type" class="mt-3 hidden">
-                                <label class="block text-white mb-1">Specify violation type:</label>
-                                <input type="text" id="other-violation-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter violation type">
-                            </div>
-                        </div>
-                        <div class="mt-3">
-                            <label class="block text-white mb-1">Message to user:</label>
-                            <textarea id="user-message" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" rows="3" placeholder="Enter message for the user"></textarea>
-                        </div>
-                        <div class="mt-3">
-                            <label class="block text-white mb-1">Admin notes (optional):</label>
-                            <textarea id="admin-notes" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" rows="2" placeholder="Internal notes"></textarea>
-                        </div>
-                        <div class="mt-3">
-                            <label class="flex items-center text-white">
-                                <input type="checkbox" id="track-offense" class="mr-2">
-                                Track this as an offense
-                            </label>
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'Take Action',
-                cancelButtonText: 'Cancel',
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                background: '#1a1a1a',
-                color: '#FFFFFF',
-                preConfirm: () => {
-                    if (!validateActionForm()) {
-                        return false;
-                    }
-                    
-                    const violationType = document.getElementById('violation-type').value;
-                    const otherViolationInput = document.getElementById('other-violation-input');
-                    
-                    return {
-                        action: document.getElementById('action-type').value,
-                        violation: violationType === 'other' ? otherViolationInput.value : violationType,
-                        userMessage: document.getElementById('user-message').value,
-                        adminNotes: document.getElementById('admin-notes').value,
-                        trackOffense: document.getElementById('track-offense').checked
-                    };
-                }
-            }).then((result) => {
-                // ... existing code ...
-            });
-        }
-        
-        // Modify the admin flag button event listener
-        document.querySelectorAll('.admin-flag-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const postId = this.dataset.postId;
-                const postAuthor = this.dataset.postAuthor;
-                const postContent = this.dataset.postContent;
-                
-                Swal.fire({
-                    title: '<span class="text-xl font-bold">Flag Content</span>',
-                    html: `
-                        <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/50 mb-4">
-                            <p class="text-white">This will add the post to your admin flagged content list for review.</p>
-                        </div>
-                        <div class="text-left mt-4">
-                            <select id="flag-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                                <option value="">Select a reason</option>
-                                <option value="inappropriate">Inappropriate Language</option>
-                                <option value="spam">Spam</option>
-                                <option value="harassment">Harassment</option>
-                                <option value="violence">Violence</option>
-                                <option value="misinformation">Misinformation</option>
-                                <option value="other">Other</option>
-                            </select>
-                            <div id="other-flag-reason" class="mt-3 hidden">
-                                <label class="block text-white mb-1">Specify reason:</label>
-                                <input type="text" id="other-flag-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter reason">
-                            </div>
-                            <textarea id="flag-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Flag Content',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    background: '#1a1a1a',
-                    color: '#FFFFFF',
-                    preConfirm: () => {
-                        if (!validateFlagForm()) {
-                            return false;
-                        }
-                        
-                        const flagReason = document.getElementById('flag-reason').value;
-                        const otherFlagInput = document.getElementById('other-flag-input');
-                        
-                        return {
-                            reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
-                            notes: document.getElementById('flag-notes').value
-                        };
-                    }
-                }).then((result) => {
-                    // ... existing code ...
-                });
-            });
-        });
-        
-        // Modify the admin flag comment button event listener
-        document.querySelectorAll('.admin-flag-comment-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const commentId = this.dataset.commentId;
-                const commentAuthor = this.dataset.commentAuthor;
-                const commentContent = this.dataset.commentContent;
-                
-                Swal.fire({
-                    title: '<span class="text-xl font-bold">Flag Content</span>',
-                    html: `
-                        <div class="bg-red-900/20 p-4 rounded-lg border border-red-500/50 mb-4">
-                            <p class="text-white">This will add the comment to your admin flagged content list for review.</p>
-                        </div>
-                        <div class="text-left mt-4">
-                            <select id="flag-comment-reason" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600">
-                                <option value="">Select a reason</option>
-                                <option value="inappropriate">Inappropriate Language</option>
-                                <option value="spam">Spam</option>
-                                <option value="harassment">Harassment</option>
-                                <option value="violence">Violence</option>
-                                <option value="other">Other</option>
-                            </select>
-                            <div id="other-flag-comment-reason" class="mt-3 hidden">
-                                <label class="block text-white mb-1">Specify reason:</label>
-                                <input type="text" id="other-flag-comment-input" class="w-full p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Enter reason">
-                            </div>
-                            <textarea id="flag-comment-notes" class="w-full mt-3 p-2 bg-gray-700 text-white rounded border border-gray-600" placeholder="Admin notes (optional)" rows="3"></textarea>
-                        </div>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: 'Flag Comment',
-                    cancelButtonText: 'Cancel',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    background: '#1a1a1a',
-                    color: '#FFFFFF',
-                    preConfirm: () => {
-                        if (!validateFlagCommentForm()) {
-                            return false;
-                        }
-                        
-                        const flagReason = document.getElementById('flag-comment-reason').value;
-                        const otherFlagInput = document.getElementById('other-flag-comment-input');
-                        
-                        return {
-                            reason: flagReason === 'other' ? otherFlagInput.value : flagReason,
-                            notes: document.getElementById('flag-comment-notes').value
-                        };
-                    }
-                }).then((result) => {
-                    // ... existing code ...
-                });
-            });
-        });
     });
 </script>
 @endsection

@@ -2,6 +2,48 @@
 
 @section('title', 'Pricing Management')
 
+<style>
+    /* Custom toggle switch styles */
+    .custom-toggle {
+        display: flex;
+        align-items: center;
+    }
+    
+    .custom-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 56px;
+        height: 30px;
+        background-color: #4B5563;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-switch:after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: white;
+        top: 3px;
+        left: 3px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch {
+        background-color: #2563EB;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch:after {
+        left: 29px;
+    }
+    
+    .custom-toggle-checkbox {
+        display: none;
+    }
+</style>
+
 @section('content')
 <div class="container px-4 py-6 mx-auto">
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-3">
@@ -180,6 +222,7 @@
 
 <!-- Add/Edit Plan Modal -->
 <div id="planFormModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full flex items-center justify-center">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"></div>
     <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
         <div class="relative bg-gray-800 rounded-lg shadow">
@@ -236,9 +279,9 @@
                     </div>
                     
                     <div>
-                        <label class="relative inline-flex items-center mb-1 cursor-pointer">
-                            <input type="checkbox" id="isPromo" name="is_promo" value="1" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        <label class="custom-toggle cursor-pointer mb-1">
+                            <input type="checkbox" id="isPromo" name="is_promo" value="1" class="custom-toggle-checkbox">
+                            <div class="custom-toggle-switch"></div>
                             <span class="ml-3 text-sm font-medium text-white">Promotional Price</span>
                         </label>
                         <p class="ml-14 text-xs text-gray-400 mb-3">Enable if this plan is on sale or special promotion.</p>
@@ -260,17 +303,17 @@
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
                         <div>
-                            <label class="relative inline-flex items-center mb-1 cursor-pointer">
-                                <input type="checkbox" id="isActive" name="is_active" value="1" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <label class="custom-toggle cursor-pointer mb-1">
+                                <input type="checkbox" id="isActive" name="is_active" value="1" class="custom-toggle-checkbox" checked>
+                                <div class="custom-toggle-switch"></div>
                                 <span class="ml-3 text-sm font-medium text-white">Active</span>
                             </label>
                             <p class="ml-14 text-xs text-gray-400">Make this plan visible on the pricing page.</p>
                         </div>
                         <div>
-                            <label class="relative inline-flex items-center mb-1 cursor-pointer">
-                                <input type="checkbox" id="isFeatured" name="is_featured" value="1" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <label class="custom-toggle cursor-pointer mb-1">
+                                <input type="checkbox" id="isFeatured" name="is_featured" value="1" class="custom-toggle-checkbox">
+                                <div class="custom-toggle-switch"></div>
                                 <span class="ml-3 text-sm font-medium text-white">Featured</span>
                             </label>
                             <p class="ml-14 text-xs text-gray-400">Highlight this as a recommended plan.</p>

@@ -21,6 +21,9 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'is_promo' => 'nullable|boolean',
+            'original_price' => 'nullable|numeric|min:0|required_if:is_promo,1',
+            'promo_ends_at' => 'nullable|date',
         ]);
         
         $product = new Product();
@@ -37,6 +40,13 @@ class ProductController extends Controller
             $product->status = 'Low Stock';
         } else {
             $product->status = 'In Stock';
+        }
+        
+        // Handle promo fields
+        $product->is_promo = $request->boolean('is_promo', false);
+        if ($product->is_promo) {
+            $product->original_price = $request->original_price;
+            $product->promo_ends_at = $request->promo_ends_at;
         }
         
         if ($request->hasFile('image')) {
@@ -59,6 +69,9 @@ class ProductController extends Controller
             'category' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
+            'is_promo' => 'nullable|boolean',
+            'original_price' => 'nullable|numeric|min:0|required_if:is_promo,1',
+            'promo_ends_at' => 'nullable|date',
         ]);
         
         $product = Product::findOrFail($id);
@@ -75,6 +88,16 @@ class ProductController extends Controller
             $product->status = 'Low Stock';
         } else {
             $product->status = 'In Stock';
+        }
+        
+        // Handle promo fields
+        $product->is_promo = $request->boolean('is_promo', false);
+        if ($product->is_promo) {
+            $product->original_price = $request->original_price;
+            $product->promo_ends_at = $request->promo_ends_at;
+        } else {
+            $product->original_price = null;
+            $product->promo_ends_at = null;
         }
         
         if ($request->hasFile('image')) {

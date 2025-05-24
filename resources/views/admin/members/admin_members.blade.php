@@ -18,9 +18,6 @@
         document.getElementById('edit-plan').value = subscription.plan;
         document.getElementById('edit-subscription-id').value = subscription.id;
         
-        // Show/hide daily option based on type
-        toggleDailyOption();
-        
         // Show/hide cancel button based on subscription status
         const cancelBtn = document.getElementById('cancel-subscription-btn');
         if (subscription.is_active) {
@@ -243,9 +240,6 @@
                                                 .then(response => response.json())
                                                 .then(data => { 
                                                     subscriptions = data;
-                                                    setTimeout(function() {
-                                                        toggleAddDailyOption();
-                                                    }, 100);
                                                 })"
                                             class="text-blue-400 hover:text-blue-300 transition-colors" 
                                             title="Manage Subscription">
@@ -806,7 +800,7 @@
                             >
                                 <div>
                                     <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
-                                    <select name="type" id="add-subscription-type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleAddDailyOption()">
+                                    <select name="type" id="add-subscription-type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">Select Type</option>
                                         @foreach(App\Models\Sport::where('is_active', true)->orderBy('display_order')->get() as $sport)
                                         <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
@@ -817,9 +811,9 @@
                                     <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
                                     <select name="plan" id="add-subscription-plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <option value="">Select Plan</option>
-                                        <option value="daily" id="add-daily-plan-option" style="display: none;">Daily</option>
+                                        <option value="daily">Daily</option>
                                         <option value="monthly">Monthly</option>
-                                        <option value="per-session" id="add-per-session-plan-option">Per Session</option>
+                                        <option value="per-session">Per Session</option>
                                     </select>
                                 </div>
                             
@@ -957,7 +951,7 @@
                             
                             <div>
                                 <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Type</label>
-                                <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="toggleDailyOption()">
+                                <select id="edit-type" name="type" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Select Type</option>
                                     @foreach(App\Models\Sport::where('is_active', true)->orderBy('display_order')->get() as $sport)
                                     <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
@@ -969,9 +963,9 @@
                                 <label class="block text-[#9CA3AF] text-sm font-medium mb-2">Plan</label>
                                 <select id="edit-plan" name="plan" required class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Select Plan</option>
-                                    <option value="daily" id="daily-plan-option" style="display: none;">Daily</option>
+                                    <option value="daily">Daily</option>
                                     <option value="monthly">Monthly</option>
-                                    <option value="per-session" id="edit-per-session-plan-option">Per Session</option>
+                                    <option value="per-session">Per Session</option>
                                 </select>
                             </div>
                             
@@ -1197,17 +1191,6 @@
                 }
             });
         }
-        
-        // Initialize type select change handlers
-        const addTypeSelect = document.getElementById('add-subscription-type');
-        if (addTypeSelect) {
-            addTypeSelect.addEventListener('change', toggleAddDailyOption);
-        }
-        
-        // Initialize the daily option visibility for the add subscription form
-        setTimeout(function() {
-            toggleAddDailyOption();
-        }, 100);
     });
 
     function filterTable() {
@@ -1285,74 +1268,6 @@
             } else {
                 statusBadge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full text-white bg-gray-500';
                 statusBadge.textContent = 'Inactive';
-            }
-        }
-    }
-
-    function toggleDailyOption() {
-        const typeSelect = document.getElementById('edit-type');
-        const dailyPlanOption = document.getElementById('daily-plan-option');
-        const perSessionOption = document.getElementById('edit-per-session-plan-option');
-        
-        if (typeSelect && dailyPlanOption && perSessionOption) {
-            if (typeSelect.value === 'gym') {
-                // For gym: show daily, hide per-session
-                dailyPlanOption.style.display = 'block';
-                perSessionOption.style.display = 'none';
-                
-                // If per-session was selected but type is gym, change selection
-                const planSelect = document.getElementById('edit-plan');
-                if (planSelect && planSelect.value === 'per-session') {
-                    planSelect.value = '';
-                }
-            } else if (['boxing', 'muay', 'jiu-jitsu'].includes(typeSelect.value)) {
-                // For boxing, muay, jiu-jitsu: hide daily, show per-session
-                dailyPlanOption.style.display = 'none';
-                perSessionOption.style.display = 'block';
-                
-                // If daily was selected but type is not gym, change selection
-                const planSelect = document.getElementById('edit-plan');
-                if (planSelect && planSelect.value === 'daily') {
-                    planSelect.value = '';
-                }
-            } else {
-                // Default or empty selection
-                dailyPlanOption.style.display = 'none';
-                perSessionOption.style.display = 'none';
-            }
-        }
-    }
-
-    function toggleAddDailyOption() {
-        const typeSelect = document.getElementById('add-subscription-type');
-        const dailyPlanOption = document.getElementById('add-daily-plan-option');
-        const perSessionOption = document.getElementById('add-per-session-plan-option');
-        
-        if (typeSelect && dailyPlanOption && perSessionOption) {
-            if (typeSelect.value === 'gym') {
-                // For gym: show daily, hide per-session
-                dailyPlanOption.style.display = 'block';
-                perSessionOption.style.display = 'none';
-                
-                // If per-session was selected but type is gym, change selection
-                const planSelect = document.getElementById('add-subscription-plan');
-                if (planSelect && planSelect.value === 'per-session') {
-                    planSelect.value = '';
-                }
-            } else if (['boxing', 'muay', 'jiu-jitsu'].includes(typeSelect.value)) {
-                // For boxing, muay, jiu-jitsu: hide daily, show per-session
-                dailyPlanOption.style.display = 'none';
-                perSessionOption.style.display = 'block';
-                
-                // If daily was selected but type is not gym, change selection
-                const planSelect = document.getElementById('add-subscription-plan');
-                if (planSelect && planSelect.value === 'daily') {
-                    planSelect.value = '';
-                }
-            } else {
-                // Default or empty selection
-                dailyPlanOption.style.display = 'none';
-                perSessionOption.style.display = 'none';
             }
         }
     }

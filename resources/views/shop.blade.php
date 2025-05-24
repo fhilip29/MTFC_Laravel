@@ -162,34 +162,45 @@ function syncCartWithServer(cart) {
 let currentProduct = null;
 
 // Function to show product modal
-function showProductModal(id, name, price, image, description, stock, category, discount = 0) {
+function showProductModal(id, name, price, image, description, stock, category, isPromo, originalPrice, promoEndsAt) {
     currentProduct = {
         id: id,
         name: name,
         price: price,
-        originalPrice: price,
+        originalPrice: originalPrice,
         image: image,
         description: description,
         stock: stock,
         category: category,
         quantity: 1,
-        discount: discount
+        isPromo: isPromo,
+        promoEndsAt: promoEndsAt
     };
     
     // Set product details to modal
     document.getElementById('modalProductName').textContent = name;
     
-    // Show discounted price if applicable
+    // Show promotional price if applicable
     const modalPriceElement = document.getElementById('modalProductPrice');
-    if (discount > 0) {
-        const discountedPrice = (price * (1 - discount/100)).toFixed(2);
+    if (isPromo && originalPrice) {
         modalPriceElement.innerHTML = `
-            <span class="line-through text-gray-400 text-sm">₱${parseFloat(price).toFixed(2)}</span>
-            <span>₱${discountedPrice}</span>
-            <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">${discount}% OFF</span>
+            <span class="line-through text-gray-400 text-sm">₱${parseFloat(originalPrice).toFixed(2)}</span>
+            <span>₱${parseFloat(price).toFixed(2)}</span>
+            <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">PROMO</span>
         `;
-        // Update the product's price to discounted price for cart
-        currentProduct.price = discountedPrice;
+        
+        // Add promo end date if available
+        if (promoEndsAt) {
+            const endDate = new Date(promoEndsAt);
+            const formattedDate = endDate.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            modalPriceElement.innerHTML += `
+                <div class="text-xs text-gray-500">Until ${formattedDate}</div>
+            `;
+        }
     } else {
         modalPriceElement.textContent = `₱${parseFloat(price).toFixed(2)}`;
     }
@@ -401,11 +412,14 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                @if(isset($product->discount) && $product->discount > 0)
+                                @if($product->is_promo && $product->original_price)
                                     <div class="mb-1">
-                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
-                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
-                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->original_price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">PROMO</span>
+                                        @if($product->promo_ends_at)
+                                            <div class="text-xs text-gray-500">Until {{ \Carbon\Carbon::parse($product->promo_ends_at)->format('M d, Y') }}</div>
+                                        @endif
                                     </div>
                                 @else
                                     <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
@@ -413,7 +427,7 @@ function addToCartFromModal() {
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->is_promo ? 'true' : 'false' }}, {{ $product->original_price ? $product->original_price : 'null' }}, '{{ $product->promo_ends_at ? $product->promo_ends_at : '' }}')"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -428,12 +442,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
-                                    originalPrice: {{ $product->price }},
+                                    price: {{ $product->price }},
+                                    originalPrice: {{ $product->is_promo && $product->original_price ? $product->original_price : $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
                                     stock: {{ $product->stock }},
-                                    discount: {{ $product->discount ?? 0 }}
+                                    isPromo: {{ $product->is_promo ? 'true' : 'false' }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
@@ -476,11 +490,14 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                @if(isset($product->discount) && $product->discount > 0)
+                                @if($product->is_promo && $product->original_price)
                                     <div class="mb-1">
-                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
-                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
-                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->original_price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">PROMO</span>
+                                        @if($product->promo_ends_at)
+                                            <div class="text-xs text-gray-500">Until {{ \Carbon\Carbon::parse($product->promo_ends_at)->format('M d, Y') }}</div>
+                                        @endif
                                     </div>
                                 @else
                                     <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
@@ -488,7 +505,7 @@ function addToCartFromModal() {
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->is_promo ? 'true' : 'false' }}, {{ $product->original_price ? $product->original_price : 'null' }}, '{{ $product->promo_ends_at ? $product->promo_ends_at : '' }}')"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -503,12 +520,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
-                                    originalPrice: {{ $product->price }},
+                                    price: {{ $product->price }},
+                                    originalPrice: {{ $product->is_promo && $product->original_price ? $product->original_price : $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
                                     stock: {{ $product->stock }},
-                                    discount: {{ $product->discount ?? 0 }}
+                                    isPromo: {{ $product->is_promo ? 'true' : 'false' }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>
@@ -551,11 +568,14 @@ function addToCartFromModal() {
                         <div class="p-4 flex-grow flex flex-col justify-between">
                             <div>
                                 <h3 class="text-md font-semibold mb-1 product-name">{{ $product->name }}</h3>
-                                @if(isset($product->discount) && $product->discount > 0)
+                                @if($product->is_promo && $product->original_price)
                                     <div class="mb-1">
-                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->price, 2) }}</span>
-                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price * (1 - $product->discount/100), 2) }}</span>
-                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">{{ $product->discount }}% OFF</span>
+                                        <span class="line-through text-gray-400 text-sm">₱{{ number_format($product->original_price, 2) }}</span>
+                                        <span class="text-red-600 font-bold">₱{{ number_format($product->price, 2) }}</span>
+                                        <span class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full ml-1">PROMO</span>
+                                        @if($product->promo_ends_at)
+                                            <div class="text-xs text-gray-500">Until {{ \Carbon\Carbon::parse($product->promo_ends_at)->format('M d, Y') }}</div>
+                                        @endif
                                     </div>
                                 @else
                                     <p class="text-red-600 font-bold mb-3">₱{{ number_format($product->price, 2) }}</p>
@@ -563,7 +583,7 @@ function addToCartFromModal() {
                             </div>
                             <div class="flex justify-between items-center pt-2 gap-2">
                                 <button type="button" 
-                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->discount ?? 0 }})"
+                                    onclick="showProductModal({{ $product->id }}, '{{ $product->name }}', '{{ $product->price }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ addslashes($product->description) }}', {{ $product->stock }}, '{{ $product->category }}', {{ $product->is_promo ? 'true' : 'false' }}, {{ $product->original_price ? $product->original_price : 'null' }}, '{{ $product->promo_ends_at ? $product->promo_ends_at : '' }}')"
                                     class="flex-1 flex items-center justify-center gap-1 text-red-600 hover:text-white hover:bg-red-600 text-sm px-3 py-2 rounded-lg border border-red-600 transition-colors">
                                     <i class="fas fa-eye"></i>
                                     <span>View</span>
@@ -578,12 +598,12 @@ function addToCartFromModal() {
                                 <button class="flex-1 flex items-center justify-center gap-1 bg-red-600 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-700 transition-colors {{ $product->stock <= 0 ? 'opacity-50 cursor-not-allowed' : '' }}" {{ $product->stock <= 0 ? 'disabled' : '' }} onclick="window.addToCart({
                                     id: {{ $product->id }},
                                     name: '{{ addslashes($product->name) }}',
-                                    price: {{ $product->discount > 0 ? $product->price * (1 - $product->discount/100) : $product->price }},
-                                    originalPrice: {{ $product->price }},
+                                    price: {{ $product->price }},
+                                    originalPrice: {{ $product->is_promo && $product->original_price ? $product->original_price : $product->price }},
                                     image: '{{ $product->image ? asset($product->image) : '' }}',
                                     quantity: 1,
                                     stock: {{ $product->stock }},
-                                    discount: {{ $product->discount ?? 0 }}
+                                    isPromo: {{ $product->is_promo ? 'true' : 'false' }}
                                 })">
                                     <i class="fas fa-shopping-cart"></i>
                                     <span>Add</span>

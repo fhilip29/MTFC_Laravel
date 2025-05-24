@@ -86,6 +86,7 @@
 
 <!-- Add/Edit Sport Modal -->
 <div id="sportFormModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full items-center justify-center">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"></div>
     <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
         <div class="relative bg-gray-800 rounded-lg shadow">
@@ -162,6 +163,7 @@
 
 <!-- Manage Trainers Modal -->
 <div id="trainersModal" tabindex="-1" aria-hidden="true" class="fixed top-0 left-0 right-0 z-50 hidden w-full overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full items-center justify-center">
+    <div class="fixed inset-0 bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"></div>
     <div class="relative w-full max-w-2xl max-h-full">
         <!-- Modal content -->
         <div class="relative bg-gray-800 rounded-lg shadow">

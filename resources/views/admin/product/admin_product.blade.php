@@ -5,6 +5,48 @@
 <!-- Add CSRF Token meta tag -->
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<style>
+    /* Custom toggle switch styles */
+    .custom-toggle {
+        display: flex;
+        align-items: center;
+    }
+    
+    .custom-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 56px;
+        height: 30px;
+        background-color: #4B5563;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-switch:after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: white;
+        top: 3px;
+        left: 3px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch {
+        background-color: #2563EB;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch:after {
+        left: 29px;
+    }
+    
+    .custom-toggle-checkbox {
+        display: none;
+    }
+</style>
+
 @section('content')
 <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
     <div class="bg-[#1F2937] p-4 sm:p-6 rounded-2xl shadow-md border border-[#374151]">
@@ -64,6 +106,7 @@
                         <th class="py-4 px-4 text-left">Image</th>
                         <th class="py-4 px-4 text-left">Product Name</th>
                         <th class="py-4 px-4 text-left">Category</th>
+                        <th class="py-4 px-4 text-left">Price</th>
                         <th class="py-4 px-4 text-left">Quantity</th>
                         <th class="py-4 px-4 text-left">Status</th>
                         <th class="py-4 px-4 text-center">Actions</th>
@@ -77,7 +120,10 @@
                             data-status="{{ $product->status }}"
                             data-product-id="{{ $product->id }}"
                             data-stock="{{ $product->stock }}"
-                            data-price="{{ $product->price }}">
+                            data-price="{{ $product->price }}"
+                            data-is-promo="{{ $product->is_promo ?? 0 }}"
+                            data-original-price="{{ $product->original_price ?? '' }}"
+                            data-promo-ends="{{ $product->promo_ends_at ?? '' }}">
                             <td class="py-4 px-4 align-middle">
                                 @if($product->image)
                                     <img src="{{ asset($product->image) }}" alt="{{ $product->name }}" class="w-16 h-16 object-contain rounded-md">
@@ -87,8 +133,24 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="py-4 px-4 text-white align-middle">{{ $product->name }}</td>
+                            <td class="py-4 px-4 text-white align-middle">
+                                {{ $product->name }}
+                                @if($product->is_promo)
+                                    <span class="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded">PROMO</span>
+                                @endif
+                            </td>
                             <td class="py-4 px-4 align-middle">{{ $product->category }}</td>
+                            <td class="py-4 px-4 align-middle">
+                                <div class="flex flex-col">
+                                    <span class="text-white font-medium">₱{{ number_format($product->price, 2) }}</span>
+                                    @if($product->is_promo && $product->original_price)
+                                        <span class="text-xs text-gray-400 line-through">₱{{ number_format($product->original_price, 2) }}</span>
+                                        @if($product->promo_ends_at)
+                                            <span class="text-xs text-gray-400">Until {{ \Carbon\Carbon::parse($product->promo_ends_at)->format('M d, Y') }}</span>
+                                        @endif
+                                    @endif
+                                </div>
+                            </td>
                             <td class="py-4 px-4 align-middle">{{ $product->stock }}</td>
                             <td class="py-4 px-4 align-middle">
                                 @php
@@ -105,10 +167,10 @@
                             </td>
                             <td class="py-4 px-4 text-center align-middle">
                                 <div class="flex justify-center gap-2">
-                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Edit Product" onclick="openEditModal('{{ $product->id }}', '{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}')">
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="Edit Product" onclick="openEditModal('{{ $product->id }}', '{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}', {{ $product->is_promo ? 'true' : 'false' }}, '{{ $product->original_price }}', '{{ $product->promo_ends_at }}')">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="View Details" onclick="openViewModal('{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}')">
+                                    <a href="#" class="text-blue-400 hover:text-blue-300 cursor-pointer" title="View Details" onclick="openViewModal('{{ $product->name }}', '{{ $product->category }}', '{{ $product->description }}', '{{ $product->price }}', '{{ $product->status }}', '{{ $product->image ? asset($product->image) : '' }}', '{{ $product->stock }}', {{ $product->is_promo ? 'true' : 'false' }}, '{{ $product->original_price }}', '{{ $product->promo_ends_at }}')">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     <a href="#" class="text-red-400 hover:text-red-300 cursor-pointer" title="Delete Product" onclick="confirmDelete('{{ $product->name }}', '{{ $product->id }}')">
@@ -200,6 +262,33 @@
                     </div>
                     
                     <div>
+                        <label class="custom-toggle cursor-pointer mb-1">
+                            <input type="checkbox" id="isPromo" name="is_promo" value="1" class="custom-toggle-checkbox">
+                            <div class="custom-toggle-switch"></div>
+                            <span class="ml-3 text-sm font-medium text-white">Promotional Price</span>
+                        </label>
+                        <p class="ml-14 text-xs text-[#9CA3AF] mb-3">Enable if this product is on sale or special promotion.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 promo-fields hidden">
+                        <div>
+                            <label for="originalPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Original Price (₱) <span class="text-red-500">*</span></label>
+                            <input type="number" id="originalPrice" name="original_price" 
+                                   placeholder="Enter original price in PHP" 
+                                   min="0" step="0.01" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required for promo. Enter the original price before discount.</p>
+                        </div>
+                        <div>
+                            <label for="promoEndsAt" class="block text-sm font-medium text-[#9CA3AF] mb-1">Promo End Date</label>
+                            <input type="date" id="promoEndsAt" name="promo_ends_at" 
+                                   min="{{ date('Y-m-d') }}" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Optional. Leave empty if promotion has no end date.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
                         <label for="productImage" class="block text-sm font-medium text-[#9CA3AF] mb-1">Product Image <span class="text-red-500">*</span></label>
                         <div class="flex flex-col space-y-2">
                             <div class="flex items-center justify-center w-full">
@@ -275,7 +364,13 @@
                     
                     <div class="bg-[#374151] p-3 rounded-lg">
                         <span class="text-sm font-medium text-[#9CA3AF] block mb-1">Price:</span>
-                        <p id="viewProductPrice" class="text-white text-lg font-semibold"></p>
+                        <div class="flex flex-col">
+                            <p id="viewProductPrice" class="text-white text-lg font-semibold"></p>
+                            <div id="viewPromoInfo" class="hidden">
+                                <p id="viewOriginalPrice" class="text-gray-400 text-sm line-through"></p>
+                                <p id="viewPromoEnds" class="text-gray-400 text-xs"></p>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="bg-[#374151] p-3 rounded-lg">
@@ -382,6 +477,33 @@
                     </div>
                     
                     <div>
+                        <label class="custom-toggle cursor-pointer mb-1">
+                            <input type="checkbox" id="editIsPromo" name="is_promo" value="1" class="custom-toggle-checkbox">
+                            <div class="custom-toggle-switch"></div>
+                            <span class="ml-3 text-sm font-medium text-white">Promotional Price</span>
+                        </label>
+                        <p class="ml-14 text-xs text-[#9CA3AF] mb-3">Enable if this product is on sale or special promotion.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 edit-promo-fields hidden">
+                        <div>
+                            <label for="editOriginalPrice" class="block text-sm font-medium text-[#9CA3AF] mb-1">Original Price (₱) <span class="text-red-500">*</span></label>
+                            <input type="number" id="editOriginalPrice" name="original_price" 
+                                   placeholder="Enter original price in PHP" 
+                                   min="0" step="0.01" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required for promo. Enter the original price before discount.</p>
+                        </div>
+                        <div>
+                            <label for="editPromoEndsAt" class="block text-sm font-medium text-[#9CA3AF] mb-1">Promo End Date</label>
+                            <input type="date" id="editPromoEndsAt" name="promo_ends_at" 
+                                   min="{{ date('Y-m-d') }}" 
+                                   class="w-full py-2 px-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF]">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Optional. Leave empty if promotion has no end date.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
                         <label class="block text-sm font-medium text-[#9CA3AF] mb-1">Current Image <span class="text-[#9CA3AF]">(Preview)</span></label>
                         <div id="editCurrentImageContainer" class="w-full h-40 border border-[#4B5563] rounded-md flex items-center justify-center mb-2">
                             <img id="editCurrentImage" class="max-h-full max-w-full object-contain rounded-md" src="" alt="Current product image">
@@ -460,17 +582,20 @@ function exportToCSV() {
     let csvContent = "data:text/csv;charset=utf-8,";
     
     // Add headers
-    csvContent += "Product Name,Category,Status,Stock,Price\n";
+    csvContent += "Product Name,Category,Status,Stock,Price,Is Promo,Original Price,Promo End Date\n";
     
     // Add data rows
     rows.forEach(row => {
-        const name = row.querySelector('td:nth-child(2)').textContent;
+        const name = row.querySelector('td:nth-child(2)').textContent.trim().replace(/PROMO/, '').trim();
         const category = row.querySelector('td:nth-child(3)').textContent;
-        const status = row.querySelector('td:nth-child(4) span').textContent.trim();
-        const stock = row.dataset.stock || '0';
         const price = row.dataset.price || '0';
+        const stock = row.dataset.stock || '0';
+        const status = row.dataset.status;
+        const isPromo = row.dataset.isPromo === '1' ? 'Yes' : 'No';
+        const originalPrice = row.dataset.originalPrice || '';
+        const promoEnds = row.dataset.promoEnds || '';
         
-        csvContent += `"${name}","${category}","${status}","${stock}","${price}"\n`;
+        csvContent += `"${name}","${category}","${status}","${stock}","${price}","${isPromo}","${originalPrice}","${promoEnds}"\n`;
     });
     
     // Create download link
@@ -575,6 +700,17 @@ function confirmDelete(productName, productId) {
     });
 }
 
+// Toggle promo fields
+function togglePromoFields(isPromoCheckbox, promoFieldsContainer, originalPriceInput) {
+    if (isPromoCheckbox.checked) {
+        promoFieldsContainer.classList.remove('hidden');
+        originalPriceInput.required = true;
+    } else {
+        promoFieldsContainer.classList.add('hidden');
+        originalPriceInput.required = false;
+    }
+}
+
 // Modal control
 document.addEventListener('DOMContentLoaded', function() {
     // Modal elements
@@ -604,6 +740,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
     const selectedFileName = document.getElementById('selectedFileName');
+    
+    // Promo toggle elements
+    const isPromoCheckbox = document.getElementById('isPromo');
+    const promoFields = document.querySelector('.promo-fields');
+    const originalPriceInput = document.getElementById('originalPrice');
+    
+    // Edit promo toggle elements
+    const editIsPromoCheckbox = document.getElementById('editIsPromo');
+    const editPromoFields = document.querySelector('.edit-promo-fields');
+    const editOriginalPriceInput = document.getElementById('editOriginalPrice');
+    
+    // Set up promo toggle listeners
+    if (isPromoCheckbox) {
+        isPromoCheckbox.addEventListener('change', function() {
+            togglePromoFields(this, promoFields, originalPriceInput);
+        });
+    }
+    
+    if (editIsPromoCheckbox) {
+        editIsPromoCheckbox.addEventListener('change', function() {
+            togglePromoFields(this, editPromoFields, editOriginalPriceInput);
+        });
+    }
     
     // Handle image upload
     productImageInput.addEventListener('change', function(e) {
@@ -651,6 +810,14 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadPlaceholder.classList.remove('hidden');
         imagePreviewContainer.classList.add('hidden');
         selectedFileName.textContent = '';
+        
+        // Reset promo fields
+        if (promoFields) {
+            promoFields.classList.add('hidden');
+        }
+        if (originalPriceInput) {
+            originalPriceInput.required = false;
+        }
     }
     
     closeAddProductBtn.addEventListener('click', closeModal);
@@ -683,14 +850,33 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // View Product Modal Functions
-function openViewModal(name, category, description, price, status, image, stock = 0) {
+function openViewModal(name, category, description, price, status, image, stock = 0, isPromo = false, originalPrice = null, promoEndsAt = null) {
     // Set product details
     document.getElementById('viewProductName').textContent = name;
     document.getElementById('viewProductCategory').textContent = category;
     
-    // Display original and discounted price if discount exists
+    // Display price information
     const priceElement = document.getElementById('viewProductPrice');
     priceElement.textContent = `₱${parseFloat(price).toFixed(2)}`;
+    
+    // Handle promo information
+    const promoInfoDiv = document.getElementById('viewPromoInfo');
+    const originalPriceElement = document.getElementById('viewOriginalPrice');
+    const promoEndsElement = document.getElementById('viewPromoEnds');
+    
+    if (isPromo && originalPrice) {
+        promoInfoDiv.classList.remove('hidden');
+        originalPriceElement.textContent = `₱${parseFloat(originalPrice).toFixed(2)}`;
+        
+        if (promoEndsAt) {
+            const endDate = new Date(promoEndsAt);
+            promoEndsElement.textContent = `Promo ends: ${endDate.toLocaleDateString()}`;
+        } else {
+            promoEndsElement.textContent = '';
+        }
+    } else {
+        promoInfoDiv.classList.add('hidden');
+    }
     
     document.getElementById('viewProductStock').textContent = stock || 'N/A';
     document.getElementById('viewProductDescription').textContent = description || 'No description available';
@@ -698,7 +884,7 @@ function openViewModal(name, category, description, price, status, image, stock 
     // Store product ID for edit button
     const viewEditBtn = document.getElementById('editFromView');
     viewEditBtn.setAttribute('data-product-info', JSON.stringify({
-        name, category, description, price, status, image, stock
+        name, category, description, price, status, image, stock, isPromo, originalPrice, promoEndsAt
     }));
     
     // Set status with appropriate class
@@ -732,7 +918,7 @@ function openViewModal(name, category, description, price, status, image, stock 
 }
 
 // Edit Product Modal Functions
-function openEditModal(id, name, category, description, price, status, image, stock = 0) {
+function openEditModal(id, name, category, description, price, status, image, stock = 0, isPromo = false, originalPrice = null, promoEndsAt = null) {
     // Set form action
     document.getElementById('editProductForm').action = `/admin/products/${id}`;
     
@@ -743,6 +929,34 @@ function openEditModal(id, name, category, description, price, status, image, st
     document.getElementById('editProductDescription').value = description || '';
     document.getElementById('editProductPrice').value = price;
     document.getElementById('editProductStock').value = stock || 0;
+    
+    // Set promo values
+    const editIsPromoCheckbox = document.getElementById('editIsPromo');
+    const editPromoFields = document.querySelector('.edit-promo-fields');
+    const editOriginalPriceInput = document.getElementById('editOriginalPrice');
+    const editPromoEndsAtInput = document.getElementById('editPromoEndsAt');
+    
+    editIsPromoCheckbox.checked = isPromo;
+    
+    if (isPromo) {
+        editPromoFields.classList.remove('hidden');
+        editOriginalPriceInput.required = true;
+        editOriginalPriceInput.value = originalPrice || '';
+        
+        if (promoEndsAt) {
+            // Format date for input (YYYY-MM-DD)
+            const date = new Date(promoEndsAt);
+            const formattedDate = date.toISOString().split('T')[0];
+            editPromoEndsAtInput.value = formattedDate;
+        } else {
+            editPromoEndsAtInput.value = '';
+        }
+    } else {
+        editPromoFields.classList.add('hidden');
+        editOriginalPriceInput.required = false;
+        editOriginalPriceInput.value = '';
+        editPromoEndsAtInput.value = '';
+    }
     
     // Set current image
     const currentImage = document.getElementById('editCurrentImage');
@@ -851,7 +1065,10 @@ document.addEventListener('DOMContentLoaded', function() {
             productInfo.price, 
             productInfo.status, 
             productInfo.image, 
-            productInfo.stock
+            productInfo.stock,
+            productInfo.isPromo,
+            productInfo.originalPrice,
+            productInfo.promoEndsAt
         );
     });
     
@@ -862,6 +1079,12 @@ document.addEventListener('DOMContentLoaded', function() {
         editUploadPlaceholder.classList.remove('hidden');
         editImagePreviewContainer.classList.add('hidden');
         editSelectedFileName.textContent = '';
+        
+        // Reset promo fields
+        const editPromoFields = document.querySelector('.edit-promo-fields');
+        if (editPromoFields) {
+            editPromoFields.classList.add('hidden');
+        }
     }
     
     closeEditProductBtn.addEventListener('click', closeEditModal);

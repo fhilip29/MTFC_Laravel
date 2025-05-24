@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $fillable = [
-        'name', 'description', 'price', 'image', 'stock', 'category' // etc.
+        'name', 'description', 'price', 'image', 'stock', 'category', 'status',
+        'is_promo', 'original_price', 'promo_ends_at'
     ];
 
     // Define the relationship with the OrderItem model
@@ -23,9 +24,9 @@ class Product extends Model
     }
 
     public function getImgUrlAttribute()
-{
-    return asset('storage/products/' . $this->image);
-}
+    {
+        return asset('storage/products/' . $this->image);
+    }
 
 }
 

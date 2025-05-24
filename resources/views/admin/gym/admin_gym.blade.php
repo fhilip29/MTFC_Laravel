@@ -270,7 +270,7 @@
     </div>
 
     <!-- Add Equipment Modal -->
-    <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+    <div x-show="showAddModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm flex items-center justify-center" style="display: none;">
         <div class="relative bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full mx-4 sm:mx-auto p-4 sm:p-6 border border-gray-700 max-h-[90vh] overflow-y-auto" @click.away="showAddModal = false">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                 <h3 class="text-lg sm:text-xl font-semibold text-white">Add New Equipment</h3>
@@ -392,7 +392,7 @@
     </div>
 
     <!-- Edit Equipment Modal -->
-    <div x-show="showEditModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 flex items-center justify-center" style="display: none;">
+    <div x-show="showEditModal" class="fixed inset-0 z-50 overflow-auto bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm flex items-center justify-center" style="display: none;">
         <div class="relative bg-gray-800 rounded-lg shadow-lg max-w-3xl w-full mx-4 sm:mx-auto p-4 sm:p-6 border border-gray-700 max-h-[90vh] overflow-y-auto" @click.away="showEditModal = false">
             <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
                 <h3 class="text-lg sm:text-xl font-semibold text-white">Edit Equipment</h3>
@@ -574,8 +574,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const qualityCell = row.cells[3];
             const qualityText = qualityCell.textContent.trim().toLowerCase();
             
-            // Get the date cell (5th column, index 4)
-            const dateCell = row.cells[4];
+            // Get the date cell (6th column, index 5)
+            const dateCell = row.cells[5];
             const dateText = dateCell.textContent.trim();
             
             // Check if row matches search text
@@ -592,39 +592,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 try {
                     // Convert the filter date to a format we can compare (YYYY-MM-DD)
                     const filterDateObj = new Date(dateValue);
+                    const filterDateStr = filterDateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
                     
                     // Try to parse the date from the cell text (supports multiple formats)
-                    // First, try to extract from format like 'Jan 15, 2023'
-                    let rowDate;
+                    let rowDateStr = '';
                     
-                    // Check if it's in format like 'Jan 15, 2023' or similar
-                    if (dateText.match(/[A-Za-z]{3}\s+\d{1,2},\s+\d{4}/)) {
-                        rowDate = new Date(dateText);
+                    // Check if it's in format like 'MM/DD/YYYY' (e.g., '01/15/2023' or '1/15/2023')
+                    const mmddyyyyMatch = dateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    if (mmddyyyyMatch) {
+                        const month = mmddyyyyMatch[1].padStart(2, '0');
+                        const day = mmddyyyyMatch[2].padStart(2, '0');
+                        const year = mmddyyyyMatch[3];
+                        rowDateStr = `${year}-${month}-${day}`;
                     } 
-                    // Check if it's in format like '01/15/2023' or '1/15/2023'
-                    else if (dateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)) {
-                        const dateMatch = dateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-                        const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
-                        const day = parseInt(dateMatch[2]);
-                        const year = parseInt(dateMatch[3]);
-                        rowDate = new Date(year, month, day);
-                    }
-                    // Check if it's in ISO format like '2023-01-15'
-                    else if (dateText.match(/\d{4}-\d{2}-\d{2}/)) {
-                        rowDate = new Date(dateText);
+                    // Check if it's in format like 'MMM DD, YYYY' (e.g., 'Jan 15, 2023')
+                    else {
+                        const dateObj = new Date(dateText);
+                        if (!isNaN(dateObj.getTime())) {
+                            rowDateStr = dateObj.toISOString().split('T')[0];
+                        }
                     }
                     
-                    // Ensure valid date before comparing
-                    if (rowDate && !isNaN(rowDate.getTime())) {
-                        // Compare only the date parts (year, month, day), ignoring time
-                        matchesDate = (
-                            rowDate.getFullYear() === filterDateObj.getFullYear() && 
-                            rowDate.getMonth() === filterDateObj.getMonth() && 
-                            rowDate.getDate() === filterDateObj.getDate()
-                        );
-                    } else {
-                        matchesDate = false;
-                    }
+                    // Compare the date strings (YYYY-MM-DD format)
+                    matchesDate = rowDateStr === filterDateStr;
+                    
                 } catch (e) {
                     console.error('Date parsing error:', e);
                     matchesDate = false;
@@ -645,8 +636,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const qualityText = qualityElement ? qualityElement.textContent.trim().toLowerCase() : '';
             
             // Get date text from the card
-            const dateElement = card.querySelector('.text-gray-400:nth-of-type(2)');
-            const dateText = dateElement ? dateElement.textContent.trim() : '';
+            const dateElement = card.querySelector('div:nth-child(2) div:nth-child(3)'); // Targeting the date purchased div
+            const dateText = dateElement ? dateElement.textContent.trim().replace('Date Purchased:', '').trim() : '';
             
             // Check if card matches search text
             const matchesSearch = cardText.includes(searchText);
@@ -658,37 +649,32 @@ document.addEventListener('DOMContentLoaded', function() {
             let matchesDate = true;
             if (dateValue && dateText) {
                 try {
-                    // Get the date part from the text (removing any 'Date Purchased:' prefix)
-                    const cleanDateText = dateText.replace(/Date Purchased:\s*/i, '').trim();
-                    let cardDate;
+                    // Convert the filter date to a format we can compare (YYYY-MM-DD)
+                    const filterDateObj = new Date(dateValue);
+                    const filterDateStr = filterDateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
                     
-                    // Check if it's in format like 'Jan 15, 2023' or similar
-                    if (cleanDateText.match(/[A-Za-z]{3}\s+\d{1,2},\s+\d{4}/)) {
-                        cardDate = new Date(cleanDateText);
+                    // Try to parse the date from the card text
+                    let cardDateStr = '';
+                    
+                    // Check if it's in format like 'MM/DD/YYYY' (e.g., '01/15/2023' or '1/15/2023')
+                    const mmddyyyyMatch = dateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                    if (mmddyyyyMatch) {
+                        const month = mmddyyyyMatch[1].padStart(2, '0');
+                        const day = mmddyyyyMatch[2].padStart(2, '0');
+                        const year = mmddyyyyMatch[3];
+                        cardDateStr = `${year}-${month}-${day}`;
                     } 
-                    // Check if it's in format like '01/15/2023' or '1/15/2023'
-                    else if (cleanDateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/)) {
-                        const dateMatch = cleanDateText.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-                        const month = parseInt(dateMatch[1]) - 1; // JS months are 0-indexed
-                        const day = parseInt(dateMatch[2]);
-                        const year = parseInt(dateMatch[3]);
-                        cardDate = new Date(year, month, day);
-                    }
-                    // Check if it's in ISO format like '2023-01-15'
-                    else if (cleanDateText.match(/\d{4}-\d{2}-\d{2}/)) {
-                        cardDate = new Date(cleanDateText);
+                    // Check if it's in format like 'MMM DD, YYYY' (e.g., 'Jan 15, 2023')
+                    else {
+                        const dateObj = new Date(dateText);
+                        if (!isNaN(dateObj.getTime())) {
+                            cardDateStr = dateObj.toISOString().split('T')[0];
+                        }
                     }
                     
-                    const filterDate = new Date(dateValue);
+                    // Compare the date strings (YYYY-MM-DD format)
+                    matchesDate = cardDateStr === filterDateStr;
                     
-                    // Compare dates (ignoring time)
-                    if (cardDate && !isNaN(cardDate.getTime())) {
-                        matchesDate = cardDate.getFullYear() === filterDate.getFullYear() && 
-                                      cardDate.getMonth() === filterDate.getMonth() && 
-                                      cardDate.getDate() === filterDate.getDate();
-                    } else {
-                        matchesDate = false;
-                    }
                 } catch (e) {
                     console.error('Date parsing error for card:', e);
                     matchesDate = false;

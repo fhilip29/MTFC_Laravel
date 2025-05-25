@@ -65,7 +65,7 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleController::cla
 // ===================
 // HEADER BTNS ROUTES
 // ===================
-Route::view('/about', 'about')->name('about');
+Route::get('/about', [\App\Http\Controllers\AboutController::class, 'index'])->name('about');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/shop', [ShopController::class, 'index'])->name('shop');
@@ -339,6 +339,11 @@ Route::middleware(['auth', RoleMiddleware::class . ':admin'])->prefix('admin')->
     
     // Admin Profile
     Route::get('/profile', [AdminProfileController::class, 'index'])->name('admin.profile');
+    
+    // Site Settings
+    Route::get('/site-settings', [\App\Http\Controllers\Admin\SiteSettingsController::class, 'index'])->name('admin.site-settings');
+    Route::post('/site-settings/about', [\App\Http\Controllers\Admin\SiteSettingsController::class, 'updateAboutPage'])->name('admin.site-settings.about');
+    Route::post('/site-settings/contact', [\App\Http\Controllers\Admin\SiteSettingsController::class, 'updateContactPage'])->name('admin.site-settings.contact');
     Route::post('/profile/update', [AdminProfileController::class, 'update'])->name('admin.profile.update');
     
     // Members Management

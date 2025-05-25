@@ -63,12 +63,9 @@
                         <span class="inline-block w-12 h-1 bg-[#FA5455] mr-4"></span>
                         About Us
                     </h2>
-                    <p class="text-gray-300 mb-5 leading-relaxed">
-                        Manila Total Fitness Center is the perfect place for all your fitness needs. We offer a wide range of programs suitable for everyone, regardless of fitness level or interest. Our modern gym is fully equipped with the latest strength and cardio equipment.
-                    </p>
-                    <p class="text-gray-300 leading-relaxed">
-                        Passionate about martial arts? We have expert instructors in boxing, taekwondo, BJJ, and more. With personalized support from our trainers, you'll enhance your skills, build confidence, and achieve your fitness goals—whether it's muscle gain, weight loss, or self-defense.
-                    </p>
+                    <div class="text-gray-300 leading-relaxed">
+                        {!! $settings->about_us_content ?? 'Manila Total Fitness Center is the perfect place for all your fitness needs. We offer a wide range of programs suitable for everyone, regardless of fitness level or interest. Our modern gym is fully equipped with the latest strength and cardio equipment.' !!}
+                    </div>
                 </div>
 
                 <!-- Community -->
@@ -77,12 +74,9 @@
                         <span class="inline-block w-12 h-1 bg-[#FA5455] mr-4"></span>
                         Community
                     </h2>
-                    <p class="text-gray-300 mb-5 leading-relaxed">
-                        Manila Total Fitness isn't just a gym—it's a strong community dedicated to holistic health and personal growth. We unite individuals pursuing physical, mental, and emotional wellness.
-                    </p>
-                    <p class="text-gray-300 leading-relaxed">
-                        Our foundation is built on support, empowerment, and a shared journey toward better living. Whether you're just starting out or a seasoned athlete, you'll find a place to belong and thrive here.
-                    </p>
+                    <div class="text-gray-300 leading-relaxed">
+                        {!! $settings->community_content ?? 'Manila Total Fitness isn\'t just a gym—it\'s a strong community dedicated to holistic health and personal growth. We unite individuals pursuing physical, mental, and emotional wellness. Our foundation is built on support, empowerment, and a shared journey toward better living.' !!}
+                    </div>
                 </div>
             </div>
 
@@ -94,22 +88,46 @@
                     <div class="mt-8 p-4 bg-[#1a1a1a] rounded-lg">
                         <h3 class="text-xl font-bold text-white mb-4">Our Values</h3>
                         <ul class="space-y-3">
-                            <li class="flex items-center text-gray-300">
-                                <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
-                                Integrity in all we do
-                            </li>
-                            <li class="flex items-center text-gray-300">
-                                <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
-                                Excellence in service
-                            </li>
-                            <li class="flex items-center text-gray-300">
-                                <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
-                                Community support
-                            </li>
-                            <li class="flex items-center text-gray-300">
-                                <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
-                                Results-driven approach
-                            </li>
+                            @php
+                                $valuesArray = [];
+                                if (isset($settings->our_values)) {
+                                    if (is_string($settings->our_values)) {
+                                        // Try to decode JSON string
+                                        $decodedValues = json_decode($settings->our_values, true);
+                                        if (is_array($decodedValues)) {
+                                            $valuesArray = $decodedValues;
+                                        }
+                                    } elseif (is_array($settings->our_values)) {
+                                        $valuesArray = $settings->our_values;
+                                    }
+                                }
+                            @endphp
+                            
+                            @if(count($valuesArray) > 0)
+                                @foreach($valuesArray as $value)
+                                <li class="flex items-center text-gray-300">
+                                    <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
+                                    {{ $value }}
+                                </li>
+                                @endforeach
+                            @else
+                                <li class="flex items-center text-gray-300">
+                                    <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
+                                    Integrity in all we do
+                                </li>
+                                <li class="flex items-center text-gray-300">
+                                    <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
+                                    Excellence in service
+                                </li>
+                                <li class="flex items-center text-gray-300">
+                                    <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
+                                    Community support
+                                </li>
+                                <li class="flex items-center text-gray-300">
+                                    <span class="inline-block bg-[#FA5455] p-1 rounded-full mr-3"><i class="fas fa-check text-white text-xs"></i></span>
+                                    Results-driven approach
+                                </li>
+                            @endif
                         </ul>
                     </div>
                 </div>
@@ -123,8 +141,8 @@
     <div class="container mx-auto px-6 md:px-8">
         <div class="text-center mb-12 animate-on-scroll">
             <span class="inline-block px-3 py-1 bg-[#FA5455] text-white text-xs font-bold rounded-full mb-3">LOCATION</span>
-            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Come Visit Us</h2>
-            <p class="text-gray-400 max-w-xl mx-auto">We're conveniently located in the heart of Manila, ready to welcome you to our fitness community.</p>
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">{{ $settings->location_section_title ?? 'Come Visit Us' }}</h2>
+            <p class="text-gray-400 max-w-xl mx-auto">{{ $settings->location_section_description ?? "We're conveniently located in the heart of Manila, ready to welcome you to our fitness community." }}</p>
         </div>
         
         <div class="flex flex-col lg:flex-row gap-8 items-start">
@@ -132,12 +150,13 @@
             <div class="w-full lg:w-2/3 rounded-xl overflow-hidden shadow-2xl relative animate-on-scroll">
                 <div class="w-full h-96 rounded-lg overflow-hidden shadow-lg">
                     <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph"
+                        src="{{ $settings->about_google_maps_embed_url ?? $settings->google_maps_embed_url ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph' }}"
                         width="100%" 
                         height="100%" 
                         style="border:0;" 
                         allowfullscreen="" 
-                        loading="lazy">
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade">
                     </iframe>
                 </div>
             </div>
@@ -154,8 +173,8 @@
                             </div>
                             <div>
                                 <h4 class="text-white font-semibold mb-1">Location</h4>
-                                <p class="text-gray-300">3rd Floor YMCA Bldg. 350</p>
-                                <p class="text-gray-300">Villegas St. Ermita</p>
+                                <p class="text-gray-300">{{ $settings->about_address_line1 ?? $settings->address_line1 ?? '3rd Floor YMCA Bldg. 350' }}</p>
+                                <p class="text-gray-300">{{ $settings->about_address_line2 ?? $settings->address_line2 ?? 'Villegas St. Ermita' }}</p>
                             </div>
                         </li>
                         
@@ -165,8 +184,8 @@
                             </div>
                             <div>
                                 <h4 class="text-white font-semibold mb-1">Contact</h4>
-                                <p class="text-gray-300">0998 558 5911</p>
-                                <p class="text-gray-300">mtfc987@gmail.com</p>
+                                <p class="text-gray-300">{{ $settings->about_phone_number ?? $settings->phone_number ?? '0998 558 5911' }}</p>
+                                <p class="text-gray-300">{{ $settings->about_email ?? $settings->email ?? 'mtfc987@gmail.com' }}</p>
                             </div>
                         </li>
                         
@@ -176,8 +195,8 @@
                             </div>
                             <div>
                                 <h4 class="text-white font-semibold mb-1">Hours</h4>
-                                <p class="text-gray-300">Monday-Friday: 6am - 10pm</p>
-                                <p class="text-gray-300">Weekends: 8am - 8pm</p>
+                                <p class="text-gray-300">{{ $settings->about_working_hours_weekday ?? $settings->working_hours_weekday ?? 'Monday-Friday: 6am - 10pm' }}</p>
+                                <p class="text-gray-300">{{ $settings->about_working_hours_weekend ?? $settings->working_hours_weekend ?? 'Weekends: 8am - 8pm' }}</p>
                             </div>
                         </li>
                     </ul>

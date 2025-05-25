@@ -56,7 +56,7 @@
                             <div>
                                 <h3 class="font-semibold text-white">Address</h3>
                                 <p class="text-gray-300 mt-1">Manila Total Fitness Center</p>
-                                <p class="text-gray-300 mt-1">3rd Floor YMCA Bldg. 350 Villegas St. Ermita, Manila, Philippines</p>
+                                <p class="text-gray-300 mt-1">{{ $settings->address_line1 ?? '3rd Floor YMCA Bldg. 350' }} {{ $settings->address_line2 ?? 'Villegas St. Ermita, Manila, Philippines' }}</p>
                             </div>
                         </div>
                         
@@ -66,7 +66,7 @@
                             </div>
                             <div>
                                 <h3 class="font-semibold text-white">Phone</h3>
-                                <p class="text-gray-300 mt-1">0998 558 5911</p>
+                                <p class="text-gray-300 mt-1">{{ $settings->phone_number ?? '0998 558 5911' }}</p>
                             </div>
                         </div>
                         
@@ -76,7 +76,7 @@
                             </div>
                             <div>
                                 <h3 class="font-semibold text-white">Email</h3>
-                                <p class="text-gray-300 mt-1">mtfc987@gmail.com</p>
+                                <p class="text-gray-300 mt-1">{{ $settings->email ?? 'mtfc987@gmail.com' }}</p>
                             </div>
                         </div>
                         
@@ -86,7 +86,8 @@
                             </div>
                             <div>
                                 <h3 class="font-semibold text-white">Working Hours</h3>
-                                <p class="text-gray-300 mt-1">8:00 am - 8:00 pm</p>
+                                <p class="text-gray-300 mt-1">{{ $settings->working_hours_weekday ?? 'Monday-Friday: 6am - 10pm' }}</p>
+                                <p class="text-gray-300 mt-1">{{ $settings->working_hours_weekend ?? 'Weekends: 8am - 8pm' }}</p>
                             </div>
                         </div>
                     </div>
@@ -95,10 +96,10 @@
                     <div class="mt-8 pt-6 border-t border-gray-700">
                         <h3 class="font-semibold mb-4">Follow Us</h3>
                         <div class="flex space-x-4">
-                            <a href="https://www.facebook.com/people/Manila-Total-Fitness-Center/100064094075912/" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-3 rounded-full text-white transition-all duration-300">
+                            <a href="{{ $settings->facebook_url ?? 'https://www.facebook.com/people/Manila-Total-Fitness-Center/100064094075912/' }}" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-3 rounded-full text-white transition-all duration-300">
                                 <i class="fab fa-facebook-f"></i>
                             </a>
-                            <a href="https://www.instagram.com/manilatotalfc/?igsh=ZWhoeWphanZtdDFw#" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-3 rounded-full text-white transition-all duration-300">
+                            <a href="{{ $settings->instagram_url ?? 'https://www.instagram.com/manilatotalfc/?igsh=ZWhoeWphanZtdDFw#' }}" target="_blank" class="bg-gray-800 hover:bg-gray-700 p-3 rounded-full text-white transition-all duration-300">
                                 <i class="fab fa-instagram"></i>
                             </a>
                         </div>
@@ -124,13 +125,9 @@
                     <h2 class="text-2xl font-bold text-black p-6">Our Location</h2>
                     <div class="w-full h-96 rounded-lg overflow-hidden shadow-lg">
                         <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph"
-                            width="100%" 
-                            height="100%" 
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy">
-                        </iframe>
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3861.6504900122!2d120.9798166!3d14.5886964!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397cbfd5dc3aa3f%3A0xd241d9c495788763!2sManila%20Total%20Fitness%20Center!5e0!3m2!1sen!2sph!4v1710000000000!5m2!1sen!2sph"
+                        style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" 
+                        class="w-full h-full rounded-lg"></iframe>
                     </div>
                 </div>
             </div>

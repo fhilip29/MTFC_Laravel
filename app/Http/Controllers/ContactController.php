@@ -18,7 +18,8 @@ class ContactController extends Controller
     public function index()
     {
         $user = Auth::check() ? Auth::user() : null;
-        return view('contact', compact('user'));
+        $settings = \App\Models\SiteSettings::getSettings();
+        return view('contact', compact('user', 'settings'));
     }
 
     /**

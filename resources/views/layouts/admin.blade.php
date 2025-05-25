@@ -138,10 +138,33 @@
             transition: opacity 0.3s ease;
         }
 
-        .sidebar.collapsed .nav-link span {
+        .sidebar.collapsed .nav-link span,
+        .sidebar.collapsed .nav-section-header span {
             opacity: 0;
             width: 0;
             overflow: hidden;
+        }
+        
+        .sidebar.collapsed .nav-section-header i.fas.fa-chevron-down,
+        .sidebar.collapsed .nav-section-header i.fas.fa-chevron-right {
+            display: none;
+        }
+        
+        .sidebar.collapsed .nav-section-content {
+            display: none !important;
+        }
+        
+        .sidebar.collapsed .nav-section-header {
+            justify-content: center;
+            padding: 0.75rem 0;
+        }
+        
+        .sidebar.collapsed .nav-section-header .flex {
+            justify-content: center;
+        }
+        
+        .sidebar.collapsed .nav-section-header i.mr-3 {
+            margin-right: 0;
         }
 
         .main-content {
@@ -247,6 +270,37 @@
         }
         
         /* Logout button at bottom */
+        /* Collapsible Nav Sections */
+        .nav-section {
+            margin-bottom: 0.5rem;
+        }
+        
+        .nav-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            color: #9CA3AF;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-section-header:hover {
+            background-color: #374151;
+            color: white;
+        }
+        
+        .nav-section-content {
+            padding-left: 1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .nav-section-content .nav-link {
+            padding-left: 1.5rem;
+            font-size: 0.95rem;
+        }
+        
         .logout-button {
             margin-top: auto;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -332,45 +386,104 @@
         </button>
     </div>
     <div class="nav-links">
+        <!-- Dashboard - Always visible -->
         <a href="/admin/dashboard" class="nav-link {{ request()->is('admin/dashboard') ? 'active' : '' }}">
             <i class="fas fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </a>
-        <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin/members/admin_members') ? 'active' : '' }}">
-            <i class="fas fa-users"></i>
-            <span>Manage Members</span>
-        </a>
-        <a href="/admin/session/admin_session" class="nav-link {{ request()->is('admin/session/admin_session') ? 'active' : '' }}">
-            <i class="fas fa-calendar-alt"></i>
-            <span>Session Management</span>
-        </a>
-        <a href="{{ route('admin.invoice.invoice') }}" class="nav-link {{ request()->is('admin/invoice*') ? 'active' : '' }}">
-            <i class="fas fa-file-invoice"></i>
-            <span>Manage Invoice</span>
-        </a>
-        <a href="{{ route('admin.pricing.index') }}" class="nav-link {{ request()->is('admin/pricing*') || request()->is('admin/sports*') ? 'active' : '' }}">
-            <i class="fas fa-tags"></i>
-            <span>Pricing Management</span>
-        </a>
-        <a href="/admin/trainer/admin_trainer" class="nav-link {{ request()->is('admin/trainer/admin_trainer') ? 'active' : '' }}">
-            <i class="fas fa-user-tie"></i>
-            <span>Trainer Management</span>
-        </a>
-        <a href="/admin/promotion/admin_promo" class="nav-link {{ request()->is('admin/promotion/admin_promo') ? 'active' : '' }}">
-            <i class="fas fa-bullhorn"></i>
-            <span>Announce Management</span>
-        </a>
-        <a href="/admin/orders/admin_orders" class="nav-link {{ request()->is('admin/orders/admin_orders') ? 'active' : '' }}">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Manage Orders</span>
-        </a>
-        <a href="/admin/products" class="nav-link {{ request()->is('admin/products') ? 'active' : '' }}">
-            <i class="fas fa-box"></i>
-            <span>Product Management</span>
-        </a>
-        <a href="/admin/equipment" class="nav-link {{ request()->is('admin/equipment') ? 'active' : '' }}">
-            <i class="fas fa-dumbbell"></i>
-            <span>Gym Equipment</span>
+        
+        <!-- User Management Section -->
+        <div class="nav-section" x-data="{open: false}">
+            <div @click="open = !open" class="nav-section-header">
+                <div class="flex items-center">
+                    <i class="fas fa-users mr-3"></i>
+                    <span>User Management</span>
+                </div>
+                <i class="fas" :class="open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </div>
+            <div x-show="open" class="nav-section-content">
+                <a href="/admin/members/admin_members" class="nav-link {{ request()->is('admin/members/admin_members') ? 'active' : '' }}">
+                    <i class="fas fa-user"></i>
+                    <span>Members</span>
+                </a>
+                <a href="/admin/trainer/admin_trainer" class="nav-link {{ request()->is('admin/trainer/admin_trainer') ? 'active' : '' }}">
+                    <i class="fas fa-user-tie"></i>
+                    <span>Trainers</span>
+                </a>
+                <a href="/admin/session/admin_session" class="nav-link {{ request()->is('admin/session/admin_session') ? 'active' : '' }}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Sessions</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Pricing Management Section -->
+        <div class="nav-section" x-data="{open: false}">
+            <div @click="open = !open" class="nav-section-header">
+                <div class="flex items-center">
+                    <i class="fas fa-tags mr-3"></i>
+                    <span>Pricing Management</span>
+                </div>
+                <i class="fas" :class="open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </div>
+            <div x-show="open" class="nav-section-content">
+                <a href="{{ route('admin.pricing.index') }}" class="nav-link {{ request()->is('admin/pricing*') || request()->is('admin/sports*') ? 'active' : '' }}">
+                    <i class="fas fa-tags"></i>
+                    <span>Pricing</span>
+                </a>
+                <a href="{{ route('admin.invoice.invoice') }}" class="nav-link {{ request()->is('admin/invoice*') ? 'active' : '' }}">
+                    <i class="fas fa-file-invoice"></i>
+                    <span>Invoices</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Inventory Management Section -->
+        <div class="nav-section" x-data="{open: false}">
+            <div @click="open = !open" class="nav-section-header">
+                <div class="flex items-center">
+                    <i class="fas fa-warehouse mr-3"></i>
+                    <span>Inventory Management</span>
+                </div>
+                <i class="fas" :class="open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </div>
+            <div x-show="open" class="nav-section-content">
+                <a href="/admin/products" class="nav-link {{ request()->is('admin/products') ? 'active' : '' }}">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+                <a href="/admin/orders/admin_orders" class="nav-link {{ request()->is('admin/orders/admin_orders') ? 'active' : '' }}">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                </a>
+                <a href="/admin/equipment" class="nav-link {{ request()->is('admin/equipment') ? 'active' : '' }}">
+                    <i class="fas fa-dumbbell"></i>
+                    <span>Equipment</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Marketing Section -->
+        <div class="nav-section" x-data="{open: false}">
+            <div @click="open = !open" class="nav-section-header">
+                <div class="flex items-center">
+                    <i class="fas fa-bullhorn mr-3"></i>
+                    <span>Marketing</span>
+                </div>
+                <i class="fas" :class="open ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+            </div>
+            <div x-show="open" class="nav-section-content">
+                <a href="/admin/promotion/admin_promo" class="nav-link {{ request()->is('admin/promotion/admin_promo') ? 'active' : '' }}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Announcements</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Settings - Always visible -->
+        <a href="{{ route('admin.site-settings') }}" class="nav-link {{ request()->is('admin/site-settings') ? 'active' : '' }}">
+            <i class="fas fa-cog"></i>
+            <span>Site Settings</span>
         </a>
         
         <!-- Logout Button at the bottom -->

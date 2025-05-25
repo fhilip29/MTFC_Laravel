@@ -112,71 +112,99 @@
             <form method="POST" action="{{ route('signup') }}">
                 @csrf
 
-                <input type="text" name="first_name" placeholder="First Name" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
-
-                <input type="text" name="last_name" placeholder="Last Name" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
-
-                <select name="gender" required
-                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
-                    <option value="" disabled selected>Gender</option>
-                    <option value="male" class="text-black">Male</option>
-                    <option value="female" class="text-black">Female</option>
-                    
-                </select>
-                
-                <div id="otherGenderField" style="display: none;">
-                    <input type="text" name="other_gender" placeholder="Please specify your gender" 
-                           class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                <div class="mb-3">
+                    <input type="text" name="first_name" placeholder="First Name" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded"
+                           value="{{ old('first_name') }}"/>
+                    <p class="text-xs text-gray-400 mt-1">Required</p>
                 </div>
 
-                <select name="fitness_goal" 
-                        class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded">
-                    <option value="" selected>Fitness Goal (Optional)</option>
-                    <option value="weight-loss" class="text-black">Weight Loss</option>
-                    <option value="muscle-gain" class="text-black">Build Muscle</option>
-                    <option value="endurance" class="text-black">Improve Endurance</option>
-                    <option value="flexibility" class="text-black">Increase Flexibility</option>
-                    <option value="general-fitness" class="text-black">General Fitness</option>
-                </select>
+                <div class="mb-3">
+                    <input type="text" name="last_name" placeholder="Last Name" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded"
+                           value="{{ old('last_name') }}"/>
+                    <p class="text-xs text-gray-400 mt-1">Required</p>
+                </div>
 
-                <input type="email" name="email" placeholder="Email Address" required
-                       class="p-3 mb-3 w-full border border-gray-600 bg-transparent rounded"/>
+                <div class="mb-3">
+                    <select name="gender" required
+                            class="p-3 w-full border border-gray-600 bg-transparent rounded">
+                        <option value="" disabled {{ old('gender') ? '' : 'selected' }}>Gender</option>
+                        <option value="male" class="text-black" {{ old('gender') == 'male' ? 'selected' : '' }}>Male</option>
+                        <option value="female" class="text-black" {{ old('gender') == 'female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Required</p>
+                </div>
+                
+                
+
+                <div class="mb-3">
+                    <select name="fitness_goal" 
+                            class="p-3 w-full border border-gray-600 bg-transparent rounded">
+                        <option value="" selected>Fitness Goal (Optional)</option>
+                        <option value="lose-weight" class="text-black" {{ old('fitness_goal') == 'lose-weight' ? 'selected' : '' }}>Weight Loss</option>
+                        <option value="build-muscle" class="text-black" {{ old('fitness_goal') == 'build-muscle' ? 'selected' : '' }}>Build Muscle</option>
+                        <option value="maintain" class="text-black" {{ old('fitness_goal') == 'maintain' ? 'selected' : '' }}>Maintain Fitness</option>
+                        <option value="boxing" class="text-black" {{ old('fitness_goal') == 'boxing' ? 'selected' : '' }}>Boxing</option>
+                        <option value="muay-thai" class="text-black" {{ old('fitness_goal') == 'muay-thai' ? 'selected' : '' }}>Muay Thai</option>
+                        <option value="jiu-jitsu" class="text-black" {{ old('fitness_goal') == 'jiu-jitsu' ? 'selected' : '' }}>Jiu-Jitsu</option>
+                    </select>
+                    <p class="text-xs text-gray-400 mt-1">Optional</p>
+                </div>
+
+                <div class="mb-3">
+                    <input type="email" name="email" placeholder="Email Address" required
+                           class="p-3 w-full border border-gray-600 bg-transparent rounded"
+                           value="{{ old('email') }}"/>
+                    <p class="text-xs text-gray-400 mt-1">Required, must be a valid email address</p>
+                </div>
                 
                 <div class="mb-3">
                     <input type="tel" id="mobileNumberInput" name="mobile_number" placeholder="+63 917 123 4567" required
                            class="p-3 w-full border border-gray-600 bg-transparent rounded" 
+                           value="{{ old('mobile_number', '+63 ') }}"
                            onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                            onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
                            onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }" />
+                    <p class="text-xs text-gray-400 mt-1">Required, must be a valid Philippine mobile number (+63 format)</p>
                 </div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         // Initialize mobile number input with +63 prefix
                         const mobileInput = document.getElementById('mobileNumberInput');
-                        if (mobileInput && !mobileInput.value) {
+                        if (mobileInput && (!mobileInput.value || mobileInput.value === '')) {
                             mobileInput.value = '+63 ';
                         }
+                        
+
                     });
+
                 </script>
 
                 <div class="relative mb-3">
-                    <input type="password" name="password" id="password" placeholder="Password" required
-                           class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"/>
-                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white" 
-                            onclick="togglePasswordVisibility('password', 'passwordEye')">
-                        <i id="passwordEye" class="fas fa-eye"></i>
-                    </button>
+                    <div class="relative">
+                        <input type="password" name="password" id="password" placeholder="Password" required
+                               class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"
+                               minlength="8"/>
+                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white" 
+                                onclick="togglePasswordVisibility('password', 'passwordEye')">
+                            <i id="passwordEye" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Required, minimum 8 characters with uppercase, lowercase, and number</p>
                 </div>
 
                 <div class="relative mb-3">
-                    <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password" required
-                           class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"/>
-                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                            onclick="togglePasswordVisibility('password_confirmation', 'confirmEye')">
-                        <i id="confirmEye" class="fas fa-eye"></i>
-                    </button>
+                    <div class="relative">
+                        <input type="password" name="password_confirmation" id="password_confirmation" placeholder="Confirm Password" required
+                               class="p-3 w-full border border-gray-600 bg-transparent rounded pr-10"
+                               minlength="8"/>
+                        <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                                onclick="togglePasswordVisibility('password_confirmation', 'confirmEye')">
+                            <i id="confirmEye" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1">Required, must match password</p>
                 </div>
                 
                 <!-- Password Requirements -->

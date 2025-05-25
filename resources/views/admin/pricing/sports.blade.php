@@ -2,6 +2,48 @@
 
 @section('title', 'Sports Management')
 
+<style>
+    /* Custom toggle switch styles */
+    .custom-toggle {
+        display: flex;
+        align-items: center;
+    }
+    
+    .custom-toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 56px;
+        height: 30px;
+        background-color: #4B5563;
+        border-radius: 15px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-switch:after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: white;
+        top: 3px;
+        left: 3px;
+        transition: all 0.3s;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch {
+        background-color: #2563EB;
+    }
+    
+    .custom-toggle-checkbox:checked + .custom-toggle-switch:after {
+        left: 29px;
+    }
+    
+    .custom-toggle-checkbox {
+        display: none;
+    }
+</style>
+
 @section('content')
 <div class="container px-4 py-6 mx-auto">
     <div class="flex justify-between items-center mb-6">
@@ -103,6 +145,8 @@
             <form id="sportForm" enctype="multipart/form-data">
                 <div class="p-6 space-y-6">
                     <input type="hidden" id="sportId" name="id">
+                    <!-- Add _method field for PUT requests -->
+                    <input type="hidden" id="methodField" name="_method" value="POST">
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -138,11 +182,11 @@
                     
                     <div class="flex justify-between">
                         <div>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="isActive" name="is_active" value="1" class="sr-only peer" checked>
-                                <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            <div class="custom-toggle">
+                                <input type="checkbox" id="isActive" name="is_active" value="1" class="custom-toggle-checkbox" checked>
+                                <label for="isActive" class="custom-toggle-switch"></label>
                                 <span class="ml-3 text-sm font-medium text-white">Active</span>
-                            </label>
+                            </div>
                             <p class="ml-14 text-xs text-gray-400">Display this sport in the pricing page.</p>
                         </div>
                     </div>
@@ -209,6 +253,66 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Helper functions for form validation and error handling
+    function showFieldError(field, message) {
+        // Remove any existing error message
+        const existingError = field.parentElement.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add error styling
+        field.classList.add('border-red-500');
+        field.classList.remove('border-green-500');
+        
+        // Create and append error message
+        const errorMessage = document.createElement('p');
+        errorMessage.className = 'error-message text-xs text-red-500 mt-1';
+        errorMessage.textContent = message;
+        field.parentElement.appendChild(errorMessage);
+    }
+    
+    function clearFieldError(field) {
+        // Remove any existing error message
+        const existingError = field.parentElement.querySelector('.error-message');
+        if (existingError) {
+            existingError.remove();
+        }
+        
+        // Add success styling
+        field.classList.remove('border-red-500');
+        field.classList.add('border-green-500');
+    }
+    
+    function handleError(result) {
+        let errorMessage = 'Please check the form and try again.';
+        
+        if (result.errors) {
+            // Handle validation errors
+            const errors = result.errors;
+            errorMessage = Object.values(errors).flat().join('<br>');
+            
+            // Highlight fields with errors
+            if (errors.name) {
+                showFieldError(document.getElementById('sportName'), errors.name[0]);
+            }
+            
+            if (errors.description) {
+                showFieldError(document.getElementById('sportDescription'), errors.description[0]);
+            }
+        } else if (result.message) {
+            errorMessage = result.message;
+        }
+        
+        Swal.fire({
+            title: 'Error!',
+            html: errorMessage,
+            icon: 'error',
+            background: '#1F2937',
+            color: '#FFFFFF',
+            confirmButtonColor: '#EF4444'
+        });
+    }
     // Sport Modal functionality
     const sportModal = document.getElementById('sportFormModal');
     const openModalBtns = document.querySelectorAll('#addSportBtn, #noSportsAddBtn');
@@ -304,10 +408,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return true;
         }
         
-        // If the field was previously validated during edit mode, consider it valid
-        if (sportId && field.getAttribute('data-previously-validated') === 'true') {
+        // If the field has content, mark it as valid regardless of other validation rules
+        // This fixes issues where fields appear filled but validation fails
+        if (field.value && field.value.trim() !== '') {
             field.classList.remove('border-red-500');
             field.classList.add('border-green-500');
+            // Set this attribute to remember that the field has been validated
+            field.setAttribute('data-previously-validated', 'true');
             return true;
         }
         
@@ -337,6 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             field.classList.remove('border-red-500');
             field.classList.add('border-green-500');
+            field.setAttribute('data-previously-validated', 'true');
             return true;
         }
     }
@@ -412,26 +520,36 @@ document.addEventListener('DOMContentLoaded', function() {
     sportForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
+        // Remove all existing error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        
+        // Get form fields
         const sportId = document.getElementById('sportId').value;
-        const isEditing = !!sportId;
+        const nameField = document.getElementById('sportName');
+        const descriptionField = document.getElementById('sportDescription');
+        const shortDescriptionField = document.getElementById('shortDescription');
+        const displayOrderField = document.getElementById('displayOrder');
+        const isActiveField = document.getElementById('isActive');
+        const backgroundImageField = document.getElementById('backgroundImage');
         
-        // Validate all required fields
+        // Basic validation
         let isValid = true;
-        requiredInputs.forEach(input => {
-            // Skip background_image validation if editing
-            if (isEditing && input.id === 'backgroundImage') {
-                return;
-            }
-            
-            if (!input.checkValidity()) {
-                validateField(input);
-                isValid = false;
-            }
-        });
         
-        // Prevent submission if validation fails
+        if (!nameField.value || nameField.value.trim() === '') {
+            showFieldError(nameField, 'The name field is required');
+            isValid = false;
+        } else {
+            clearFieldError(nameField);
+        }
+        
+        if (!descriptionField.value || descriptionField.value.trim() === '') {
+            showFieldError(descriptionField, 'The description field is required');
+            isValid = false;
+        } else {
+            clearFieldError(descriptionField);
+        }
+        
         if (!isValid) {
-            // Show error message at the top of the form
             Swal.fire({
                 title: 'Validation Error',
                 text: 'Please check the form and fix the highlighted errors',
@@ -449,67 +567,100 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
         
-        const formData = new FormData(sportForm);
+        // Create a new FormData object
+        const formData = new FormData();
         
-        // Determine if we're creating or updating
+        // Check if we're editing
+        const isEditing = !!sportId;
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        formData.append('_token', csrfToken);
+        
+        // Set method to PUT if editing
+        if (isEditing) {
+            formData.append('_method', 'PUT');
+        }
+        
+        // Add required form data
+        formData.append('name', nameField.value.trim());
+        formData.append('description', descriptionField.value.trim());
+        formData.append('short_description', shortDescriptionField.value.trim());
+        formData.append('display_order', displayOrderField.value || 0);
+        formData.append('is_active', isActiveField.checked ? 1 : 0);
+        
+        // Add file if selected
+        if (backgroundImageField.files.length > 0) {
+            formData.append('background_image', backgroundImageField.files[0]);
+        }
+        
+        // Determine URL
         const url = isEditing ? `/admin/sports/${sportId}` : '/admin/sports';
-        const method = isEditing ? 'PUT' : 'POST';
         
-        fetch(url, {
-            method: method,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(result => {
+        // Use XMLHttpRequest instead of fetch for better multipart form handling
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        
+        xhr.onload = function() {
+            let result;
+            try {
+                result = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error('Error parsing response:', e);
+                result = {
+                    success: false,
+                    message: 'An unexpected error occurred. Server response was not valid JSON.'
+                };
+            }
+            
             submitButton.disabled = false;
             submitButton.innerHTML = originalButtonText;
             
-            if (result.success) {
-                Swal.fire({
-                    title: 'Success!',
-                    text: result.message,
-                    icon: 'success',
-                    background: '#1F2937',
-                    color: '#FFFFFF',
-                    confirmButtonColor: '#3B82F6'
-                }).then(() => {
-                    window.location.reload();
-                });
-            } else {
-                let errorMessage = 'Please check the form and try again.';
-                if (result.errors) {
-                    errorMessage = Object.values(result.errors).flat().join('<br>');
-                } else if (result.message) {
-                    errorMessage = result.message;
+            if (xhr.status === 200 || xhr.status === 201) {
+                if (result.success) {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: result.message || 'Sport saved successfully!',
+                        icon: 'success',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#3B82F6'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    handleError(result);
                 }
-                
+            } else if (xhr.status === 422) { // Validation error
+                handleError(result);
+            } else {
                 Swal.fire({
                     title: 'Error!',
-                    html: errorMessage,
+                    text: 'An unexpected error occurred. Please try again.',
                     icon: 'error',
                     background: '#1F2937',
                     color: '#FFFFFF',
                     confirmButtonColor: '#EF4444'
                 });
             }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        };
+        
+        xhr.onerror = function() {
             submitButton.disabled = false;
             submitButton.innerHTML = originalButtonText;
             
             Swal.fire({
                 title: 'Error!',
-                text: 'An unexpected error occurred. Please try again.',
+                text: 'Network error occurred. Please try again.',
                 icon: 'error',
                 background: '#1F2937',
                 color: '#FFFFFF',
                 confirmButtonColor: '#EF4444'
             });
-        });
+        };
+        
+        xhr.send(formData);
     });
     
     // Trainers Form submission
@@ -631,26 +782,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.getElementById('sportId').value = sport.id;
         document.getElementById('sportName').value = sport.name;
-        document.getElementById('sportDescription').value = sport.description || '';
-        document.getElementById('shortDescription').value = sport.short_description || '';
-        document.getElementById('displayOrder').value = sport.display_order || 0;
+        document.getElementById('displayOrder').value = sport.display_order;
+        document.getElementById('shortDescription').value = sport.short_description;
+        document.getElementById('sportDescription').value = sport.description;
         document.getElementById('isActive').checked = sport.is_active;
         
-        // Remove any validation errors that might be showing
-        document.querySelectorAll('.error-message').forEach(el => el.remove());
-        
-        // Set all inputs as valid
-        document.querySelectorAll('#sportForm input, #sportForm textarea').forEach(input => {
-            input.classList.remove('border-red-500');
-            input.classList.add('border-green-500');
+        // Mark all fields with values as validated
+        const inputs = sportForm.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            if (input.value && input.value.trim() !== '') {
+                input.setAttribute('data-previously-validated', 'true');
+                input.classList.add('border-green-500');
+            }
         });
         
-        // Manually mark form as valid
-        document.querySelectorAll('#sportForm [required]').forEach(input => {
-            input.setAttribute('data-previously-validated', 'true');
-        });
-        
-        modalTitle.textContent = `Edit Sport: ${sport.name}`;
+        // Update modal title
+        document.querySelector('.modal-title').textContent = `Edit Sport: ${sport.name}`;
         sportModal.classList.remove('hidden');
         sportModal.classList.add('flex');
     }

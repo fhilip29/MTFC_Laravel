@@ -164,13 +164,15 @@
                             <div class="md:col-span-2">
                                 <label class="block text-gray-600 text-sm mb-1">Fitness Goal</label>
                                 <select name="fitness_goal" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
-                                    <option value="">Select Goal</option>
-                                    <option value="weight-loss" {{ old('fitness_goal', $user->fitness_goal) == 'weight-loss' ? 'selected' : '' }}>Weight Loss</option>
-                                    <option value="muscle-gain" {{ old('fitness_goal', $user->fitness_goal) == 'muscle-gain' ? 'selected' : '' }}>Build Muscle</option>
-                                    <option value="endurance" {{ old('fitness_goal', $user->fitness_goal) == 'endurance' ? 'selected' : '' }}>Improve Endurance</option>
-                                    <option value="flexibility" {{ old('fitness_goal', $user->fitness_goal) == 'flexibility' ? 'selected' : '' }}>Increase Flexibility</option>
-                                    <option value="general-fitness" {{ old('fitness_goal', $user->fitness_goal) == 'general-fitness' ? 'selected' : '' }}>General Fitness</option>
+                                    <option value="">Select Goal (Optional)</option>
+                                    <option value="lose-weight" {{ old('fitness_goal', $user->fitness_goal) == 'lose-weight' ? 'selected' : '' }}>Weight Loss</option>
+                                    <option value="build-muscle" {{ old('fitness_goal', $user->fitness_goal) == 'build-muscle' ? 'selected' : '' }}>Build Muscle</option>
+                                    <option value="maintain" {{ old('fitness_goal', $user->fitness_goal) == 'maintain' ? 'selected' : '' }}>Maintain Fitness</option>
+                                    <option value="boxing" {{ old('fitness_goal', $user->fitness_goal) == 'boxing' ? 'selected' : '' }}>Boxing</option>
+                                    <option value="muay-thai" {{ old('fitness_goal', $user->fitness_goal) == 'muay-thai' ? 'selected' : '' }}>Muay Thai</option>
+                                    <option value="jiu-jitsu" {{ old('fitness_goal', $user->fitness_goal) == 'jiu-jitsu' ? 'selected' : '' }}>Jiu-Jitsu</option>
                                 </select>
+                                <p class="text-xs text-gray-500 mt-1">Choose your primary fitness or training goal</p>
                                 @error('fitness_goal')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror

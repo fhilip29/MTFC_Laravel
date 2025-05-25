@@ -314,6 +314,12 @@
             height: 100% !important;
         }
     }
+    
+    .report-post-btn.cursor-not-allowed,
+    .report-comment-btn.cursor-not-allowed {
+        opacity: 0.5;
+        pointer-events: none;
+    }
 </style>
 @endsection
 
@@ -967,6 +973,9 @@
         
         // Check for moderation notices on page load
         checkForModerationNotices();
+        
+        // Check for previously reported content and disable those report buttons
+        checkPreviouslyReportedContent();
         
         // Character counter for post creation
         const postContent = document.getElementById('postContent');
@@ -1941,6 +1950,47 @@
                     const postContent = this.closest('.post-card').querySelector('.post-text').textContent.trim();
                     const postAuthor = this.closest('.post-card').querySelector('.font-semibold').textContent.trim();
                     
+                    // Check if user already reported this post
+                    const reports = JSON.parse(localStorage.getItem('communityReports') || '[]');
+                    const userReportedThis = reports.some(report => 
+                        report.type === 'post' && 
+                        report.postId === postId && 
+                        report.reporter === '{{ auth()->check() ? auth()->user()->full_name : "Anonymous" }}'
+                    );
+                    
+                    // Check last report time to prevent spam
+                    const lastReportTime = localStorage.getItem('lastReportTime') ? new Date(localStorage.getItem('lastReportTime')) : null;
+                    const now = new Date();
+                    const timeDiff = lastReportTime ? (now - lastReportTime) / 1000 : 9999; // Difference in seconds
+                    
+                    if (userReportedThis) {
+                        Swal.fire({
+                            title: 'Already Reported',
+                            text: 'You have already reported this content. Thank you for helping keep our community safe.',
+                            icon: 'info',
+                            background: '#1a1a1a',
+                            color: '#FFFFFF',
+                            confirmButtonColor: '#3085d6',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
+                    
+                    if (timeDiff < 10) { // 10 seconds cooldown between reports
+                        Swal.fire({
+                            title: 'Please Wait',
+                            text: `You can submit another report in ${Math.ceil(10 - timeDiff)} seconds.`,
+                            icon: 'warning',
+                            background: '#1a1a1a',
+                            color: '#FFFFFF',
+                            confirmButtonColor: '#3085d6',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
+                    
                     Swal.fire({
                         title: '<span class="text-xl font-bold">Report Inappropriate Content</span>',
                         html: `
@@ -1990,20 +2040,16 @@
                             });
                             localStorage.setItem('communityReports', JSON.stringify(reports));
                             
-                            // Update the report count in the admin panel
-                            updateReportCount();
+                            // Save the timestamp of this report to prevent spam
+                            localStorage.setItem('lastReportTime', new Date().toISOString());
                             
-                            // Show success notification
-                            Swal.fire({
-                                title: 'Report Submitted',
-                                text: 'Thank you for helping keep our community safe. An administrator will review this content.',
-                                icon: 'success',
-                                background: '#1a1a1a',
-                                color: '#FFFFFF',
-                                confirmButtonColor: '#3085d6',
-                                timer: 3000,
-                                timerProgressBar: true
-                            });
+                            // Update the report count in the admin panel
+                            if (typeof updateReportCount === 'function') {
+                                updateReportCount();
+                            }
+                            
+                            // Disable the report button for this post and any duplicates
+                            disableReportButtonsForPost(postId);
                             
                             // Add a visual indicator that the post has been reported
                             const postCard = this.closest('.post-card');
@@ -2019,7 +2065,23 @@
                                 
                                 postCard.appendChild(reportBadge);
                             }
+                            
+                            // Show success notification immediately instead of with setTimeout
+                            Swal.fire({
+                                title: 'Report Submitted',
+                                text: 'Thank you for helping keep our community safe. An administrator will review this content.',
+                                icon: 'success',
+                                background: '#1a1a1a',
+                                color: '#FFFFFF',
+                                confirmButtonColor: '#3085d6',
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
                         }
+                    }).catch(error => {
+                        console.error('SweetAlert error:', error);
+                        // Fallback alert in case SweetAlert fails
+                        alert('Report submitted. Thank you for helping keep our community safe.');
                     });
                 });
             });
@@ -2033,6 +2095,47 @@
                     const commentId = this.dataset.commentId;
                     const commentContent = this.closest('.flex-1').querySelector('p').textContent.trim();
                     const commentAuthor = this.closest('.flex-1').querySelector('.font-semibold').textContent.trim();
+                    
+                    // Check if user already reported this comment
+                    const reports = JSON.parse(localStorage.getItem('communityReports') || '[]');
+                    const userReportedThis = reports.some(report => 
+                        report.type === 'comment' && 
+                        report.commentId === commentId && 
+                        report.reporter === '{{ auth()->check() ? auth()->user()->full_name : "Anonymous" }}'
+                    );
+                    
+                    // Check last report time to prevent spam
+                    const lastReportTime = localStorage.getItem('lastReportTime') ? new Date(localStorage.getItem('lastReportTime')) : null;
+                    const now = new Date();
+                    const timeDiff = lastReportTime ? (now - lastReportTime) / 1000 : 9999; // Difference in seconds
+                    
+                    if (userReportedThis) {
+                        Swal.fire({
+                            title: 'Already Reported',
+                            text: 'You have already reported this comment. Thank you for helping keep our community safe.',
+                            icon: 'info',
+                            background: '#1a1a1a',
+                            color: '#FFFFFF',
+                            confirmButtonColor: '#3085d6',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
+                    
+                    if (timeDiff < 10) { // 10 seconds cooldown between reports
+                        Swal.fire({
+                            title: 'Please Wait',
+                            text: `You can submit another report in ${Math.ceil(10 - timeDiff)} seconds.`,
+                            icon: 'warning',
+                            background: '#1a1a1a',
+                            color: '#FFFFFF',
+                            confirmButtonColor: '#3085d6',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                        return;
+                    }
                     
                     Swal.fire({
                         title: '<span class="text-xl font-bold">Report Inappropriate Comment</span>',
@@ -2083,20 +2186,16 @@
                             });
                             localStorage.setItem('communityReports', JSON.stringify(reports));
                             
-                            // Update the report count in the admin panel
-                            updateReportCount();
+                            // Save the timestamp of this report to prevent spam
+                            localStorage.setItem('lastReportTime', new Date().toISOString());
                             
-                            // Show success notification
-                            Swal.fire({
-                                title: 'Report Submitted',
-                                text: 'Thank you for helping keep our community safe. An administrator will review this comment.',
-                                icon: 'success',
-                                background: '#1a1a1a',
-                                color: '#FFFFFF',
-                                confirmButtonColor: '#3085d6',
-                                timer: 3000,
-                                timerProgressBar: true
-                            });
+                            // Update the report count in the admin panel
+                            if (typeof updateReportCount === 'function') {
+                                updateReportCount();
+                            }
+                            
+                            // Disable the report button for this comment and any duplicates
+                            disableReportButtonsForComment(commentId);
                             
                             // Add a visual indicator that the comment has been reported
                             const commentElement = this.closest('.flex.items-start.space-x-3');
@@ -2114,7 +2213,23 @@
                                     commentContainer.appendChild(reportBadge);
                                 }
                             }
+                            
+                            // Show success notification immediately instead of with setTimeout
+                            Swal.fire({
+                                title: 'Report Submitted',
+                                text: 'Thank you for helping keep our community safe. An administrator will review this comment.',
+                                icon: 'success',
+                                background: '#1a1a1a',
+                                color: '#FFFFFF',
+                                confirmButtonColor: '#3085d6',
+                                timer: 3000,
+                                timerProgressBar: true
+                            });
                         }
+                    }).catch(error => {
+                        console.error('SweetAlert error:', error);
+                        // Fallback alert in case SweetAlert fails
+                        alert('Report submitted. Thank you for helping keep our community safe.');
                     });
                 });
             });
@@ -3374,6 +3489,71 @@
                 confirmButtonColor: '#3085d6',
                 timer: 2000,
                 timerProgressBar: true
+            });
+        }
+
+        // Function to check and disable report buttons for already reported content
+        function checkPreviouslyReportedContent() {
+            const reports = JSON.parse(localStorage.getItem('communityReports') || '[]');
+            const currentUser = '{{ auth()->check() ? auth()->user()->full_name : "Anonymous" }}';
+            
+            // Get user's previous reports
+            const userReports = reports.filter(report => report.reporter === currentUser);
+            
+            // Disable report buttons for posts already reported by this user
+            const reportedPostIds = userReports
+                .filter(report => report.type === 'post')
+                .map(report => report.postId);
+                
+            reportedPostIds.forEach(postId => {
+                const reportBtn = document.querySelector(`.report-post-btn[data-post-id="${postId}"]`);
+                if (reportBtn) {
+                    reportBtn.disabled = true;
+                    reportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    
+                    // Add reported badge if missing
+                    const postCard = reportBtn.closest('.post-card');
+                    if (postCard && !postCard.classList.contains('reported')) {
+                        postCard.classList.add('reported');
+                    }
+                }
+            });
+            
+            // Disable report buttons for comments already reported by this user
+            const reportedCommentIds = userReports
+                .filter(report => report.type === 'comment')
+                .map(report => report.commentId);
+                
+            reportedCommentIds.forEach(commentId => {
+                const reportBtn = document.querySelector(`.report-comment-btn[data-comment-id="${commentId}"]`);
+                if (reportBtn) {
+                    reportBtn.disabled = true;
+                    reportBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    
+                    // Add reported badge if missing
+                    const commentElement = reportBtn.closest('.comment');
+                    if (commentElement && !commentElement.classList.contains('reported')) {
+                        commentElement.classList.add('reported');
+                    }
+                }
+            });
+        }
+
+        // Function to disable all report buttons for a specific post ID
+        function disableReportButtonsForPost(postId) {
+            const reportBtns = document.querySelectorAll(`.report-post-btn[data-post-id="${postId}"]`);
+            reportBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+        }
+        
+        // Function to disable all report buttons for a specific comment ID
+        function disableReportButtonsForComment(commentId) {
+            const reportBtns = document.querySelectorAll(`.report-comment-btn[data-comment-id="${commentId}"]`);
+            reportBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
             });
         }
     });

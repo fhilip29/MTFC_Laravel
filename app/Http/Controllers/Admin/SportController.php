@@ -206,12 +206,27 @@ class SportController extends Controller
     {
         $sport = Sport::findOrFail($id);
         
-        // Check if trainers array is empty
+        // Check if trainers array is empty - we'll allow it if all trainers have other sports
         if (empty($request->trainers) || count($request->trainers) === 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Each trainer must be assigned to at least one sport. Please select at least one trainer.'
-            ], 422);
+            // This is fine - we'll just remove all trainers from this sport
+            // as long as they have other sports assigned
+            
+            // Get trainers currently assigned to this sport
+            $currentTrainers = $sport->trainers;
+            
+            // Check if any of them would be left without any sports
+            foreach ($currentTrainers as $trainer) {
+                $trainerSports = explode(',', $trainer->trainer->instructor_for);
+                $trainerSports = array_map('trim', $trainerSports);
+                
+                // If this is their only sport, we can't remove them
+                if (count($trainerSports) <= 1 && in_array($sport->slug, $trainerSports)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Trainer "' . $trainer->full_name . '" must be assigned to at least one sport. Please assign them to another sport before removing them from this one.'
+                    ], 422);
+                }
+            }
         }
         
         $validator = Validator::make($request->all(), [

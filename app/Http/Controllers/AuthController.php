@@ -31,6 +31,13 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        // First check if the user exists and is archived
+        $user = \App\Models\User::where('email', $request->email)->first();
+        
+        if ($user && $user->is_archived) {
+            return back()->with('error', 'Your account has been archived. Please contact the administrator for assistance.');
+        }
+
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect('/')->with('success', 'Logged in successfully.');

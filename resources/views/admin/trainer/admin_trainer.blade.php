@@ -261,14 +261,20 @@
                         
                         <div class="mb-4">
                             <label for="instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For <span class="text-red-500">*</span></label>
-                            <select id="instructor_for" name="instructor_for_select[]" multiple 
-                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
-                                required>
-                                @foreach($sports as $sport)
-                                    <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="relative">
+                                <select id="instructor_for" name="instructor_for_select[]" multiple 
+                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF] min-h-[120px]"
+                                    required>
+                                    @foreach($sports as $sport)
+                                        <option value="{{ $sport->slug }}" class="p-2 my-1 hover:bg-[#4B5563] cursor-pointer">{{ $sport->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute right-3 top-3 text-[#9CA3AF] text-xs bg-[#1F2937] p-1 rounded">
+                                    <span class="selected-count">0</span> selected
+                                </div>
+                            </div>
                             <input type="hidden" name="instructor_for" id="instructor_for_hidden">
+                            <div class="flex flex-wrap gap-2 mt-2 selected-sports-display"></div>
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>
                         </div>
                         
@@ -421,15 +427,21 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For *</label>
-                            <select id="edit_instructor_for" name="edit_instructor_for_select[]" multiple 
-                                class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
-                                required>
-                                @foreach($sports as $sport)
-                                    <option value="{{ $sport->slug }}">{{ $sport->name }}</option>
-                                @endforeach
-                            </select>
+                            <label for="edit_instructor_for" class="block text-[#9CA3AF] text-sm font-medium mb-2">Instructor For <span class="text-red-500">*</span></label>
+                            <div class="relative">
+                                <select id="edit_instructor_for" name="edit_instructor_for_select[]" multiple 
+                                    class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF] min-h-[120px]"
+                                    required>
+                                    @foreach($sports as $sport)
+                                        <option value="{{ $sport->slug }}" class="p-2 my-1 hover:bg-[#4B5563] cursor-pointer">{{ $sport->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="absolute right-3 top-3 text-[#9CA3AF] text-xs bg-[#1F2937] p-1 rounded">
+                                    <span class="edit-selected-count">0</span> selected
+                                </div>
+                            </div>
                             <input type="hidden" name="instructor_for" id="edit_instructor_for_hidden">
+                            <div class="flex flex-wrap gap-2 mt-2 edit-selected-sports-display"></div>
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Select at least one area where this trainer will provide instruction. Hold Ctrl/Cmd key to select multiple options.</p>
                         </div>
                         
@@ -1462,25 +1474,89 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle instructor_for multiselect in Add form
     const instructorSelect = document.getElementById('instructor_for');
     const instructorHidden = document.getElementById('instructor_for_hidden');
+    const selectedSportsDisplay = document.querySelector('.selected-sports-display');
+    const selectedCountDisplay = document.querySelector('.selected-count');
     
     if (instructorSelect && instructorHidden) {
-        instructorSelect.addEventListener('change', function() {
-            const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
+        // Function to update the selected sports display
+        function updateSelectedSportsDisplay() {
+            const selectedOptions = Array.from(instructorSelect.selectedOptions);
+            const selectedValues = selectedOptions.map(option => option.value);
+            
+            // Update hidden field
             instructorHidden.value = selectedValues.join(',');
+            
+            // Update count display
+            if (selectedCountDisplay) {
+                selectedCountDisplay.textContent = selectedValues.length;
+            }
+            
+            // Update visual display of selected sports
+            if (selectedSportsDisplay) {
+                selectedSportsDisplay.innerHTML = '';
+                
+                selectedOptions.forEach(option => {
+                    const chip = document.createElement('div');
+                    chip.className = 'bg-blue-600 text-white text-xs rounded-full px-3 py-1 flex items-center';
+                    chip.innerHTML = `
+                        <span>${option.textContent}</span>
+                    `;
+                    selectedSportsDisplay.appendChild(chip);
+                });
+            }
+            
             console.log('Add form - instructor_for values:', selectedValues, instructorHidden.value);
-        });
+        }
+        
+        // Initial update
+        updateSelectedSportsDisplay();
+        
+        // Update on change
+        instructorSelect.addEventListener('change', updateSelectedSportsDisplay);
     }
     
     // Handle instructor_for multiselect in Edit form
     const editInstructorSelect = document.getElementById('edit_instructor_for');
     const editInstructorHidden = document.getElementById('edit_instructor_for_hidden');
+    const editSelectedSportsDisplay = document.querySelector('.edit-selected-sports-display');
+    const editSelectedCountDisplay = document.querySelector('.edit-selected-count');
     
     if (editInstructorSelect && editInstructorHidden) {
-        editInstructorSelect.addEventListener('change', function() {
-            const selectedValues = Array.from(this.selectedOptions).map(option => option.value);
+        // Function to update the selected sports display
+        function updateEditSelectedSportsDisplay() {
+            const selectedOptions = Array.from(editInstructorSelect.selectedOptions);
+            const selectedValues = selectedOptions.map(option => option.value);
+            
+            // Update hidden field
             editInstructorHidden.value = selectedValues.join(',');
+            
+            // Update count display
+            if (editSelectedCountDisplay) {
+                editSelectedCountDisplay.textContent = selectedValues.length;
+            }
+            
+            // Update visual display of selected sports
+            if (editSelectedSportsDisplay) {
+                editSelectedSportsDisplay.innerHTML = '';
+                
+                selectedOptions.forEach(option => {
+                    const chip = document.createElement('div');
+                    chip.className = 'bg-blue-600 text-white text-xs rounded-full px-3 py-1 flex items-center';
+                    chip.innerHTML = `
+                        <span>${option.textContent}</span>
+                    `;
+                    editSelectedSportsDisplay.appendChild(chip);
+                });
+            }
+            
             console.log('Edit form - instructor_for values:', selectedValues, editInstructorHidden.value);
-        });
+        }
+        
+        // Initial update
+        updateEditSelectedSportsDisplay();
+        
+        // Update on change
+        editInstructorSelect.addEventListener('change', updateEditSelectedSportsDisplay);
     }
 });
 </script>

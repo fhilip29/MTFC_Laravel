@@ -253,6 +253,9 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/api/user/attendance', [ProfileController::class, 'getUserAttendance'])->name('api.user.attendance');
     Route::get('/api/trainer/attendance', [TrainerController::class, 'getTrainerAttendance'])->name('api.trainer.attendance');
     Route::get('/api/trainer/test-attendance', [TrainerController::class, 'testAttendanceData'])->name('api.trainer.test.attendance');
+    
+    // Validation API Routes
+    Route::post('/api/validate/mobile-number-unique', [\App\Http\Controllers\ValidationController::class, 'checkMobileNumberUnique'])->name('api.validate.mobile.unique');
     Route::get('/api/invoice/{id}/items', [InvoiceController::class, 'getInvoiceItems'])->name('api.invoice.items');
     Route::get('/api/user/attendance-dates', [ProfileController::class, 'getAttendanceDates'])->name('api.user.attendance.dates');
     Route::get('/api/trainers', [TrainerController::class, 'getTrainers'])->name('api.trainers');

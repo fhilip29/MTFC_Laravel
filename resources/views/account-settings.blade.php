@@ -111,33 +111,41 @@
                         <!-- Form Fields -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">Full Name</label>
+                                <label class="block text-gray-600 text-sm mb-1">Full Name <span class="text-red-500">*</span></label>
                                 <input type="text" name="full_name" value="{{ old('full_name', $user->full_name) }}" 
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required
+                                    onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                                    oninput="this.value = this.value.replace(/[0-9]/g, '')">
                                 @error('full_name')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Enter your first and last name using only letters (no numbers).</p>
                             </div>
 
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">Email</label>
+                                <label class="block text-gray-600 text-sm mb-1">Email <span class="text-red-500">*</span></label>
                                 <input type="email" name="email" value="{{ old('email', $user->email) }}"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required>
                                 @error('email')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Enter a valid email address (e.g., username@domain.com).</p>
                             </div>
 
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">Mobile Number</label>
+                                <label class="block text-gray-600 text-sm mb-1">Mobile Number <span class="text-red-500">*</span></label>
                                 <input type="tel" name="mobile_number" value="{{ old('mobile_number', $user->mobile_number) }}"
                                     placeholder="Philippine Phone Number (e.g., 09123456789)" 
                                     pattern="^(\+63|0)9\d{9}$"
                                     title="Please enter a valid Philippine mobile number (e.g., 09123456789 or +639123456789)"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required>
                                 @error('mobile_number')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Enter a valid Philippine mobile number in 09XXXXXXXXX or +639XXXXXXXXX format.</p>
                             </div>
 
                             <div>
@@ -151,14 +159,18 @@
                                 @error('gender')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Optional. Select your gender from the dropdown.</p>
                             </div>
                             
                             <!-- Custom gender field, hidden by default -->
-                            <div id="otherGenderField" class="mt-2 {{ old('gender', $user->gender) == 'other' ? '' : 'hidden' }}">
-                                <label class="block text-gray-600 text-sm mb-1">Specify Gender</label>
-                                <input type="text" name="other_gender" value="{{ old('other_gender', $user->other_gender) }}"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
-                                    placeholder="Please specify your gender">
+                            <div id="otherGenderField" class="{{ old('gender', $user->gender) == 'other' ? '' : 'hidden' }}">
+                                <label class="block text-gray-600 text-sm mb-1">Specify Gender <span class="text-red-500">*</span></label>
+                                <input type="text" name="other_gender" value="{{ old('other_gender', $user->other_gender) }}" 
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                @error('other_gender')
+                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required only if "Other" is selected as gender. Please specify your gender identity.</p>
                             </div>
 
                             <div class="md:col-span-2">
@@ -181,6 +193,7 @@
 
                         <!-- Save Button -->
                         <div class="flex justify-end">
+                            <p class="text-xs text-gray-600 mb-2 mr-auto"><span class="text-red-500">*</span> Indicates required fields</p>
                             <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-save mr-2"></i> Save Changes
                             </button>
@@ -197,34 +210,44 @@
                         
                         <div class="space-y-4">
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">Current Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">Current Password <span class="text-red-500">*</span></label>
                                 <input type="password" name="current_password"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required>
                                 @error('current_password', 'password')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Enter your current password.</p>
                             </div>
 
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">New Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">New Password <span class="text-red-500">*</span></label>
                                 <input type="password" name="password"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required>
                                 @error('password', 'password')
                                     <span class="text-red-500 text-sm">{{ $message }}</span>
                                 @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Enter a new password (at least 8 characters, with at least one uppercase letter, one lowercase letter, one number, and one special character).</p>
                             </div>
 
                             <div>
-                                <label class="block text-gray-600 text-sm mb-1">Confirm New Password</label>
+                                <label class="block text-gray-600 text-sm mb-1">Confirm New Password <span class="text-red-500">*</span></label>
                                 <input type="password" name="password_confirmation"
-                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800">
+                                    class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500 text-gray-800"
+                                    required>
+                                @error('password_confirmation', 'password')
+                                    <span class="text-red-500 text-sm">{{ $message }}</span>
+                                @enderror
+                                <p class="text-xs text-gray-500 mt-1">Required. Re-enter your new password.</p>
                             </div>
                         </div>
 
                         <!-- Submit Button -->
-                        <div class="flex justify-end">
+                        <div class="space-y-4">
+                            <p class="text-xs text-gray-600 mb-2"><span class="text-red-500">*</span> Indicates required fields</p>
                             <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-lock mr-2"></i> Update Password
+                                <i class="fas fa-key mr-2"></i> Update Password
                             </button>
                         </div>
                     </form>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Sign Up | ActiveGym</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -115,15 +116,19 @@
                 <div class="mb-3">
                     <input type="text" name="first_name" placeholder="First Name" required
                            class="p-3 w-full border border-gray-600 bg-transparent rounded"
-                           value="{{ old('first_name') }}"/>
-                    <p class="text-xs text-gray-400 mt-1">Required</p>
+                           value="{{ old('first_name') }}" 
+                           onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                           oninput="this.value = this.value.replace(/[0-9]/g, '')"/>
+                    <p class="text-xs text-gray-400 mt-1">Required (letters only, no numbers)</p>
                 </div>
 
                 <div class="mb-3">
                     <input type="text" name="last_name" placeholder="Last Name" required
                            class="p-3 w-full border border-gray-600 bg-transparent rounded"
-                           value="{{ old('last_name') }}"/>
-                    <p class="text-xs text-gray-400 mt-1">Required</p>
+                           value="{{ old('last_name') }}" 
+                           onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                           oninput="this.value = this.value.replace(/[0-9]/g, '')"/>
+                    <p class="text-xs text-gray-400 mt-1">Required (letters only, no numbers)</p>
                 </div>
 
                 <div class="mb-3">
@@ -153,20 +158,24 @@
                 </div>
 
                 <div class="mb-3">
-                    <input type="email" name="email" placeholder="Email Address" required
+                    <input type="email" name="email" id="emailInput" placeholder="Email Address" required
                            class="p-3 w-full border border-gray-600 bg-transparent rounded"
-                           value="{{ old('email') }}"/>
+                           value="{{ old('email') }}"
+                           oninput="validateEmail(this)"/>
                     <p class="text-xs text-gray-400 mt-1">Required, must be a valid email address</p>
+                    <p class="text-xs text-red-500 mt-1 email-error-message hidden"></p>
                 </div>
                 
                 <div class="mb-3">
-                    <input type="tel" id="mobileNumberInput" name="mobile_number" placeholder="+63 917 123 4567" required
+                    <input type="tel" id="mobileNumberInput" name="mobile_number" placeholder="+63 9XX XXX XXXX" required
                            class="p-3 w-full border border-gray-600 bg-transparent rounded" 
                            value="{{ old('mobile_number', '+63 ') }}"
                            onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                            onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                           onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }" />
+                           onkeyup="validateMobileNumber(this)" 
+                           onblur="validateMobileNumber(this, true)" />
                     <p class="text-xs text-gray-400 mt-1">Required, must be a valid Philippine mobile number (+63 format)</p>
+                    <p class="text-xs text-red-500 mt-1 error-message hidden"></p>
                 </div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
@@ -176,9 +185,183 @@
                             mobileInput.value = '+63 ';
                         }
                         
-
+                        // Form validation for mobile number
+                        document.querySelector('form').addEventListener('submit', function(event) {
+                            if (!validateMobileNumber(mobileInput)) {
+                                event.preventDefault();
+                            }
+                        });
                     });
-
+                    
+                    // Function to validate mobile number (exactly 11 digits)
+                    function validateMobileNumber(input, checkUnique = false) {
+                        // Remove the +63 prefix and any spaces
+                        const number = input.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+                        
+                        // Check if the resulting number has exactly 10 digits (for a total of 11 with the leading 9)
+                        if (number.length > 10) {
+                            input.value = input.value.substring(0, input.value.length - 1);
+                        }
+                        
+                        // Ensure it starts with 9 after the +63 prefix
+                        if (number.length > 0 && number[0] !== '9') {
+                            input.value = '+63 9' + number.substring(1);
+                        }
+                        
+                        // Remove any non-numeric characters except spaces
+                        input.value = input.value.replace(/[^\d\s\+]/g, '');
+                        
+                        // Always show validation message unless it's a valid number
+                        const isValid = number.length === 10 && number[0] === '9' && /^\d+$/.test(number);
+                        
+                        if (isValid) {
+                            clearInlineError(input);
+                            
+                            // Check uniqueness if requested and valid format
+                            if (checkUnique && isValid) {
+                                checkMobileNumberUnique(input);
+                            }
+                        } else if (input.value.length > 4) { // Only show error if user has started typing (after +63)
+                            displayInlineError(input, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+                        }
+                        
+                        return isValid;
+                    }
+                    
+                    // Function to check if mobile number is unique in the system
+                    function checkMobileNumberUnique(input) {
+                        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+                        const mobileNumber = input.value.trim();
+                        
+                        // Find error message element (we created a static one)
+                        let errorElement = input.nextElementSibling.nextElementSibling;
+                        
+                        // Display 'checking' status
+                        errorElement.textContent = 'Checking mobile number availability...';
+                        errorElement.classList.remove('hidden');
+                        errorElement.classList.add('text-blue-500');
+                        errorElement.classList.remove('text-red-500');
+                        
+                        // Send AJAX request to check uniqueness
+                        fetch('/api/validate/mobile-number-unique', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken
+                            },
+                            body: JSON.stringify({
+                                mobile_number: mobileNumber
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.unique) {
+                                // Mobile number already exists
+                                input.classList.remove('border-gray-600');
+                                input.classList.add('border-red-500');
+                                errorElement.textContent = 'This mobile number is already registered. Please use a different number.';
+                                errorElement.classList.remove('text-blue-500');
+                                errorElement.classList.add('text-red-500');
+                                errorElement.classList.remove('hidden');
+                                return false;
+                            } else {
+                                // Mobile number is unique
+                                input.classList.remove('border-red-500');
+                                input.classList.add('border-gray-600');
+                                errorElement.textContent = 'Mobile number is available';
+                                errorElement.classList.remove('text-red-500');
+                                errorElement.classList.add('text-green-500');
+                                errorElement.classList.remove('hidden');
+                                
+                                // Hide the success message after 2 seconds
+                                setTimeout(() => {
+                                    errorElement.classList.add('hidden');
+                                }, 2000);
+                                return true;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error checking mobile number uniqueness:', error);
+                            errorElement.classList.add('hidden');
+                            return true; // Continue with validation to avoid blocking user on error
+                        });
+                    }
+                    
+                    // Function to validate email with common domains
+                    function validateEmail(input) {
+                        const validDomains = [
+                            'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
+                            'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
+                            'protonmail.com', 'zoho.com'
+                        ];
+                        
+                        const email = input.value.toLowerCase().trim();
+                        let isValid = false;
+                        const errorElement = input.nextElementSibling.nextElementSibling;
+                        
+                        // Reset validation state
+                        input.classList.remove('border-red-500', 'border-green-500');
+                        if (errorElement) {
+                            errorElement.classList.add('hidden');
+                        }
+                        
+                        if (!email) {
+                            return false; // Empty input, let HTML5 validation handle it
+                        }
+                        
+                        if (email && email.includes('@')) {
+                            const parts = email.split('@');
+                            if (parts.length === 2 && parts[0].length > 0) {
+                                const domain = parts[1].trim();
+                                
+                                // Check if domain is in our list of valid domains
+                                if (!validDomains.includes(domain)) {
+                                    displayInlineError(input, 'Please use a common email domain like gmail.com, yahoo.com, outlook.com, etc.');
+                                    isValid = false;
+                                } else if (!/^[a-z0-9._%+-]+$/.test(parts[0])) {
+                                    // Check if the username part contains valid characters
+                                    displayInlineError(input, 'Email contains invalid characters');
+                                    isValid = false;
+                                } else {
+                                    // Valid email
+                                    input.classList.add('border-green-500');
+                                    isValid = true;
+                                }
+                            } else {
+                                displayInlineError(input, 'Please enter a valid email format');
+                                isValid = false;
+                            }
+                        } else {
+                            displayInlineError(input, 'Email must contain an @ symbol');
+                            isValid = false;
+                        }
+                        
+                        return isValid;
+                    }
+                    
+                    // Function to display inline error messages
+                    function displayInlineError(input, message) {
+                        // Add red border
+                        input.classList.add('border-red-500');
+                        
+                        // Show error message
+                        const errorElement = input.nextElementSibling.nextElementSibling;
+                        if (errorElement) {
+                            errorElement.textContent = message;
+                            errorElement.classList.remove('hidden');
+                        }
+                    }
+                    
+                    // Function to clear inline error messages
+                    function clearInlineError(input) {
+                        // Remove red border
+                        input.classList.remove('border-red-500');
+                        input.classList.add('border-gray-600');
+                        // Find and hide error message element
+                        const errorElement = input.nextElementSibling.nextElementSibling;
+                        errorElement.textContent = '';
+                        errorElement.classList.add('hidden');
+                    }
                 </script>
 
                 <div class="relative mb-3">

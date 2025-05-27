@@ -192,8 +192,10 @@
                             <label for="full_name" class="block text-[#9CA3AF] text-sm font-medium mb-2">Full Name <span class="text-red-500">*</span></label>
                             <input type="text" id="full_name" name="full_name" placeholder="Enter trainer's full name" 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
-                                required minlength="3" maxlength="50">
-                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter first and last name (3-50 characters).</p>
+                                required minlength="3" maxlength="50"
+                                onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                                oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter first and last name (3-50 characters, letters only).</p>
                         </div>
                         
                         <div class="mb-4">
@@ -375,7 +377,9 @@
                         
                         <div class="mb-4">
                             <label for="edit_full_name" class="block text-[#9CA3AF] text-sm font-medium mb-2">Full Name *</label>
-                            <input type="text" id="edit_full_name" name="full_name" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <input type="text" id="edit_full_name" name="full_name" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
+                                onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                                oninput="this.value = this.value.replace(/[0-9]/g, '')">
                         </div>
                         
                         <div class="mb-4">
@@ -977,6 +981,11 @@ function editTrainer(trainerId) {
 }
 
 // Handle search functionality
+// Function to prevent numbers in name fields
+function preventNumbersInName(input) {
+    input.value = input.value.replace(/[0-9]/g, '');
+}
+
 // Function to validate mobile number (exactly 11 digits)
 function validateMobileNumber(input) {
     // Remove the +63 prefix and any spaces

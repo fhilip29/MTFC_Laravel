@@ -141,8 +141,12 @@ Our foundation is built on support, empowerment, and a shared journey toward bet
                     </div>
                     <div>
                         <label for="about_email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email <span class="text-red-500">*</span></label>
-                        <input type="email" id="about_email" name="about_email" value="{{ $settings->about_email ?? 'mtfc987@gmail.com' }}" placeholder="e.g. mtfc987@gmail.com" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
+                        <input type="email" id="about_email" name="about_email" value="{{ $settings->about_email ?? 'mtfc987@gmail.com' }}" 
+                               placeholder="e.g. mtfc987@gmail.com" 
+                               oninput="validateEmail(this)"
+                               class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" required>
                         <p class="text-xs text-[#9CA3AF] mt-1">Required. Your business email address shown on the About page.</p>
+                        <p class="text-xs text-red-500 mt-1 email-error-message hidden"></p>
                     </div>
                 </div>
                 
@@ -264,6 +268,78 @@ Our foundation is built on support, empowerment, and a shared journey toward bet
 
 @push('scripts')
 <script>
+// Function to validate email with common domains
+function validateEmail(input) {
+    const validDomains = [
+        'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
+        'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
+        'protonmail.com', 'zoho.com'
+    ];
+    
+    const email = input.value.toLowerCase().trim();
+    let isValid = false;
+    
+    // Find the error element
+    let errorElement = input.nextElementSibling;
+    while (errorElement && !errorElement.classList.contains('email-error-message')) {
+        errorElement = errorElement.nextElementSibling;
+    }
+    
+    // Reset validation state
+    input.classList.remove('border-red-500', 'border-green-500');
+    if (errorElement) {
+        errorElement.classList.add('hidden');
+    }
+    
+    if (!email) {
+        return false; // Empty input, let HTML5 validation handle it
+    }
+    
+    if (email && email.includes('@')) {
+        const parts = email.split('@');
+        if (parts.length === 2 && parts[0].length > 0) {
+            const domain = parts[1].trim();
+            
+            // Check if domain is in our list of valid domains
+            if (!validDomains.includes(domain)) {
+                input.classList.add('border-red-500');
+                if (errorElement) {
+                    errorElement.textContent = 'Please use a common email domain like gmail.com, yahoo.com, outlook.com, etc.';
+                    errorElement.classList.remove('hidden');
+                }
+                isValid = false;
+            } else if (!/^[a-z0-9._%+-]+$/.test(parts[0])) {
+                // Check if the username part contains valid characters
+                input.classList.add('border-red-500');
+                if (errorElement) {
+                    errorElement.textContent = 'Email contains invalid characters';
+                    errorElement.classList.remove('hidden');
+                }
+                isValid = false;
+            } else {
+                // Valid email
+                input.classList.add('border-green-500');
+                isValid = true;
+            }
+        } else {
+            input.classList.add('border-red-500');
+            if (errorElement) {
+                errorElement.textContent = 'Please enter a valid email format';
+                errorElement.classList.remove('hidden');
+            }
+            isValid = false;
+        }
+    } else {
+        input.classList.add('border-red-500');
+        if (errorElement) {
+            errorElement.textContent = 'Email must contain an @ symbol';
+            errorElement.classList.remove('hidden');
+        }
+        isValid = false;
+    }
+    
+    return isValid;
+}
 document.addEventListener('DOMContentLoaded', function() {
     // Tab functionality
     function openTab(tabName) {

@@ -128,19 +128,32 @@
                                 
                                 <div>
                                     <label for="email" class="block text-sm font-medium text-[#9CA3AF] mb-2">Email Address</label>
-                                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="email" name="email" id="email" value="{{ old('email', Auth::user()->email) }}" 
+                                           oninput="validateEmail(this)"
+                                           class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     @error('email')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
+                                    <p class="text-red-500 text-sm mt-1 email-error-message hidden"></p>
                                 </div>
                                 
                                 <div>
                                     <label for="mobile_number" class="block text-sm font-medium text-[#9CA3AF] mb-2">Mobile Number</label>
-                                    <input type="text" name="mobile_number" id="mobile_number" value="{{ old('mobile_number', Auth::user()->mobile_number) }}" placeholder="+63 9XX XXX XXXX" class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <input type="text" name="mobile_number" id="mobile_number" 
+                                           value="{{ old('mobile_number', Auth::user()->mobile_number) }}" 
+                                           placeholder="+63 9XX XXX XXXX" 
+                                           pattern="\+63\s?9\d{2}\s?\d{3}\s?\d{4}|\+639\d{9}" 
+                                           maxlength="14"
+                                           onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
+                                           onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
+                                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }" 
+                                           onblur="validateMobileNumber(this)"
+                                           class="w-full px-3 py-2 bg-[#374151] border border-[#4B5563] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     @error('mobile_number')
                                         <span class="text-red-500 text-sm mt-1">{{ $message }}</span>
                                     @enderror
-                                    <p class="text-xs text-[#9CA3AF] mt-1">Format: +63 9XX XXX XXXX or 09XXXXXXXXX</p>
+                                    <div class="error-message text-red-500 text-xs mt-1 hidden" id="mobile_number_error"></div>
+                                    <p class="text-xs text-[#9CA3AF] mt-1">Format: +63 9XX XXX XXXX</p>
                                 </div>
                             </div>
                         </div>
@@ -304,12 +317,94 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+    // Function to validate email with common domains
+    function validateEmail(input) {
+        const validDomains = [
+            'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
+            'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
+            'protonmail.com', 'zoho.com'
+        ];
+        
+        const email = input.value.toLowerCase().trim();
+        let isValid = false;
+        
+        // Find the error element
+        let errorElement = input.nextElementSibling;
+        while (errorElement && !errorElement.classList.contains('email-error-message')) {
+            errorElement = errorElement.nextElementSibling;
+        }
+        
+        // Reset validation state
+        input.classList.remove('border-red-500', 'border-green-500');
+        if (errorElement) {
+            errorElement.classList.add('hidden');
+        }
+        
+        if (!email) {
+            return false; // Empty input, let HTML5 validation handle it
+        }
+        
+        if (email && email.includes('@')) {
+            const parts = email.split('@');
+            if (parts.length === 2 && parts[0].length > 0) {
+                const domain = parts[1].trim();
+                
+                // Check if domain is in our list of valid domains
+                if (!validDomains.includes(domain)) {
+                    input.classList.add('border-red-500');
+                    if (errorElement) {
+                        errorElement.textContent = 'Please use a common email domain like gmail.com, yahoo.com, outlook.com, etc.';
+                        errorElement.classList.remove('hidden');
+                    }
+                    isValid = false;
+                } else if (!/^[a-z0-9._%+-]+$/.test(parts[0])) {
+                    // Check if the username part contains valid characters
+                    input.classList.add('border-red-500');
+                    if (errorElement) {
+                        errorElement.textContent = 'Email contains invalid characters';
+                        errorElement.classList.remove('hidden');
+                    }
+                    isValid = false;
+                } else {
+                    // Valid email
+                    input.classList.add('border-green-500');
+                    isValid = true;
+                }
+            } else {
+                input.classList.add('border-red-500');
+                if (errorElement) {
+                    errorElement.textContent = 'Please enter a valid email format';
+                    errorElement.classList.remove('hidden');
+                }
+                isValid = false;
+            }
+        } else {
+            input.classList.add('border-red-500');
+            if (errorElement) {
+                errorElement.textContent = 'Email must contain an @ symbol';
+                errorElement.classList.remove('hidden');
+            }
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
     document.addEventListener('DOMContentLoaded', function() {
         // Auto-populate +63 prefix for mobile number
         const mobileInput = document.getElementById('mobile_number');
         if (mobileInput && !mobileInput.value) {
             mobileInput.value = '+63 ';
         }
+        
+        // Add event listener for form submission
+        document.querySelector('form').addEventListener('submit', function(event) {
+            if (mobileInput) {
+                if (!validateMobileNumberOnSubmit(mobileInput)) {
+                    event.preventDefault();
+                }
+            }
+        });
         
         // Image Cropper
         let cropper;
@@ -470,5 +565,137 @@
             });
         @endif
     });
+    
+    // Function to validate mobile number (exactly 11 digits)
+    function validateMobileNumber(input, checkUnique = false) {
+        // Remove the +63 prefix and any spaces
+        const number = input.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+        
+        // Check if the resulting number has exactly 10 digits (for a total of 11 with the leading 9)
+        if (number.length > 10) {
+            input.value = input.value.substring(0, input.value.length - 1);
+        }
+        
+        // Ensure it starts with 9 after the +63 prefix
+        if (number.length > 0 && number[0] !== '9') {
+            input.value = '+63 9' + number.substring(1);
+        }
+        
+        // Remove any non-numeric characters except spaces
+        input.value = input.value.replace(/[^\d\s\+]/g, '');
+        
+        // Always show validation message unless it's a valid number
+        const isValid = number.length === 10 && number[0] === '9' && /^\d+$/.test(number);
+        
+        // Error element ID based on input ID
+        const errorId = input.id + '_error';
+        const errorElement = document.getElementById(errorId);
+        
+        if (isValid) {
+            clearInlineError(input);
+            
+            // Check uniqueness if requested and valid format
+            if (checkUnique && isValid) {
+                checkMobileNumberUnique(input, '{{ Auth::user()->id }}');
+            }
+        } else if (input.value.length > 4) { // Only show error if user has started typing (after +63)
+            displayInlineError(input, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+        }
+        
+        return isValid;
+    }
+    
+    // Function to check if mobile number is unique in the system
+    function checkMobileNumberUnique(input, currentId = null) {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+        const mobileNumber = input.value.trim();
+        
+        // Display 'checking' status
+        const errorId = input.id + '_error';
+        const errorElement = document.getElementById(errorId);
+        if (errorElement) {
+            errorElement.textContent = 'Checking mobile number availability...';
+            errorElement.classList.remove('hidden');
+            errorElement.classList.add('text-blue-500');
+            errorElement.classList.remove('text-red-500');
+        }
+        
+        // Send AJAX request to check uniqueness
+        fetch('/api/validate/mobile-number-unique', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                mobile_number: mobileNumber,
+                current_id: currentId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.unique) {
+                // Mobile number already exists
+                displayInlineError(input, 'This mobile number is already registered by another user.');
+                return false;
+            } else {
+                // Mobile number is unique
+                clearInlineError(input);
+                if (errorElement) {
+                    errorElement.textContent = 'Mobile number is available';
+                    errorElement.classList.remove('text-blue-500');
+                    errorElement.classList.add('text-green-500');
+                    errorElement.classList.remove('hidden');
+                    
+                    // Hide the success message after 2 seconds
+                    setTimeout(() => {
+                        errorElement.classList.add('hidden');
+                    }, 2000);
+                }
+                return true;
+            }
+        })
+        .catch(error => {
+            console.error('Error checking mobile number uniqueness:', error);
+            return true; // Continue with validation to avoid blocking user on error
+        });
+    }
+    
+    function validateMobileNumberOnSubmit(input) {
+        return validateMobileNumber(input);
+    }
+    
+    // Function to display inline error messages
+    function displayInlineError(input, message) {
+        // Add red border
+        input.classList.remove('border-[#4B5563]');
+        input.classList.add('border-red-500');
+        
+        // Find or create error message element
+        let errorElement = input.nextElementSibling;
+        if (!errorElement || !errorElement.classList.contains('error-message')) {
+            errorElement = document.createElement('p');
+            errorElement.className = 'text-xs text-red-500 mt-1 error-message';
+            input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+        }
+        
+        // Set error message and make sure it's visible
+        errorElement.textContent = message;
+        errorElement.classList.remove('hidden');
+    }
+    
+    // Function to clear inline error messages
+    function clearInlineError(input) {
+        // Remove red border
+        input.classList.remove('border-red-500');
+        input.classList.add('border-[#4B5563]');
+        
+        // Find and remove error message element
+        const errorElement = input.nextElementSibling;
+        if (errorElement && errorElement.classList.contains('error-message')) {
+            errorElement.textContent = '';
+            errorElement.classList.add('hidden');
+        }
+    }
 </script>
 @endsection 

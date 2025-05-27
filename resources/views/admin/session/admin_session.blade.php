@@ -3,6 +3,7 @@
 @section('title', 'Session Management')
 
 @section('content')
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <div class="container mx-auto px-4 py-6 sm:py-8">
     <div class="bg-[#1F2937] shadow-lg rounded-xl p-4 sm:p-6 border border-[#374151]">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-2 mb-4">
@@ -236,16 +237,22 @@
                         <!-- Check In Tab Content -->
                         <div id="checkInTab" class="mt-4 relative z-20">
                             <label for="guestNameInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Guest Name</label>
-                            <input type="text" id="guestNameInput" placeholder="Enter guest's full name" class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4">
-                            <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required.</p>
+                            <input type="text" id="guestNameInput" placeholder="Enter guest's full name" 
+                               class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm mb-4"
+                               onkeypress="return /^[a-zA-Z\s]*$/.test(event.key)" 
+                               oninput="this.value = this.value.replace(/[0-9]/g, '')">
+                            <p id="guestNameError" class="text-red-500 text-xs mt-1 hidden">Guest name is required (letters only, no numbers).</p>
                         
                             <label for="guestPhoneInput" class="block text-sm font-medium text-[#9CA3AF] mb-1">Phone Number</label>
                             <div class="mb-4">
-                                <input type="tel" id="guestPhoneInput" placeholder="+63 917 123 4567" 
+                                <input type="tel" id="guestPhoneInput" placeholder="+63 9XX XXX XXXX" 
                                     class="w-full p-3 bg-[#374151] border border-[#4B5563] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-[#9CA3AF] placeholder-[#9CA3AF] shadow-sm" 
+                                    pattern="\+63\s?9\d{2}\s?\d{3}\s?\d{4}|\+639\d{9}"
+                                    maxlength="14"
                                     onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                                     onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                                    onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                                    onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }" 
+                                    onblur="validateMobileNumber(this, true)">
                             </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
@@ -1236,9 +1243,111 @@
 
         // Function to validate Philippine phone number
         function isValidPhoneNumber(phone) {
-            // Basic regex for Philippine phone numbers: +63XXXXXXXXXX or 09XXXXXXXXXX
-            const philippinePhoneRegex = /^(\+63|0)9\d{9}$/;
-            return philippinePhoneRegex.test(phone.replace(/\s+/g, ''));
+            // Improved regex for Philippine phone numbers with proper formatting
+            const philippinePhoneRegex = /^\+63\s?9\d{2}\s?\d{3}\s?\d{4}$|^\+639\d{9}$/;
+            return philippinePhoneRegex.test(phone);
+        }
+        
+        // Validation for Philippine mobile numbers (more detailed)
+        function validateMobileNumber(input, checkUnique = false) {
+            // Remove any spaces and check the format
+            const value = input.value.trim();
+            const numericPart = value.replace(/\+63\s?/, '');
+            
+            // Clear previous validation state
+            input.classList.remove('border-red-500', 'border-green-500');
+            
+            // Check if empty
+            if (!value) {
+                input.classList.add('border-red-500');
+                guestPhoneError.textContent = 'Mobile number is required.';
+                guestPhoneError.classList.remove('hidden');
+                return false;
+            }
+            
+            // Validate format: must start with +63 followed by a 10-digit number starting with 9
+            const regex = /^\+63\s?9\d{2}\s?\d{3}\s?\d{4}$|^\+639\d{9}$/;
+            if (!regex.test(value)) {
+                input.classList.add('border-red-500');
+                guestPhoneError.textContent = 'Please enter a valid Philippine mobile number (+63 9XX XXX XXXX).';
+                guestPhoneError.classList.remove('hidden');
+                return false;
+            }
+            
+            // Ensure first digit after +63 is 9
+            if (numericPart.charAt(0) !== '9') {
+                input.classList.add('border-red-500');
+                guestPhoneError.textContent = 'Mobile number must start with 9 after the country code.';
+                guestPhoneError.classList.remove('hidden');
+                return false;
+            }
+            
+            // Valid mobile number
+            input.classList.add('border-green-500');
+            guestPhoneError.classList.add('hidden');
+            
+            // Check uniqueness if requested
+            if (checkUnique) {
+                checkMobileNumberUnique(input);
+            }
+            
+            return true;
+        }
+        
+        // Function to check if mobile number is unique in the system
+        function checkMobileNumberUnique(input) {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+            const mobileNumber = input.value.trim();
+            
+            // Display 'checking' status
+            guestPhoneError.textContent = 'Checking mobile number availability...';
+            guestPhoneError.classList.remove('hidden');
+            guestPhoneError.classList.add('text-blue-500');
+            guestPhoneError.classList.remove('text-red-500');
+            
+            // Send AJAX request to check uniqueness
+            fetch('/api/validate/mobile-number-unique', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({
+                    mobile_number: mobileNumber
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.unique) {
+                    // Mobile number already exists
+                    input.classList.remove('border-green-500');
+                    input.classList.add('border-red-500');
+                    guestPhoneError.textContent = 'This mobile number is already registered by another user or vendor.';
+                    guestPhoneError.classList.remove('text-blue-500');
+                    guestPhoneError.classList.add('text-red-500');
+                    guestPhoneError.classList.remove('hidden');
+                    return false;
+                } else {
+                    // Mobile number is unique
+                    input.classList.remove('border-red-500');
+                    input.classList.add('border-green-500');
+                    guestPhoneError.textContent = 'Mobile number is available';
+                    guestPhoneError.classList.remove('text-red-500');
+                    guestPhoneError.classList.add('text-green-500');
+                    guestPhoneError.classList.remove('hidden');
+                    
+                    // Hide the success message after 2 seconds
+                    setTimeout(() => {
+                        guestPhoneError.classList.add('hidden');
+                    }, 2000);
+                    return true;
+                }
+            })
+            .catch(error => {
+                console.error('Error checking mobile number uniqueness:', error);
+                guestPhoneError.classList.add('hidden');
+                return true; // Continue with validation to avoid blocking user on error
+            });
         }
 
         // Function to validate guest name (letters and spaces only)
@@ -1269,23 +1378,12 @@
                 guestNameError.classList.add('hidden');
             }
             
-            // Validate phone number
-            if (!guestPhone) {
-                guestPhoneError.textContent = 'Phone number is required.';
-                guestPhoneError.classList.remove('hidden');
+            // Validate phone number using the enhanced validation function
+            if (!validateMobileNumber(guestPhoneInput)) {
                 if (isValid) {
                     guestPhoneInput.focus();
                 }
                 isValid = false;
-            } else if (!isValidPhoneNumber(guestPhone)) {
-                guestPhoneError.textContent = 'Please enter a valid Philippine phone number.';
-                guestPhoneError.classList.remove('hidden');
-                if (isValid) {
-                    guestPhoneInput.focus();
-                }
-                isValid = false;
-            } else {
-                guestPhoneError.classList.add('hidden');
             }
             
             // If validation fails, stop here

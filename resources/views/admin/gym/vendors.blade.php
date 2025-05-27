@@ -3,6 +3,7 @@
 @section('content')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <div class="p-6" x-data="{ showAddModal: false, showEditModal: false, currentVendor: null }">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-white">Vendor Management</h1>
@@ -96,14 +97,16 @@
                     <label for="contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information <span class="text-red-500">*</span></label>
                     <input type="text" name="contact_info" id="contact_info" 
                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
-                           placeholder="+63 917 123 4567" 
+                           placeholder="+63 9XX XXX XXXX" 
                            required 
-                           pattern="\+63 [0-9]{10}$"
+                           pattern="\+63\s?9\d{2}\s?\d{3}\s?\d{4}|\+639\d{9}"
                            maxlength="14"
                            onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                            onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
-                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XXXXXXXXX</p>
+                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
+                           onblur="validateMobileNumber(this)">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XX XXX XXXX</p>
+                    <div class="error-message text-red-500 text-xs mt-1 hidden" id="contact_info_error"></div>
                 </div>
                 <div class="flex justify-end mt-6 space-x-3">
                     <button type="button" @click="showAddModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
@@ -138,15 +141,17 @@
                     <label for="edit_contact_info" class="block text-sm font-medium text-gray-300 mb-1">Contact Information <span class="text-red-500">*</span></label>
                     <input type="text" name="contact_info" id="edit_contact_info" 
                            class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5" 
-                           placeholder="+63 917 123 4567" 
+                           placeholder="+63 9XX XXX XXXX" 
                            required 
                            :value="currentVendor?.contact_info" 
-                           pattern="\+63 [0-9]{10}$"
+                           pattern="\+63\s?9\d{2}\s?\d{3}\s?\d{4}|\+639\d{9}"
                            maxlength="14"
                            onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                            onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
-                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XXXXXXXXX</p>
+                           onkeyup="this.value = this.value.replace(/[^0-9+\s]/g, ''); if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
+                           onblur="validateMobileNumber(this)">
+                    <p class="text-xs text-gray-400 mt-1">Required. Enter the vendor's contact number with country code (+63) in format: +63 9XX XXX XXXX</p>
+                    <div class="error-message text-red-500 text-xs mt-1 hidden" id="edit_contact_info_error"></div>
                 </div>
                 <div class="flex justify-end mt-6 space-x-3">
                     <button type="button" @click="showEditModal = false" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded">Cancel</button>
@@ -199,6 +204,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (contactInfoInput && !contactInfoInput.value) {
         contactInfoInput.value = '+63 ';
     }
+    
+    // Add event listener for form submission
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function(event) {
+            const mobileInput = this.querySelector('input[name="contact_info"]');
+            if (mobileInput) {
+                if (!validateMobileNumberOnSubmit(mobileInput)) {
+                    event.preventDefault();
+                }
+            }
+        });
+    });
     
     // Initialize when add vendor modal is opened
     document.querySelectorAll('[\\@click="showAddModal = true"]').forEach(button => {
@@ -258,5 +275,134 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     @endif
 });
+
+// Validation for Philippine mobile numbers
+function validateMobileNumber(input, checkUnique = false) {
+    // Remove any spaces and check the format
+    const value = input.value.trim();
+    const numericPart = value.replace(/\+63\s?/, '');
+    
+    // Error element ID based on input ID
+    const errorId = input.id + '_error';
+    const errorElement = document.getElementById(errorId);
+    
+    // Clear previous validation state
+    input.classList.remove('border-red-500', 'border-green-500');
+    
+    // Check if empty
+    if (!value) {
+        displayError(errorElement, 'Mobile number is required.');
+        input.classList.add('border-red-500');
+        return false;
+    }
+    
+    // Validate format: must start with +63 followed by a 10-digit number starting with 9
+    const regex = /^\+63\s?9\d{2}\s?\d{3}\s?\d{4}$|^\+639\d{9}$/;
+    if (!regex.test(value)) {
+        displayError(errorElement, 'Please enter a valid Philippine mobile number (+63 9XX XXX XXXX).');
+        input.classList.add('border-red-500');
+        return false;
+    }
+    
+    // Ensure first digit after +63 is 9
+    if (numericPart.charAt(0) !== '9') {
+        displayError(errorElement, 'Mobile number must start with 9 after the country code.');
+        input.classList.add('border-red-500');
+        return false;
+    }
+    
+    // Valid mobile number
+    clearError(errorElement);
+    input.classList.add('border-green-500');
+    
+    // Check uniqueness if requested
+    if (checkUnique) {
+        // For edit form, get the current vendor ID
+        let currentId = null;
+        if (input.id === 'edit_contact_info' && window.currentVendor) {
+            currentId = window.currentVendor?.id;
+        }
+        
+        checkMobileNumberUnique(input, currentId);
+    }
+    
+    return true;
+}
+
+// Function to check if mobile number is unique in the system
+function checkMobileNumberUnique(input, currentId = null) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+    const mobileNumber = input.value.trim();
+    
+    // Error element ID based on input ID
+    const errorId = input.id + '_error';
+    const errorElement = document.getElementById(errorId);
+    
+    // Display 'checking' status
+    if (errorElement) {
+        errorElement.textContent = 'Checking mobile number availability...';
+        errorElement.classList.remove('hidden');
+        errorElement.style.color = '#3B82F6'; // Blue color
+    }
+    
+    // Send AJAX request to check uniqueness
+    fetch('/api/validate/mobile-number-unique', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': csrfToken
+        },
+        body: JSON.stringify({
+            mobile_number: mobileNumber,
+            current_id: currentId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.unique) {
+            // Mobile number already exists
+            displayError(errorElement, 'This mobile number is already registered by another vendor or user.');
+            input.classList.remove('border-green-500');
+            input.classList.add('border-red-500');
+            return false;
+        } else {
+            // Mobile number is unique
+            clearError(errorElement);
+            if (errorElement) {
+                errorElement.textContent = 'Mobile number is available';
+                errorElement.classList.remove('hidden');
+                errorElement.style.color = '#10B981'; // Green color
+                
+                // Hide the success message after 2 seconds
+                setTimeout(() => {
+                    errorElement.classList.add('hidden');
+                }, 2000);
+            }
+            return true;
+        }
+    })
+    .catch(error => {
+        console.error('Error checking mobile number uniqueness:', error);
+        return true; // Continue with validation to avoid blocking user on error
+    });
+}
+
+function validateMobileNumberOnSubmit(input) {
+    return validateMobileNumber(input);
+}
+
+function displayError(element, message) {
+    if (element) {
+        element.textContent = message;
+        element.classList.remove('hidden');
+    }
+}
+
+function clearError(element) {
+    if (element) {
+        element.textContent = '';
+        element.classList.add('hidden');
+    }
+}
 </script>
 @endsection 

@@ -305,6 +305,12 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Auto-populate +63 prefix for mobile number
+        const mobileInput = document.getElementById('mobile_number');
+        if (mobileInput && !mobileInput.value) {
+            mobileInput.value = '+63 ';
+        }
+        
         // Image Cropper
         let cropper;
         const profileImageInput = document.getElementById('profile_image');

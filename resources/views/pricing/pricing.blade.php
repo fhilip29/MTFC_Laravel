@@ -53,7 +53,11 @@
     @include('components.waiver-modal')
     <section class="relative w-full min-h-screen text-gray-800">
         <!-- Background image -->
-        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('/assets/gym-bg.jpg');"></div>
+        @if(isset($activeSport) && $activeSport && $activeSport->background_image && $activeSport->background_image != '/assets/gym-bg.jpg')
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('{{ asset($activeSport->background_image) }}');"></div>
+        @else
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm" style="background-image: url('{{ asset('/assets/gym-bg.jpg') }}');"></div>
+        @endif
 
         <!-- Overlay to darken -->
         <div class="absolute inset-0 bg-black opacity-50"></div>

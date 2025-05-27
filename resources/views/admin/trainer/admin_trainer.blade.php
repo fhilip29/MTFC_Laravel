@@ -200,8 +200,9 @@
                             <label for="email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email <span class="text-red-500">*</span></label>
                             <input type="email" id="email" name="email" placeholder="trainer@example.com" 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
-                                required>
-                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid email address that the trainer can access.</p>
+                                required
+                                oninput="validateEmail(this)">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid email address with common domains (gmail.com, yahoo.com, etc.).</p>
                         </div>
                         
                         <div class="mb-4">
@@ -214,13 +215,14 @@
                         
                         <div class="mb-4">
                             <label for="mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number <span class="text-red-500">*</span></label>
-                            <input type="text" id="mobile_number" name="mobile_number" placeholder="+63 917 123 4567" 
+                            <input type="text" id="mobile_number" name="mobile_number" placeholder="+63 9XX XXX XXXX" 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
-                                required
+                                required pattern="\+63\s?9\d{9}" 
                                 onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                                 onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
-                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid Philippine mobile number (e.g., +63 917 123 4567).</p>
+                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
+                                oninput="validateMobileNumber(this)">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter exactly 11 digits (e.g., 9XX XXX XXXX). The +63 prefix is automatically added.</p>
                         </div>
                         
                         <div class="mb-4">
@@ -375,17 +377,23 @@
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email *</label>
-                            <input type="email" id="edit_email" name="email" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]">
+                            <label for="edit_email" class="block text-[#9CA3AF] text-sm font-medium mb-2">Email <span class="text-red-500">*</span></label>
+                            <input type="email" id="edit_email" name="email" class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]"
+                                required
+                                oninput="validateEmail(this)">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter a valid email address with common domains (gmail.com, yahoo.com, etc.).</p>
                         </div>
                         
                         <div class="mb-4">
-                            <label for="edit_mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number *</label>
-                            <input type="text" id="edit_mobile_number" name="mobile_number" placeholder="+63 917 123 4567" 
+                            <label for="edit_mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="edit_mobile_number" name="mobile_number" placeholder="+63 9XX XXX XXXX" 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
+                                required pattern="\+63\s?9\d{9}" 
                                 onfocus="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.replace(/^\+63\s*/, ''); this.setSelectionRange(4, this.value.length); }" 
                                 onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
-                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }">
+                                onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
+                                oninput="validateMobileNumber(this)">
+                            <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter exactly 11 digits (e.g., 9XX XXX XXXX). The +63 prefix is automatically added.</p>
                         </div>
                         
                         <div class="mb-4">
@@ -946,7 +954,91 @@ function editTrainer(trainerId) {
 }
 
 // Handle search functionality
+// Function to validate mobile number (exactly 11 digits)
+function validateMobileNumber(input) {
+    // Remove the +63 prefix and any spaces
+    const number = input.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+    
+    // Check if the resulting number has exactly 10 digits (for a total of 11 with the leading 9)
+    if (number.length > 10) {
+        input.value = input.value.substring(0, input.value.length - 1);
+    }
+    
+    // Ensure it starts with 9 after the +63 prefix
+    if (number.length > 0 && number[0] !== '9') {
+        input.value = '+63 9' + number.substring(1);
+    }
+}
+
+// Function to validate email with common domains
+function validateEmail(input) {
+    const validDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
+                         'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
+                         'protonmail.com', 'zoho.com'];
+    
+    const email = input.value.toLowerCase();
+    let isValid = false;
+    
+    // Reset validation message
+    input.setCustomValidity('');
+    
+    if (email && email.includes('@')) {
+        const parts = email.split('@');
+        if (parts.length === 2 && parts[0].length > 0) {
+            const domain = parts[1];
+            
+            // Check if domain is in our list of valid domains
+            if (!validDomains.includes(domain)) {
+                input.setCustomValidity('Please use a common email domain like gmail.com, yahoo.com, outlook.com, etc.');
+                isValid = false;
+            } else {
+                isValid = true;
+            }
+        } else {
+            input.setCustomValidity('Please enter a valid email format');
+            isValid = false;
+        }
+    }
+    
+    // Visually indicate validation status
+    if (input.validity.valid && isValid) {
+        input.classList.remove('border-red-500');
+        input.classList.add('border-[#4B5563]');
+    } else {
+        input.classList.remove('border-[#4B5563]');
+        input.classList.add('border-red-500');
+    }
+    
+    return isValid;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize email validation on page load
+    const emailInputs = document.querySelectorAll('input[type="email"]');
+    emailInputs.forEach(input => {
+        // Run validation on page load
+        validateEmail(input);
+        
+        // Set initial value to ensure validation works
+        const originalValue = input.value;
+        if (originalValue) {
+            setTimeout(() => {
+                validateEmail(input);
+            }, 100);
+        }
+        
+        // Add event listeners to catch form submission and validate email
+        const form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const isEmailValid = validateEmail(input);
+                if (!isEmailValid) {
+                    e.preventDefault();
+                    input.focus();
+                }
+            });
+        }
+    });
     // Search input handling
     const searchInput = document.getElementById('trainerSearch');
     if (searchInput) {

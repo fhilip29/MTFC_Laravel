@@ -147,6 +147,8 @@
                     <input type="hidden" id="sportId" name="id">
                     <!-- Add _method field for PUT requests -->
                     <input type="hidden" id="methodField" name="_method" value="POST">
+                    <!-- CSRF Token -->
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
                     
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -178,6 +180,18 @@
                         <label for="backgroundImage" class="block mb-2 text-sm font-medium text-white">Background Image</label>
                         <input type="file" id="backgroundImage" name="background_image" accept="image/jpeg,image/png,image/gif" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                         <p class="mt-1 text-xs text-gray-400">Recommended size: 1920x1080px (16:9 ratio). If no image is uploaded, a default image will be used.</p>
+                        <div id="currentImagePreview" class="mt-3 hidden">
+                            <div class="flex items-center justify-between mb-1">
+                                <p class="text-sm text-white font-medium">Current image:</p>
+                                <span id="removeCurrentImage" class="text-xs text-red-400 cursor-pointer hover:text-red-300">
+                                    <i class="fas fa-times mr-1"></i> Remove
+                                </span>
+                            </div>
+                            <div class="relative w-full h-40 bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+                                <img id="currentBackgroundImage" src="" alt="Current background image" class="w-full h-full object-cover">
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">Uploading a new image will replace this one.</p>
+                        </div>
                     </div>
                     
                     <div class="flex justify-between">
@@ -253,6 +267,46 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle remove current image button
+    const removeCurrentImageBtn = document.getElementById('removeCurrentImage');
+    if (removeCurrentImageBtn) {
+        removeCurrentImageBtn.addEventListener('click', function() {
+            Swal.fire({
+                title: 'Remove Background Image?',
+                text: 'This will remove the current background image and use the default image instead. This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                cancelButtonColor: '#4B5563',
+                confirmButtonText: 'Yes, remove it',
+                background: '#1F2937',
+                color: '#FFFFFF'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Add a hidden input to the form to indicate image removal
+                    const removeImageInput = document.createElement('input');
+                    removeImageInput.type = 'hidden';
+                    removeImageInput.name = 'remove_background_image';
+                    removeImageInput.value = '1';
+                    document.getElementById('sportForm').appendChild(removeImageInput);
+                    
+                    // Hide the current image preview
+                    document.getElementById('currentImagePreview').classList.add('hidden');
+                    
+                    // Show confirmation message
+                    Swal.fire({
+                        title: 'Image Removed',
+                        text: 'The background image will be removed when you save the sport.',
+                        icon: 'success',
+                        background: '#1F2937',
+                        color: '#FFFFFF',
+                        confirmButtonColor: '#3B82F6'
+                    });
+                }
+            });
+        });
+    }
+
     // Helper functions for form validation and error handling
     function showFieldError(field, message) {
         // Remove any existing error message
@@ -334,21 +388,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetSportForm() {
         sportForm.reset();
         document.getElementById('sportId').value = '';
+        document.getElementById('methodField').value = 'POST';
         
-        // Clear validation classes and messages
-        const formInputs = sportForm.querySelectorAll('input, textarea');
-        formInputs.forEach(input => {
-            input.classList.remove('border-red-500', 'border-green-500');
+        // Hide current image preview
+        document.getElementById('currentImagePreview').classList.add('hidden');
+        document.getElementById('currentBackgroundImage').src = '';
+        
+        // Remove validation styling
+        const inputs = sportForm.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
             input.removeAttribute('data-previously-validated');
-            
-            // Remove any existing error messages
-            const errorMsg = input.parentElement.querySelector('.error-message');
-            if (errorMsg) {
-                errorMsg.remove();
-            }
+            input.classList.remove('border-green-500', 'border-red-500');
         });
         
-        // Clear any additional error messages in the form
+        // Clear all error messages
         document.querySelectorAll('.error-message').forEach(el => el.remove());
     }
     
@@ -567,32 +620,21 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
         
-        // Create a new FormData object
-        const formData = new FormData();
+        // Get the form element directly
+        const form = document.getElementById('sportForm');
         
         // Check if we're editing
         const isEditing = !!sportId;
         
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        formData.append('_token', csrfToken);
-        
-        // Set method to PUT if editing
+        // Set method field for PUT if editing
         if (isEditing) {
-            formData.append('_method', 'PUT');
+            document.getElementById('methodField').value = 'PUT';
+        } else {
+            document.getElementById('methodField').value = 'POST';
         }
         
-        // Add required form data
-        formData.append('name', nameField.value.trim());
-        formData.append('description', descriptionField.value.trim());
-        formData.append('short_description', shortDescriptionField.value.trim());
-        formData.append('display_order', displayOrderField.value || 0);
-        formData.append('is_active', isActiveField.checked ? 1 : 0);
-        
-        // Add file if selected
-        if (backgroundImageField.files.length > 0) {
-            formData.append('background_image', backgroundImageField.files[0]);
-        }
+        // Create FormData from the form element to ensure all fields are included
+        const formData = new FormData(form);
         
         // Determine URL
         const url = isEditing ? `/admin/sports/${sportId}` : '/admin/sports';
@@ -786,6 +828,23 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('shortDescription').value = sport.short_description;
         document.getElementById('sportDescription').value = sport.description;
         document.getElementById('isActive').checked = sport.is_active;
+        
+        // Show current background image if it exists
+        if (sport.background_image && sport.background_image !== '/assets/gym-bg.jpg') {
+            const currentImagePreview = document.getElementById('currentImagePreview');
+            const currentBackgroundImage = document.getElementById('currentBackgroundImage');
+            
+            // Prepend the base URL if the path doesn't already include it
+            if (sport.background_image.startsWith('http')) {
+                currentBackgroundImage.src = sport.background_image;
+            } else {
+                currentBackgroundImage.src = '/' + sport.background_image; // Add leading slash if needed
+            }
+            
+            currentImagePreview.classList.remove('hidden');
+        } else {
+            document.getElementById('currentImagePreview').classList.add('hidden');
+        }
         
         // Mark all fields with values as validated
         const inputs = sportForm.querySelectorAll('input, textarea');

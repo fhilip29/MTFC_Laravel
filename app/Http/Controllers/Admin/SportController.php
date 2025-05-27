@@ -62,10 +62,26 @@ class SportController extends Controller
         // Handle image upload
         $backgroundImage = null;
         if ($request->hasFile('background_image')) {
-            $file = $request->file('background_image');
-            $filename = 'sport-bg-' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/sports', $filename);
-            $backgroundImage = '/storage/sports/' . $filename;
+            try {
+                $file = $request->file('background_image');
+                $filename = 'sport-bg-' . time() . '.' . $file->getClientOriginalExtension();
+                
+                // Create directory if it doesn't exist
+                $directory = public_path('images/sports');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
+                // Move the file to public/images/sports
+                $file->move($directory, $filename);
+                $backgroundImage = 'images/sports/' . $filename;
+                
+                \Log::info('Saved sport background image at: ' . $backgroundImage);
+            } catch (\Exception $e) {
+                \Log::error('Error handling sport background image: ' . $e->getMessage());
+                \Log::error($e->getTraceAsString());
+                $backgroundImage = '/assets/gym-bg.jpg'; // Default image on error
+            }
         } else {
             $backgroundImage = '/assets/gym-bg.jpg'; // Default image
         }
@@ -127,19 +143,53 @@ class SportController extends Controller
         // Keep existing slug to maintain routes/relationships
         // The system shouldn't allow changing slugs to avoid breaking existing data
         
-        // Handle image upload
+        // Handle image upload or removal
         if ($request->hasFile('background_image')) {
-            $file = $request->file('background_image');
-            $filename = 'sport-bg-' . time() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs('public/sports', $filename);
-            
-            // Remove old image if it's not default
-            if ($sport->background_image && $sport->background_image != '/assets/gym-bg.jpg') {
-                $oldPath = str_replace('/storage/', 'public/', $sport->background_image);
-                Storage::delete($oldPath);
+            try {
+                $file = $request->file('background_image');
+                $filename = 'sport-bg-' . time() . '.' . $file->getClientOriginalExtension();
+                
+                // Create directory if it doesn't exist
+                $directory = public_path('images/sports');
+                if (!file_exists($directory)) {
+                    mkdir($directory, 0755, true);
+                }
+                
+                // Remove old image if it's not default and exists in the filesystem
+                if ($sport->background_image && $sport->background_image != '/assets/gym-bg.jpg') {
+                    $oldImagePath = public_path($sport->background_image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+                }
+                
+                // Move the file to public/images/sports
+                $file->move($directory, $filename);
+                $sport->background_image = 'images/sports/' . $filename;
+                
+                \Log::info('Updated sport background image at: ' . $sport->background_image);
+            } catch (\Exception $e) {
+                \Log::error('Error handling sport background image update: ' . $e->getMessage());
+                \Log::error($e->getTraceAsString());
             }
-            
-            $sport->background_image = '/storage/sports/' . $filename;
+        } elseif ($request->boolean('remove_background_image')) {
+            // Handle image removal request
+            try {
+                // Remove old image if it's not default and exists in the filesystem
+                if ($sport->background_image && $sport->background_image != '/assets/gym-bg.jpg') {
+                    $oldImagePath = public_path($sport->background_image);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                        \Log::info('Removed sport background image: ' . $sport->background_image);
+                    }
+                }
+                
+                // Set to default image
+                $sport->background_image = '/assets/gym-bg.jpg';
+            } catch (\Exception $e) {
+                \Log::error('Error removing sport background image: ' . $e->getMessage());
+                \Log::error($e->getTraceAsString());
+            }
         }
         
         // Update sport
@@ -187,8 +237,16 @@ class SportController extends Controller
         
         // Remove background image if it's not default
         if ($sport->background_image && $sport->background_image != '/assets/gym-bg.jpg') {
-            $oldPath = str_replace('/storage/', 'public/', $sport->background_image);
-            Storage::delete($oldPath);
+            try {
+                $oldImagePath = public_path($sport->background_image);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                    \Log::info('Deleted sport background image: ' . $sport->background_image);
+                }
+            } catch (\Exception $e) {
+                \Log::error('Error deleting sport background image: ' . $e->getMessage());
+                \Log::error($e->getTraceAsString());
+            }
         }
         
         $sport->delete();

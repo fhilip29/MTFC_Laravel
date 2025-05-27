@@ -215,13 +215,15 @@
                         
                         <div class="mb-4">
                             <label for="mobile_number" class="block text-[#9CA3AF] text-sm font-medium mb-2">Mobile Number <span class="text-red-500">*</span></label>
-                            <input type="text" id="mobile_number" name="mobile_number" placeholder="+63 9XX XXX XXXX" 
+                                    <input type="text" id="mobile_number" name="mobile_number" placeholder="+63 9XX XXX XXXX" 
                                 class="w-full bg-[#374151] border border-[#4B5563] text-white rounded-lg p-3 focus:outline-none focus:border-[#9CA3AF]" 
                                 required pattern="\+63\s?9\d{9}" 
                                 onfocus="if(this.value === '+63 ') { this.setSelectionRange(4, 4); }" 
                                 onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
                                 onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
-                                oninput="validateMobileNumber(this)">
+                                oninput="validateMobileNumber(this)"
+                                onblur="validateMobileNumber(this)"
+                                onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode === 32;">
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter exactly 11 digits (e.g., 9XX XXX XXXX). The +63 prefix is automatically added.</p>
                         </div>
                         
@@ -392,7 +394,9 @@
                                 onfocus="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.replace(/^\+63\s*/, ''); this.setSelectionRange(4, this.value.length); }" 
                                 onkeydown="if(event.key === 'Backspace' && this.value.length <= 4) { event.preventDefault(); }" 
                                 onkeyup="if(!this.value.startsWith('+63 ')) { this.value = '+63 ' + this.value.substring(4); }"
-                                oninput="validateMobileNumber(this)">
+                                oninput="validateMobileNumber(this)"
+                                onblur="validateMobileNumber(this)"
+                                onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode === 32;">
                             <p class="text-xs text-[#9CA3AF] mt-1">Required. Enter exactly 11 digits (e.g., 9XX XXX XXXX). The +63 prefix is automatically added.</p>
                         </div>
                         
@@ -701,6 +705,28 @@ function submitAddTrainerForm() {
     // Get the form
     const form = document.getElementById('addTrainerForm');
     
+    // Validate email
+    const emailInput = document.getElementById('email');
+    const isEmailValid = validateEmail(emailInput);
+    if (!isEmailValid) {
+        displayInlineError(emailInput, 'Please enter a valid email with domains like gmail.com, yahoo.com, outlook.com, etc.');
+        emailInput.focus();
+        return;
+    } else {
+        clearInlineError(emailInput);
+    }
+    
+    // Validate mobile number
+    const mobileInput = document.getElementById('mobile_number');
+    const number = mobileInput.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+    if (number.length !== 10 || number[0] !== '9' || !/^\d+$/.test(number)) {
+        displayInlineError(mobileInput, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+        mobileInput.focus();
+        return;
+    } else {
+        clearInlineError(mobileInput);
+    }
+    
     // Validate instructor_for field
     const instructorSelect = document.getElementById('instructor_for');
     const instructorHidden = document.getElementById('instructor_for_hidden');
@@ -709,14 +735,11 @@ function submitAddTrainerForm() {
     console.log('Selected instructor values:', selectedValues);
     
     if (selectedValues.length === 0) {
-        Swal.fire({
-            title: 'Missing Information!',
-            text: 'Please select at least one instruction area (Gym, Boxing, etc.)',
-            icon: 'error',
-            background: '#1F2937',
-            color: '#ffffff'
-        });
+        displayInlineError(instructorSelect, 'Please select at least one instruction area (Gym, Boxing, etc.)');
+        instructorSelect.focus();
         return;
+    } else {
+        clearInlineError(instructorSelect);
     }
     
     // Update the hidden field with selected values
@@ -968,15 +991,64 @@ function validateMobileNumber(input) {
     if (number.length > 0 && number[0] !== '9') {
         input.value = '+63 9' + number.substring(1);
     }
+    
+    // Remove any non-numeric characters except spaces
+    input.value = input.value.replace(/[^\d\s\+]/g, '');
+    
+    // Always show validation message unless it's a valid number
+    const isValid = number.length === 10 && number[0] === '9' && /^\d+$/.test(number);
+    
+    if (isValid) {
+        clearInlineError(input);
+    } else if (input.value.length > 4) { // Only show error if user has started typing (after +63)
+        displayInlineError(input, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+    }
+    
+    return isValid;
+}
+
+// Function to display inline error messages
+function displayInlineError(input, message) {
+    // Add red border
+    input.classList.remove('border-[#4B5563]');
+    input.classList.add('border-red-500');
+    
+    // Find or create error message element
+    let errorElement = input.nextElementSibling;
+    if (!errorElement || !errorElement.classList.contains('error-message')) {
+        errorElement = document.createElement('p');
+        errorElement.className = 'text-xs text-red-500 mt-1 error-message';
+        input.parentNode.insertBefore(errorElement, input.nextElementSibling);
+    }
+    
+    // Set error message and make sure it's visible
+    errorElement.textContent = message;
+    errorElement.classList.remove('hidden');
+}
+
+// Function to clear inline error messages
+function clearInlineError(input) {
+    // Remove red border
+    input.classList.remove('border-red-500');
+    input.classList.add('border-[#4B5563]');
+    
+    // Find and remove error message element
+    const errorElement = input.nextElementSibling;
+    if (errorElement && errorElement.classList.contains('error-message')) {
+        errorElement.textContent = '';
+        errorElement.classList.add('hidden');
+    }
 }
 
 // Function to validate email with common domains
 function validateEmail(input) {
-    const validDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
-                         'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
-                         'protonmail.com', 'zoho.com'];
+    const validDomains = [
+        'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 
+        'msn.com', 'aol.com', 'ymail.com', 'me.com', 'live.com', 
+        'protonmail.com', 'zoho.com'
+    ];
     
-    const email = input.value.toLowerCase();
+    const email = input.value.toLowerCase().trim();
     let isValid = false;
     
     // Reset validation message
@@ -985,11 +1057,15 @@ function validateEmail(input) {
     if (email && email.includes('@')) {
         const parts = email.split('@');
         if (parts.length === 2 && parts[0].length > 0) {
-            const domain = parts[1];
+            const domain = parts[1].trim();
             
             // Check if domain is in our list of valid domains
             if (!validDomains.includes(domain)) {
                 input.setCustomValidity('Please use a common email domain like gmail.com, yahoo.com, outlook.com, etc.');
+                isValid = false;
+            } else if (!/^[a-z0-9._%+-]+$/.test(parts[0])) {
+                // Check if the username part contains valid characters
+                input.setCustomValidity('Email contains invalid characters');
                 isValid = false;
             } else {
                 isValid = true;
@@ -998,15 +1074,6 @@ function validateEmail(input) {
             input.setCustomValidity('Please enter a valid email format');
             isValid = false;
         }
-    }
-    
-    // Visually indicate validation status
-    if (input.validity.valid && isValid) {
-        input.classList.remove('border-red-500');
-        input.classList.add('border-[#4B5563]');
-    } else {
-        input.classList.remove('border-[#4B5563]');
-        input.classList.add('border-red-500');
     }
     
     return isValid;
@@ -1035,6 +1102,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!isEmailValid) {
                     e.preventDefault();
                     input.focus();
+                    displayInlineError(input, 'Please enter a valid email with domains like gmail.com, yahoo.com, outlook.com, etc.');
+                } else {
+                    clearInlineError(input);
+                }
+            });
+        }
+    });
+    
+    // Initialize mobile number validation on page load
+    const mobileInputs = document.querySelectorAll('input[id="mobile_number"], input[id="edit_mobile_number"]');
+    mobileInputs.forEach(input => {
+        // Add event listeners to catch form submission
+        const form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Remove the +63 prefix and any spaces
+                const number = input.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+                
+                // Check if it's a valid 10-digit number after the 9 prefix
+                if (number.length !== 10 || number[0] !== '9' || !/^\d+$/.test(number)) {
+                    e.preventDefault();
+                    input.focus();
+                    displayInlineError(input, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+                } else {
+                    clearInlineError(input);
                 }
             });
         }
@@ -1260,7 +1352,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saveTrainerBtn) {
         saveTrainerBtn.addEventListener('click', function(e) {
             console.log('Save Trainer button clicked directly');
-            // Form will still trigger its own submit event
+            e.preventDefault();
+            submitAddTrainerForm();
         });
     }
     
@@ -1271,7 +1364,29 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Add Trainer Form Submit Event Triggered');
             e.preventDefault();
             
-            // 1. Validate instructor_for first - most common issue
+            // 0. Validate email
+            const emailInput = document.getElementById('email');
+            const isEmailValid = validateEmail(emailInput);
+            if (!isEmailValid) {
+                displayInlineError(emailInput, 'Please enter a valid email with domains like gmail.com, yahoo.com, outlook.com, etc.');
+                emailInput.focus();
+                return;
+            } else {
+                clearInlineError(emailInput);
+            }
+            
+            // 0.1 Validate mobile number
+            const mobileInput = document.getElementById('mobile_number');
+            const number = mobileInput.value.replace(/^\+63\s*/, '').replace(/\s+/g, '');
+            if (number.length !== 10 || number[0] !== '9' || !/^\d+$/.test(number)) {
+                displayInlineError(mobileInput, 'Please enter a valid 11-digit Philippine mobile number starting with 9.');
+                mobileInput.focus();
+                return;
+            } else {
+                clearInlineError(mobileInput);
+            }
+            
+            // 1. Validate instructor_for field
             const instructorSelect = document.getElementById('instructor_for');
             const instructorHidden = document.getElementById('instructor_for_hidden');
             const selectedValues = Array.from(instructorSelect.selectedOptions).map(opt => opt.value);
